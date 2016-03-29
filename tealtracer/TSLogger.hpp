@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 
-#define TSLoggerLog(out, ...) TSLogger::log(out, "{", TSLogger::ltrim(__FILE__, "VitalK/"), ":", __LINE__, " (", __FUNCTION__, ")} ", __VA_ARGS__)
+#define TSLoggerLog(out, ...) TSLogger::log(out, "{", TSLogger::ltrim(__FILE__, "tealtracer/"), ":", __LINE__, " (", __FUNCTION__, ")} ", __VA_ARGS__)
 
 class TSLogger {
 public:

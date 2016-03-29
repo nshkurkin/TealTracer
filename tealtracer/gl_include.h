@@ -1,16 +1,19 @@
-///
-/// gl.h
-/// ----
-/// Nikolai Shkurkin
-/// NSGL Library
-///
+//
+//  gl_include.h
+//  tealtracer
+//
+//  Created by Nikolai Shkurkin on 3/29/16.
+//  Copyright © 2016 Teal Sunset Studios. All rights reserved.
+//
+
+#ifndef gl_include_h
+#define gl_include_h
 
 //// Represents the target opengl major version.
-#define OPENGL_MAJOR_VERSION 3
+#define OPENGL_MAJOR_VERSION 4
 /// Represents the target opengl minor verions.
-#define OPENGL_MINOR_VERSION 2
+#define OPENGL_MINOR_VERSION 0
 ////
-
 
 #if (OPENGL_MAJOR_VERSION >= 3 && OPENGL_MINOR_VERSION >= 2) \
     || (OPENGL_MAJOR_VERSION >= 4)
@@ -44,7 +47,6 @@
 /// However, here you can set the API that you use, such as glut or straight gl.h
 #include <GLFW/glfw3.h>
 
-
 #ifdef OLD_OPENGL
 #ifdef __APPLE__
 // Mac OpenGL < 3.2 has special functions for some reason
@@ -57,11 +59,4 @@
 #endif
 #endif
 
-#ifndef ____nsgl_gl__
-#define ____nsgl_gl__
-
-typedef GLchar ** GLstring;
-typedef void * GLvoidptr;
-
-#endif
-
+#endif /* gl_include_h */
