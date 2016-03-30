@@ -11,6 +11,10 @@
 		C0C1231D1CAB20790024DA91 /* tealtracer.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C1231C1CAB20790024DA91 /* tealtracer.1 */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
 		C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1251A1CAB337F0024DA91 /* TSValue.cpp */; };
+		C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125211CAB35D10024DA91 /* TSApplication.cpp */; };
+		C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125241CAB371A0024DA91 /* TSWindow.cpp */; };
+		C0C125291CAB4A220024DA91 /* GLFWWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125271CAB4A220024DA91 /* GLFWWindow.cpp */; };
+		C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -362,6 +366,14 @@
 		C0C1251B1CAB337F0024DA91 /* TSValue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSValue.hpp; sourceTree = "<group>"; };
 		C0C1251C1CAB337F0024DA91 /* TSValuePool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSValuePool.hpp; sourceTree = "<group>"; };
 		C0C125201CAB342B0024DA91 /* gl_include.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gl_include.h; sourceTree = "<group>"; };
+		C0C125211CAB35D10024DA91 /* TSApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSApplication.cpp; sourceTree = "<group>"; };
+		C0C125221CAB35D10024DA91 /* TSApplication.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSApplication.hpp; sourceTree = "<group>"; };
+		C0C125241CAB371A0024DA91 /* TSWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSWindow.cpp; sourceTree = "<group>"; };
+		C0C125251CAB371A0024DA91 /* TSWindow.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSWindow.hpp; sourceTree = "<group>"; };
+		C0C125271CAB4A220024DA91 /* GLFWWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GLFWWindow.cpp; sourceTree = "<group>"; };
+		C0C125281CAB4A220024DA91 /* GLFWWindow.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = GLFWWindow.hpp; sourceTree = "<group>"; };
+		C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TealTracer.cpp; sourceTree = "<group>"; };
+		C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TealTracer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -398,6 +410,10 @@
 				C0C1231A1CAB20790024DA91 /* main.cpp */,
 				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
 				C0C125201CAB342B0024DA91 /* gl_include.h */,
+				C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */,
+				C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */,
+				C0C125271CAB4A220024DA91 /* GLFWWindow.cpp */,
+				C0C125281CAB4A220024DA91 /* GLFWWindow.hpp */,
 				C0C1251F1CAB33DB0024DA91 /* Helpers */,
 			);
 			path = tealtracer;
@@ -1048,6 +1064,10 @@
 				C0C1251A1CAB337F0024DA91 /* TSValue.cpp */,
 				C0C1251B1CAB337F0024DA91 /* TSValue.hpp */,
 				C0C1251C1CAB337F0024DA91 /* TSValuePool.hpp */,
+				C0C125211CAB35D10024DA91 /* TSApplication.cpp */,
+				C0C125221CAB35D10024DA91 /* TSApplication.hpp */,
+				C0C125241CAB371A0024DA91 /* TSWindow.cpp */,
+				C0C125251CAB371A0024DA91 /* TSWindow.hpp */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -1109,8 +1129,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */,
+				C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */,
+				C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */,
 				C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */,
 				C0C1231B1CAB20790024DA91 /* main.cpp in Sources */,
+				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,
+				C0C125291CAB4A220024DA91 /* GLFWWindow.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1211,6 +1235,8 @@
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib/",
 					"-lglfw3",
+					"-framework",
+					OpenGL,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1227,6 +1253,8 @@
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib/",
 					"-lglfw3",
+					"-framework",
+					OpenGL,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

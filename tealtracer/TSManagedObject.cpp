@@ -22,9 +22,3 @@ void
 TSManagedObject::setReference(std::shared_ptr<TSManagedObject> reference) {
     managedSelf_ = reference;
 }
-
-///
-std::shared_ptr<TSManagedObject>
-TSManagedObject::sharedReference() const {
-    return managedSelf_.lock();
-}

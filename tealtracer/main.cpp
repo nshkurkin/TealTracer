@@ -6,15 +6,10 @@
 //  Copyright © 2016 Teal Sunset Studios. All rights reserved.
 //
 
-#include <iostream>
-
-#include "gl_include.h"
+#include "TealTracer.hpp"
 
 ///
 int main(int argc, const char * argv[]) {
-
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return 0;
+    return TSApplication::main(new TealTracer(), argc, argv);
 }
 

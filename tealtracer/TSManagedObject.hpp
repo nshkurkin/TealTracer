@@ -16,11 +16,12 @@ class TSManagedObject {
 public:
     TSManagedObject();
     virtual ~TSManagedObject();
-    
+
     ///
-    void setReference(std::shared_ptr<TSManagedObject> reference);
-    ///
-    std::shared_ptr<TSManagedObject> sharedReference() const;
+    template <class C = TSManagedObject>
+    std::shared_ptr<C> sharedReference() const {
+        return std::dynamic_pointer_cast<C>(managedSelf_.lock());
+    }
 
     ///
     template <class C>
@@ -29,6 +30,11 @@ public:
         obj->setReference(shared);
         return shared;
     }
+
+protected:
+
+    ///
+    void setReference(std::shared_ptr<TSManagedObject> reference);
 
 private:
     ///
