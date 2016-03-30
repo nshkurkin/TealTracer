@@ -12,6 +12,16 @@
 #include "TSWindow.hpp"
 #include "gl_include.h"
 
+/// From Lab 1:
+///
+///     *) Parse the scne description file
+///     *) Computing ray-object intersections
+///     *) Shading
+///     *) Recursive Tracing (reflection, refraction, shadows)
+///     *) Write out resulting image
+///
+
+///
 class CPURayTracer : public TSWindowDrawingDelegate, public TSUserEventListener {
 public:
 

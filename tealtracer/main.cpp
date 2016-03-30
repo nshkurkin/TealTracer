@@ -7,9 +7,13 @@
 //
 
 #include "TealTracer.hpp"
+#include "PovrayParser.hpp"
 
 ///
 int main(int argc, const char * argv[]) {
+
+    PovrayParser::loadScene("/Users/Bo/Documents/Programming/csc490/tealtracer/tealtracer/lab1_simple.pov");
+
     return TSApplication::main(new TealTracer(), argc, argv);
 }
 
