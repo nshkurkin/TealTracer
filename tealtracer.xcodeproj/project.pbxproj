@@ -20,6 +20,8 @@
 		C0C1253A1CAC405B0024DA91 /* PovrayScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125381CAC405B0024DA91 /* PovrayScene.cpp */; };
 		C0C1253D1CAC40AB0024DA91 /* PovraySceneElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */; };
 		C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */; };
+		C0C125461CAC70460024DA91 /* OpenGLObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125441CAC70460024DA91 /* OpenGLObject.cpp */; };
+		C0C125491CAC743E0024DA91 /* opengl_errors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125471CAC743E0024DA91 /* opengl_errors.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -389,6 +391,10 @@
 		C0C1253C1CAC40AB0024DA91 /* PovraySceneElements.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovraySceneElements.hpp; sourceTree = "<group>"; };
 		C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovraySceneElement.cpp; sourceTree = "<group>"; };
 		C0C1253F1CAC6CFF0024DA91 /* PovraySceneElement.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovraySceneElement.hpp; sourceTree = "<group>"; };
+		C0C125441CAC70460024DA91 /* OpenGLObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLObject.cpp; sourceTree = "<group>"; };
+		C0C125451CAC70460024DA91 /* OpenGLObject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLObject.hpp; sourceTree = "<group>"; };
+		C0C125471CAC743E0024DA91 /* opengl_errors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_errors.cpp; sourceTree = "<group>"; };
+		C0C125481CAC743E0024DA91 /* opengl_errors.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = opengl_errors.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -427,19 +433,14 @@
 				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
 				C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */,
 				C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */,
-				C0C125201CAB342B0024DA91 /* gl_include.h */,
 				C0C125271CAB4A220024DA91 /* Window.cpp */,
 				C0C125281CAB4A220024DA91 /* Window.hpp */,
 				C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */,
 				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
 				C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */,
 				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
-				C0C125381CAC405B0024DA91 /* PovrayScene.cpp */,
-				C0C125391CAC405B0024DA91 /* PovrayScene.hpp */,
-				C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */,
-				C0C1253F1CAC6CFF0024DA91 /* PovraySceneElement.hpp */,
-				C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */,
-				C0C1253C1CAC40AB0024DA91 /* PovraySceneElements.hpp */,
+				C0C125431CAC70240024DA91 /* opengl */,
+				C0C125411CAC6F850024DA91 /* povray */,
 				C0C1251F1CAB33DB0024DA91 /* Helpers */,
 			);
 			path = tealtracer;
@@ -1105,6 +1106,31 @@
 			name = scenes;
 			sourceTree = "<group>";
 		};
+		C0C125411CAC6F850024DA91 /* povray */ = {
+			isa = PBXGroup;
+			children = (
+				C0C125381CAC405B0024DA91 /* PovrayScene.cpp */,
+				C0C125391CAC405B0024DA91 /* PovrayScene.hpp */,
+				C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */,
+				C0C1253F1CAC6CFF0024DA91 /* PovraySceneElement.hpp */,
+				C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */,
+				C0C1253C1CAC40AB0024DA91 /* PovraySceneElements.hpp */,
+			);
+			name = povray;
+			sourceTree = "<group>";
+		};
+		C0C125431CAC70240024DA91 /* opengl */ = {
+			isa = PBXGroup;
+			children = (
+				C0C125201CAB342B0024DA91 /* gl_include.h */,
+				C0C125441CAC70460024DA91 /* OpenGLObject.cpp */,
+				C0C125451CAC70460024DA91 /* OpenGLObject.hpp */,
+				C0C125471CAC743E0024DA91 /* opengl_errors.cpp */,
+				C0C125481CAC743E0024DA91 /* opengl_errors.hpp */,
+			);
+			name = opengl;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1166,8 +1192,10 @@
 				C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */,
 				C0C1252F1CAB5B930024DA91 /* GPURayTracer.cpp in Sources */,
 				C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */,
+				C0C125491CAC743E0024DA91 /* opengl_errors.cpp in Sources */,
 				C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */,
 				C0C125321CAB5C3F0024DA91 /* CPURayTracer.cpp in Sources */,
+				C0C125461CAC70460024DA91 /* OpenGLObject.cpp in Sources */,
 				C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */,
 				C0C1253D1CAC40AB0024DA91 /* PovraySceneElements.cpp in Sources */,
 				C0C1231B1CAB20790024DA91 /* main.cpp in Sources */,
