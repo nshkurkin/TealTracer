@@ -23,10 +23,6 @@ public:
     virtual void mouseDown(TSWindow * window, int button, int mods) = 0;
     virtual void mouseMoved(TSWindow * window, double x, double y) = 0;
     virtual void mouseScroll(TSWindow * window, double dx, double dy) = 0;
-    virtual void windowResize(TSWindow * window, int w, int h) = 0;
-    virtual void framebufferResize(TSWindow * window, int w, int h) = 0;
-    
-    virtual void windowClose(TSWindow * window) = 0;
 };
 
 class TSNullUserEventListener : public TSUserEventListener {
@@ -39,17 +35,18 @@ public:
     virtual void mouseDown(TSWindow * window, int button, int mods);
     virtual void mouseMoved(TSWindow * window, double x, double y);
     virtual void mouseScroll(TSWindow * window, double dx, double dy);
-    virtual void windowResize(TSWindow * window, int w, int h);
-    virtual void framebufferResize(TSWindow * window, int w, int h);
-    
-    virtual void windowClose(TSWindow * window);
 };
 
 class TSWindowDrawingDelegate {
 public:
     virtual ~TSWindowDrawingDelegate() {};
+    
     virtual void setupDrawingInWindow(TSWindow * window) = 0;
     virtual void drawInWindow(TSWindow * window) = 0;
+    
+    virtual void windowResize(TSWindow * window, int w, int h) = 0;
+    virtual void framebufferResize(TSWindow * window, int w, int h) = 0;
+    virtual void windowClose(TSWindow * window) = 0;
 };
 
 class TSNullWindowDrawingDelegate : public TSWindowDrawingDelegate {
@@ -58,6 +55,10 @@ public:
     
     virtual void setupDrawingInWindow(TSWindow * window) {}
     virtual void drawInWindow(TSWindow * window) {}
+    
+    virtual void windowResize(TSWindow * window, int w, int h) {}
+    virtual void framebufferResize(TSWindow * window, int w, int h) {}
+    virtual void windowClose(TSWindow * window) {}
 };
 
 #include <string>
@@ -78,6 +79,11 @@ public:
     
     virtual int frameBufferWidth() const = 0;
     virtual int frameBufferHeight() const = 0;
+    
+    virtual int posX() const = 0;
+    virtual int posY() const = 0;
+    virtual void setPosX(int x) = 0;
+    virtual void setPosY(int y) = 0;
     
     virtual void makeContextCurrent() = 0;
     virtual void swapBuffers() = 0;

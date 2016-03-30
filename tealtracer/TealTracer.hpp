@@ -10,36 +10,35 @@
 #define TealTracer_hpp
 
 #include "TSApplication.hpp"
-#include "GLFWWindow.hpp"
-
 #include "TSLogger.hpp"
+
 #include <cassert>
 
 #include "gl_include.h"
+#include "Window.hpp"
+#include "GPURayTracer.hpp"
+#include "CPURayTracer.hpp"
 
-class TealTracer : public TSApplication, public TSWindowDrawingDelegate {
+class TealTracer : public TSApplication {
 protected:
     
     ///
     enum WindowName {
-        MainWindow = 1
+        CPUWindow = 0,
+        GPUWindow,
+        NumWindows
     };
 
 public:
 
     ///
-    std::shared_ptr<TSWindow> mainWindow() {
-        return this->getWindow(MainWindow);
+    std::shared_ptr<TSWindow> gpuWindow() {
+        return this->getWindow(GPUWindow);
     }
-
+    
     ///
-    virtual void setupDrawingInWindow(TSWindow * window) {
-        glClearColor(0, 0, 0, 1);
-    }
-
-    ///
-    virtual void drawInWindow(TSWindow * window) {
-        glClear(GL_COLOR_BUFFER_BIT);
+    std::shared_ptr<TSWindow> cpuWindow() {
+        return this->getWindow(CPUWindow);
     }
 
 protected:
@@ -47,12 +46,26 @@ protected:
     ///
     virtual int run(const std::vector<std::string> & args) {
         assert(glfwInit());
-        this->createNewWindow(MainWindow);
-        assert(mainWindow() != nullptr);
-        mainWindow()->setDrawingDelegate(this->sharedReference<TealTracer>());
-        mainWindow()->setTitle("TealTracer");
+        for (int i = 0; i < NumWindows; i++) {
+            this->createNewWindow(i);
+        }
         
-        while (mainWindow()->opened()) {
+        auto monitor = glfwGetPrimaryMonitor();
+        auto videoMode = glfwGetVideoMode(monitor);
+        
+        gpuRayTracer = std::shared_ptr<GPURayTracer>(new GPURayTracer());
+        gpuWindow()->setDrawingDelegate(gpuRayTracer);
+        gpuWindow()->setEventListener(gpuRayTracer);
+        gpuWindow()->setTitle("GPU Ray Tracer");
+        gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
+        
+        cpuRayTracer = std::shared_ptr<CPURayTracer>(new CPURayTracer());
+        cpuWindow()->setDrawingDelegate(cpuRayTracer);
+        cpuWindow()->setEventListener(cpuRayTracer);
+        cpuWindow()->setTitle("CPU Ray Tracer");
+        cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
+        
+        while (gpuWindow()->opened()) {
             glfwPollEvents();
             for (auto windowItr = windowsBegin(); windowItr != windowsEnd(); windowItr++) {
                 windowItr->second->draw();
@@ -65,17 +78,20 @@ protected:
     
     ///
     virtual std::shared_ptr<TSWindow> newWindow() {
-        auto window = GLFWWindow::createManaged(new GLFWWindow());
+        auto window = Window::createManaged(new Window());
         window->setup(400, 300, "Untitled");
         return window;
     }
     
     ///
     virtual void quit() {
-        mainWindow()->close();
+        gpuWindow()->close();
     }
     
 private:
+
+    std::shared_ptr<GPURayTracer> gpuRayTracer;
+    std::shared_ptr<CPURayTracer> cpuRayTracer;
 
 };
 

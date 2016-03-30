@@ -1,23 +1,23 @@
 //
-//  GLFWWindow.hpp
+//  Window.hpp
 //  tealtracer
 //
 //  Created by Nikolai Shkurkin on 3/29/16.
 //  Copyright © 2016 Teal Sunset Studios. All rights reserved.
 //
 
-#ifndef GLFWWindow_hpp
-#define GLFWWindow_hpp
+#ifndef Window_hpp
+#define Window_hpp
 
 #include "TSWindow.hpp"
 
 #include "gl_include.h"
 #include <string>
 
-class GLFWWindow : public TSWindow {
+class Window : public TSWindow {
 public:
     ///
-    GLFWWindow() {
+    Window() {
         cachedWidth_ = -1;
         cachedHeight_ = -1;
         window_ = nullptr;
@@ -25,7 +25,7 @@ public:
     }
 
     ///
-    virtual ~GLFWWindow() {
+    virtual ~Window() {
         if (window_) {
             glfwDestroyWindow(window_);
             window_ = nullptr;
@@ -93,6 +93,28 @@ public:
     }
     
     ///
+    virtual int posX() const {
+        return cachedX_;
+    }
+    
+    ///
+    virtual int posY() const {
+        return cachedY_;
+    }
+    
+    ///
+    virtual void setPosX(int x) {
+        cachedX_ = x;
+        setWindowPos_();
+    }
+    
+    ///
+    virtual void setPosY(int y) {
+        cachedY_ = y;
+        setWindowPos_();
+    }
+    
+    ///
     virtual void setEventListener(std::shared_ptr<TSUserEventListener> listener) {
         listener_ = listener;
     }
@@ -129,6 +151,7 @@ private:
         window_ = window;
         if (window_ != nullptr) {
             updateWindowDims_();
+            updateWindowPos_();
             glfwSetWindowUserPointer(window_, this);
             glfwSetKeyCallback(window_, keyEventFunc_);
             glfwSetCursorPosCallback(window_, mouseMotionEventFunc_);
@@ -137,6 +160,7 @@ private:
             glfwSetWindowSizeCallback(window_, windowResizeFunc_);
             glfwSetFramebufferSizeCallback(window_, framebufferResizeFunc_);
             glfwSetWindowCloseCallback(window_, windowCloseFunc_);
+            glfwSetWindowPosCallback(window_, windowPosFunc_);
         }
     }
 
@@ -164,6 +188,11 @@ private:
     int cachedFBHeight_;
     
     ///
+    int cachedX_;
+    ///
+    int cachedY_;
+    
+    ///
     std::string cachedTitle_;
     
     ///
@@ -181,9 +210,19 @@ private:
     }
     
     ///
+    void setWindowPos_() const {
+        glfwSetWindowPos(window_, cachedX_, cachedY_);
+    }
+    
+    ///
+    void updateWindowPos_() {
+        glfwGetWindowPos(window_, &cachedX_, &cachedY_);
+    }
+    
+    ///
     static void keyEventFunc_(GLFWwindow * window, int key, int scancode,
      int action, int mods) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
         if (action == GLFW_PRESS) {
             win->listener_->keyDown(win, key, scancode, mods);
         }
@@ -194,14 +233,14 @@ private:
     ///
     static void mouseMotionEventFunc_(GLFWwindow * window, double xpos,
      double ypos) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
         win->listener_->mouseMoved(win, xpos, ypos);
     }
 
     ///
     static void mouseButtonEventFunc_(GLFWwindow * window, int button,
      int action, int mods) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
         if (action == GLFW_PRESS) {
             win->listener_->mouseDown(win, button, mods);
         }
@@ -213,29 +252,35 @@ private:
     ///
     static void mouseScrollEventFunc_(GLFWwindow * window, double xoffset,
      double yoffset) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
         win->listener_->mouseScroll(win, xoffset, yoffset);
     }
 
     ///
     static void windowResizeFunc_(GLFWwindow * window, int w, int h) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
         win->updateWindowDims_();
-        win->listener_->windowResize(win, w, h);
+        win->drawingDelegate()->windowResize(win, w, h);
     }
 
     ///
     static void framebufferResizeFunc_(GLFWwindow * window, int w, int h) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
         win->updateWindowDims_();
-        win->listener_->framebufferResize(win, w, h);
+        win->drawingDelegate()->framebufferResize(win, w, h);
     }
     
     ///
     static void windowCloseFunc_(GLFWwindow * window) {
-        auto win = (GLFWWindow*)glfwGetWindowUserPointer(window);
-        win->listener_->windowClose(win);
+        auto win = (Window*)glfwGetWindowUserPointer(window);
+        win->drawingDelegate()->windowClose(win);
+    }
+    
+    ///
+    static void windowPosFunc_(GLFWwindow * window, int x, int y) {
+        auto win = (Window*)glfwGetWindowUserPointer(window);
+        win->updateWindowPos_();
     }
 };
 
-#endif /* GLFWWindow_hpp */
+#endif /* Window_hpp */

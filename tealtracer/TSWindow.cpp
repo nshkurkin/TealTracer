@@ -16,10 +16,6 @@ void TSNullUserEventListener::mouseUp(TSWindow * window, int button, int mods) {
 void TSNullUserEventListener::mouseDown(TSWindow * window, int button, int mods) {}
 void TSNullUserEventListener::mouseMoved(TSWindow * window, double x, double y) {}
 void TSNullUserEventListener::mouseScroll(TSWindow * window, double dx, double dy) {}
-void TSNullUserEventListener::windowResize(TSWindow * window, int w, int h) {}
-void TSNullUserEventListener::framebufferResize(TSWindow * window, int w, int h) {}
-
-void TSNullUserEventListener::windowClose(TSWindow * window) {}
 
 ///
 TSWindow::TSWindow() {
