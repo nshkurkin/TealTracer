@@ -10,7 +10,7 @@
 #define TealTracer_hpp
 
 #include "TSApplication.hpp"
-#include "TSLogger.hpp"
+#include "PovrayScene.hpp"
 
 #include <cassert>
 
@@ -40,6 +40,7 @@ private:
 
     std::shared_ptr<GPURayTracer> gpuRayTracer_;
     std::shared_ptr<CPURayTracer> cpuRayTracer_;
+    std::shared_ptr<PovrayScene> scene_;
 
 };
 

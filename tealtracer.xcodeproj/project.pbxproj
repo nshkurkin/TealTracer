@@ -17,9 +17,9 @@
 		C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */; };
 		C0C1252F1CAB5B930024DA91 /* GPURayTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */; };
 		C0C125321CAB5C3F0024DA91 /* CPURayTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */; };
-		C0C125351CAB7C400024DA91 /* PovrayParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125331CAB7C400024DA91 /* PovrayParser.cpp */; };
 		C0C1253A1CAC405B0024DA91 /* PovrayScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125381CAC405B0024DA91 /* PovrayScene.cpp */; };
 		C0C1253D1CAC40AB0024DA91 /* PovraySceneElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */; };
+		C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -382,13 +382,13 @@
 		C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = GPURayTracer.hpp; sourceTree = "<group>"; };
 		C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CPURayTracer.cpp; sourceTree = "<group>"; };
 		C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CPURayTracer.hpp; sourceTree = "<group>"; };
-		C0C125331CAB7C400024DA91 /* PovrayParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovrayParser.cpp; sourceTree = "<group>"; };
-		C0C125341CAB7C400024DA91 /* PovrayParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovrayParser.hpp; sourceTree = "<group>"; };
 		C0C125371CAB7D940024DA91 /* lab1_simple.pov */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lab1_simple.pov; sourceTree = "<group>"; };
 		C0C125381CAC405B0024DA91 /* PovrayScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovrayScene.cpp; sourceTree = "<group>"; };
 		C0C125391CAC405B0024DA91 /* PovrayScene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovrayScene.hpp; sourceTree = "<group>"; };
 		C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovraySceneElements.cpp; sourceTree = "<group>"; };
 		C0C1253C1CAC40AB0024DA91 /* PovraySceneElements.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovraySceneElements.hpp; sourceTree = "<group>"; };
+		C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovraySceneElement.cpp; sourceTree = "<group>"; };
+		C0C1253F1CAC6CFF0024DA91 /* PovraySceneElement.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovraySceneElement.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -434,10 +434,10 @@
 				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
 				C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */,
 				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
-				C0C125331CAB7C400024DA91 /* PovrayParser.cpp */,
-				C0C125341CAB7C400024DA91 /* PovrayParser.hpp */,
 				C0C125381CAC405B0024DA91 /* PovrayScene.cpp */,
 				C0C125391CAC405B0024DA91 /* PovrayScene.hpp */,
+				C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */,
+				C0C1253F1CAC6CFF0024DA91 /* PovraySceneElement.hpp */,
 				C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */,
 				C0C1253C1CAC40AB0024DA91 /* PovraySceneElements.hpp */,
 				C0C1251F1CAB33DB0024DA91 /* Helpers */,
@@ -1163,9 +1163,9 @@
 			files = (
 				C0C1253A1CAC405B0024DA91 /* PovrayScene.cpp in Sources */,
 				C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */,
-				C0C125351CAB7C400024DA91 /* PovrayParser.cpp in Sources */,
 				C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */,
 				C0C1252F1CAB5B930024DA91 /* GPURayTracer.cpp in Sources */,
+				C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */,
 				C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */,
 				C0C125321CAB5C3F0024DA91 /* CPURayTracer.cpp in Sources */,
 				C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */,

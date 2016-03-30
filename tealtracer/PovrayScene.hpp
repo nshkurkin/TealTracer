@@ -12,24 +12,47 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
 
-///
-class PovraySceneElement {
-public:
-    virtual ~PovraySceneElement() {}
-    /// Sets this element's content to "body"
-    virtual void parse(const std::string & body) = 0;
-    ///
-    virtual std::shared_ptr<PovraySceneElement> copy() const = 0;
-};
+#include <Eigen/Eigen>
+
+#include "TSLogger.hpp"
+#include "PovraySceneElement.hpp"
+#include "PovraySceneElements.hpp"
 
 ///
 class PovrayScene {
 public:
 
     ///
-    void addElement(std::shared_ptr<PovraySceneElement> element) {
-        elements_.push_back(element);
+    void addElement(std::shared_ptr<PovraySceneElement> element);
+    ///
+    static std::shared_ptr<PovrayScene> loadScene(const std::string & file);
+
+    ///
+    void writeOut(std::ostream & out) {
+        for (auto itr = elements_.begin(); itr != elements_.end(); itr++) {
+            (*itr)->write(out);
+        }
+    }
+    
+    ///
+    template <class C>
+    std::vector<std::shared_ptr<C>> findElements() const {
+        std::vector<std::shared_ptr<C>> elements;
+        for (auto itr = elements_.begin(); itr != elements_.end(); itr++) {
+            auto ptr = *itr;
+            auto cast = std::dynamic_pointer_cast<C>(ptr);
+            if (cast != nullptr) {
+                elements.push_back(cast);
+            }
+        }
+        return elements;
+    }
+    
+    ///
+    std::shared_ptr<PovrayCamera> camera() const {
+        return findElements<PovrayCamera>()[0];
     }
 
 private:

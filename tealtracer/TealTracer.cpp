@@ -7,6 +7,8 @@
 //
 
 #include "TealTracer.hpp"
+#include "TSLogger.hpp"
+
 
 ///
 enum WindowName {
@@ -30,6 +32,8 @@ TealTracer::cpuWindow() {
 ///
 int
 TealTracer::run(const std::vector<std::string> & args) {
+    scene_ = PovrayScene::loadScene("/Users/Bo/Documents/Programming/csc490/tealtracer/tealtracer/lab1_simple.pov");
+    
     assert(glfwInit());
     for (int i = 0; i < NumWindows; i++) {
         this->createNewWindow(i);
@@ -43,12 +47,14 @@ TealTracer::run(const std::vector<std::string> & args) {
     gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
     gpuWindow()->setDrawingDelegate(gpuRayTracer_);
     gpuWindow()->setEventListener(gpuRayTracer_);
+    gpuRayTracer_->setScene(scene_);
     
     cpuRayTracer_ = std::shared_ptr<CPURayTracer>(new CPURayTracer());
     cpuWindow()->setTitle("CPU Ray Tracer");
     cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
     cpuWindow()->setDrawingDelegate(cpuRayTracer_);
     cpuWindow()->setEventListener(cpuRayTracer_);
+    cpuRayTracer_->setScene(scene_);
     
     while (gpuWindow()->opened()) {
         glfwPollEvents();

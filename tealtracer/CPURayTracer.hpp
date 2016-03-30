@@ -12,6 +12,8 @@
 #include "TSWindow.hpp"
 #include "gl_include.h"
 
+#include "PovrayScene.hpp"
+
 /// From Lab 1:
 ///
 ///     *) Parse the scne description file
@@ -80,6 +82,21 @@ public:
     virtual void mouseScroll(TSWindow * window, double dx, double dy) {
     
     }
+    
+protected:
+
+    friend class TealTracer;
+
+    ///
+    void setScene(std::shared_ptr<PovrayScene> scene) {
+        scene_ = scene;
+    }
+    
+private:
+    ///
+    std::shared_ptr<PovrayScene> scene_;
+
+    
 };
 
 #endif /* CPURayTracer_hpp */
