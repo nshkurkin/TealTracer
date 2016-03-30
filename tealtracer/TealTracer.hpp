@@ -20,78 +20,26 @@
 #include "CPURayTracer.hpp"
 
 class TealTracer : public TSApplication {
-protected:
-    
-    ///
-    enum WindowName {
-        CPUWindow = 0,
-        GPUWindow,
-        NumWindows
-    };
-
 public:
 
     ///
-    std::shared_ptr<TSWindow> gpuWindow() {
-        return this->getWindow(GPUWindow);
-    }
-    
+    std::shared_ptr<TSWindow> gpuWindow();
     ///
-    std::shared_ptr<TSWindow> cpuWindow() {
-        return this->getWindow(CPUWindow);
-    }
-
+    std::shared_ptr<TSWindow> cpuWindow();
+    
 protected:
 
     ///
-    virtual int run(const std::vector<std::string> & args) {
-        assert(glfwInit());
-        for (int i = 0; i < NumWindows; i++) {
-            this->createNewWindow(i);
-        }
-        
-        auto monitor = glfwGetPrimaryMonitor();
-        auto videoMode = glfwGetVideoMode(monitor);
-        
-        gpuRayTracer = std::shared_ptr<GPURayTracer>(new GPURayTracer());
-        gpuWindow()->setDrawingDelegate(gpuRayTracer);
-        gpuWindow()->setEventListener(gpuRayTracer);
-        gpuWindow()->setTitle("GPU Ray Tracer");
-        gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
-        
-        cpuRayTracer = std::shared_ptr<CPURayTracer>(new CPURayTracer());
-        cpuWindow()->setDrawingDelegate(cpuRayTracer);
-        cpuWindow()->setEventListener(cpuRayTracer);
-        cpuWindow()->setTitle("CPU Ray Tracer");
-        cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
-        
-        while (gpuWindow()->opened()) {
-            glfwPollEvents();
-            for (auto windowItr = windowsBegin(); windowItr != windowsEnd(); windowItr++) {
-                windowItr->second->draw();
-            }
-        }
-        
-        glfwTerminate();
-        return 0;
-    }
-    
+    virtual int run(const std::vector<std::string> & args);
     ///
-    virtual std::shared_ptr<TSWindow> newWindow() {
-        auto window = Window::createManaged(new Window());
-        window->setup(400, 300, "Untitled");
-        return window;
-    }
-    
+    virtual std::shared_ptr<TSWindow> newWindow();
     ///
-    virtual void quit() {
-        gpuWindow()->close();
-    }
+    virtual void quit();
     
 private:
 
-    std::shared_ptr<GPURayTracer> gpuRayTracer;
-    std::shared_ptr<CPURayTracer> cpuRayTracer;
+    std::shared_ptr<GPURayTracer> gpuRayTracer_;
+    std::shared_ptr<CPURayTracer> cpuRayTracer_;
 
 };
 
