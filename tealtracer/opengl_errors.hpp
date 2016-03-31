@@ -27,6 +27,12 @@
 /// NOTE: Include "gl.h" here, or your equivalent
 #include "gl_include.h"
 
+/// NOTE: You may need to add an include path for libxml to your build. For example:
+///     -I/usr/local/include/libxml2
+///
+/// NOTE: You may need to add the following options to your linker:
+///     -L/usr/local/lib -lcurl -lxml
+
 #include <string>
 #include <vector>
 #include <map>
