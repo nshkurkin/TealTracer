@@ -22,6 +22,7 @@
 		C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */; };
 		C0C125461CAC70460024DA91 /* OpenGLObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125441CAC70460024DA91 /* OpenGLObject.cpp */; };
 		C0C125491CAC743E0024DA91 /* opengl_errors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125471CAC743E0024DA91 /* opengl_errors.cpp */; };
+		C0C1254C1CAC951B0024DA91 /* url_fopen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1254A1CAC951B0024DA91 /* url_fopen.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -395,6 +396,8 @@
 		C0C125451CAC70460024DA91 /* OpenGLObject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLObject.hpp; sourceTree = "<group>"; };
 		C0C125471CAC743E0024DA91 /* opengl_errors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = opengl_errors.cpp; sourceTree = "<group>"; };
 		C0C125481CAC743E0024DA91 /* opengl_errors.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = opengl_errors.hpp; sourceTree = "<group>"; };
+		C0C1254A1CAC951B0024DA91 /* url_fopen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url_fopen.cpp; sourceTree = "<group>"; };
+		C0C1254B1CAC951B0024DA91 /* url_fopen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = url_fopen.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -450,6 +453,8 @@
 			isa = PBXGroup;
 			children = (
 				C0C123241CAB20B50024DA91 /* Eigen */,
+				C0C1254A1CAC951B0024DA91 /* url_fopen.cpp */,
+				C0C1254B1CAC951B0024DA91 /* url_fopen.h */,
 			);
 			name = include;
 			sourceTree = "<group>";
@@ -1197,6 +1202,7 @@
 				C0C125321CAB5C3F0024DA91 /* CPURayTracer.cpp in Sources */,
 				C0C125461CAC70460024DA91 /* OpenGLObject.cpp in Sources */,
 				C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */,
+				C0C1254C1CAC951B0024DA91 /* url_fopen.cpp in Sources */,
 				C0C1253D1CAC40AB0024DA91 /* PovraySceneElements.cpp in Sources */,
 				C0C1231B1CAB20790024DA91 /* main.cpp in Sources */,
 				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,
@@ -1297,12 +1303,15 @@
 					"$(OTHER_CFLAGS)",
 					"-I$(SRCROOT)",
 					"-I/usr/local/opt/glfw3/include",
+					"-I/usr/local/include/libxml2",
 				);
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib/",
 					"-lglfw3",
 					"-framework",
 					OpenGL,
+					"-lcurl",
+					"-lxml2",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1315,12 +1324,15 @@
 					"$(OTHER_CFLAGS)",
 					"-I$(SRCROOT)",
 					"-I/usr/local/opt/glfw3/include",
+					"-I/usr/local/include/libxml2",
 				);
 				OTHER_LDFLAGS = (
 					"-L/usr/local/lib/",
 					"-lglfw3",
 					"-framework",
 					OpenGL,
+					"-lcurl",
+					"-lxml2",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
