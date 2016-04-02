@@ -52,4 +52,58 @@ private:
 
 };
 
+///
+template <class C>
+class OpenGLObjectManager {
+public:
+    
+    ///
+    OpenGLObjectManager() {
+        handleObject_ = nullptr;
+    }
+    ///
+    virtual ~OpenGLObjectManager() {}
+
+
+    ///
+    void glAllocate() {
+        if (handleObject_ == nullptr) {
+            handleObject_ = std::shared_ptr<C>(new C());
+        }
+        handleObject_->glAllocate();
+    }
+    
+    ///
+    bool allocated() const {
+        return handleObject_ != nullptr && handleObject_->allocated();
+    }
+
+    ///
+    void glFree() {
+        if (handleObject_ != nullptr) {
+            handleObject_->glFree();
+        }
+    }
+    
+    ///
+    GLuint handle() const {
+        return handleObject_->handle();
+    }
+    
+    ///
+    std::shared_ptr<C> handleObject() const {
+        return handleObject_;
+    }
+    
+protected:
+
+    ///
+    virtual void setupHandleObject(std::shared_ptr<C> object) {}
+
+private:
+
+    std::shared_ptr<C> handleObject_;
+
+};
+
 #endif /* OpenGLObject_hpp */

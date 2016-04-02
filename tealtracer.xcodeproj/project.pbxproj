@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C064A9381CADD94B003A3D8B /* OpenGLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */; };
+		C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */; };
 		C0C1231B1CAB20790024DA91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1231A1CAB20790024DA91 /* main.cpp */; };
 		C0C1231D1CAB20790024DA91 /* tealtracer.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C1231C1CAB20790024DA91 /* tealtracer.1 */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
@@ -42,6 +43,8 @@
 /* Begin PBXFileReference section */
 		C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLShaders.cpp; sourceTree = "<group>"; };
 		C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLShaders.hpp; sourceTree = "<group>"; };
+		C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLDataBuffer.cpp; sourceTree = "<group>"; };
+		C064A93A1CB0135C003A3D8B /* OpenGLDataBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLDataBuffer.hpp; sourceTree = "<group>"; };
 		C0C123171CAB20790024DA91 /* tealtracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tealtracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0C1231A1CAB20790024DA91 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		C0C1231C1CAB20790024DA91 /* tealtracer.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tealtracer.1; sourceTree = "<group>"; };
@@ -1137,6 +1140,8 @@
 				C0C125451CAC70460024DA91 /* OpenGLObject.hpp */,
 				C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */,
 				C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */,
+				C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */,
+				C064A93A1CB0135C003A3D8B /* OpenGLDataBuffer.hpp */,
 			);
 			name = opengl;
 			sourceTree = "<group>";
@@ -1211,6 +1216,7 @@
 				C0C1254C1CAC951B0024DA91 /* url_fopen.cpp in Sources */,
 				C0C1253D1CAC40AB0024DA91 /* PovraySceneElements.cpp in Sources */,
 				C0C1231B1CAB20790024DA91 /* main.cpp in Sources */,
+				C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */,
 				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,
 				C0C125291CAB4A220024DA91 /* Window.cpp in Sources */,
 			);
