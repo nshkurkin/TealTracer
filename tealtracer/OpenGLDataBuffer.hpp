@@ -105,7 +105,7 @@ protected:
 /// together various DataBufferObjects together for drawing. Note that this
 /// is required by OpenGL 3.2+.
 class OpenGLVertexArray : public OpenGLObjectManager<OpenGLVertexArrayObject> {
-    
+public:
     /// Binds this VAO and then returns the last bound VAO
     GLuint setAsActiveVAO();
     /// Returns the buffer binding for `self.type` to `oldBinding`

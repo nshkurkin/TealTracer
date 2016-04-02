@@ -55,6 +55,9 @@
 		C064A9481CB05E1F003A3D8B /* compute_types.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = compute_types.hpp; sourceTree = "<group>"; };
 		C064A94B1CB05E2D003A3D8B /* data_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = data_loader.h; sourceTree = "<group>"; };
 		C064A94C1CB05E2D003A3D8B /* data_loader.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = data_loader.c; sourceTree = "<group>"; };
+		C064A9501CB06E6F003A3D8B /* stl_extensions.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = stl_extensions.hpp; sourceTree = "<group>"; };
+		C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SampleFragmentShader.glsl; sourceTree = "<group>"; };
+		C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SampleVertexShader.glsl; sourceTree = "<group>"; };
 		C0C123171CAB20790024DA91 /* tealtracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tealtracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0C1231A1CAB20790024DA91 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		C0C1231C1CAB20790024DA91 /* tealtracer.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tealtracer.1; sourceTree = "<group>"; };
@@ -441,6 +444,15 @@
 			name = compute_engine;
 			sourceTree = "<group>";
 		};
+		C064A9521CB07BE6003A3D8B /* shaders */ = {
+			isa = PBXGroup;
+			children = (
+				C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */,
+				C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */,
+			);
+			name = shaders;
+			sourceTree = "<group>";
+		};
 		C0C1230E1CAB20790024DA91 = {
 			isa = PBXGroup;
 			children = (
@@ -461,6 +473,7 @@
 		C0C123191CAB20790024DA91 /* tealtracer */ = {
 			isa = PBXGroup;
 			children = (
+				C064A9521CB07BE6003A3D8B /* shaders */,
 				C0C125361CAB7D710024DA91 /* scenes */,
 				C0C1231A1CAB20790024DA91 /* main.cpp */,
 				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
@@ -1167,6 +1180,7 @@
 				C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */,
 				C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */,
 				C064A93A1CB0135C003A3D8B /* OpenGLDataBuffer.hpp */,
+				C064A9501CB06E6F003A3D8B /* stl_extensions.hpp */,
 			);
 			name = opengl;
 			sourceTree = "<group>";

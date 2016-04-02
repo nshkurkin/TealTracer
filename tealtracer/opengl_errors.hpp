@@ -73,6 +73,7 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
 
 /// Check if the programmer wants to overwrite and insert "safe" and immediate
 /// error checking.
+#define NS_OVERWRITE_GL_FUNCTIONS
 #ifdef NS_OVERWRITE_GL_FUNCTIONS
 
 #define glGetIntegerv(...) ns_safeGLCall(glGetIntegerv, ##__VA_ARGS__)

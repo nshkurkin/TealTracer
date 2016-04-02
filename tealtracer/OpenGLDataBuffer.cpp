@@ -7,6 +7,7 @@
 //
 
 #include "OpenGLDataBuffer.hpp"
+#include "opengl_errors.hpp"
 
 #include <cassert>
 

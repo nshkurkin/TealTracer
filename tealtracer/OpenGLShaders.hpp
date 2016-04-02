@@ -11,6 +11,7 @@
 
 #include "gl_include.h"
 #include "OpenGLObject.hpp"
+#include "OpenGLDataBuffer.hpp"
 
 #include <map>
 #include <string>
@@ -182,6 +183,7 @@ struct OpenGLTypeInfo {
     OpenGLTypeInfo(GLenum type, const std::string & name, GLsizei size, GLuint numElements, GLenum elementType) : type(type), name(name), size(size), numElements(numElements), elementType(elementType) {}
 };
 
+///
 class OpenGLProgramObject : public OpenGLObject {
 protected:
     /// Override this to actuall allocated content
@@ -247,25 +249,27 @@ public:
     /// is the case.
     std::string statusMessage() const;
     
-//    /// Connects each attribute name and buffer data pair present in `attribNamesAndBuffers` to the
-//    /// supplied `vao` and the active attributs in this program. After this function is called,
-//    /// one can simply set `vao` as active to bring back up all the connections created here
-//    /// for rendering purposes. 
-//    func connectDataToProgram(vao: OpenGLVertexArrayObject, attribNamesAndBuffers: [String:OpenGLDataBufferObject]) {
-//        let oldProgramHandle = setAsActiveProgram()
-//        let oldVaoHandle = vao.setAsActiveVAO()
-//        
-//        for (attribName, buffer) in attribNamesAndBuffers {
-//            let attrib = activeAttributeMap[attribName]
-//            let oldDboHandle = buffer.setAsActiveDBO()
-//            attrib?.glSetAttributeLayout()
-//            attrib?.glEnableAttribute()
-//            buffer.restoreActiveDBO(oldDboHandle)
-//        }
-//
-//        vao.restoreActiveVAO(oldVaoHandle)
-//        restoreActiveProgram(oldProgramHandle)
-//    }
+    /// Connects each attribute name and buffer data pair present in `attribNamesAndBuffers` to the
+    /// supplied `vao` and the active attributs in this program. After this function is called,
+    /// one can simply set `vao` as active to bring back up all the connections created here
+    /// for rendering purposes. 
+    void connectDataToProgram(OpenGLVertexArray & vao, const std::map<std::string, OpenGLDataBuffer> & attribNamesAndBuffers) {
+        auto oldProgramHandle = setAsActiveProgram();
+        auto oldVaoHandle = vao.setAsActiveVAO();
+        
+        for (auto itr = attribNamesAndBuffers.begin(); itr != attribNamesAndBuffers.end(); itr++) {
+            auto attribName = itr->first;
+            auto buffer = itr->second;
+            auto attrib = activeAttributeMap[attribName];
+            auto oldDboHandle = buffer.setAsActiveDBO();
+            attrib.glSetAttributeLayout();
+            attrib.glEnableAttribute();
+            buffer.restoreActiveDBO(oldDboHandle);
+        }
+        
+        vao.restoreActiveVAO(oldVaoHandle);
+        restoreActiveProgram(oldProgramHandle);
+    }
 };
 
 

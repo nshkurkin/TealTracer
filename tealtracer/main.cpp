@@ -11,8 +11,6 @@
 
 ///
 int main(int argc, const char * argv[]) {
-    std::cout << ns_requestOpenGLAPIErrorInfoForFunction("glBindBuffer").description() << std::endl;
-
     return TSApplication::main(new TealTracer(), argc, argv);
 }
 

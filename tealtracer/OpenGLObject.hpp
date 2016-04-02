@@ -70,6 +70,7 @@ public:
         if (handleObject_ == nullptr) {
             handleObject_ = std::shared_ptr<C>(new C());
         }
+        setupHandleObject(handleObject_);
         handleObject_->glAllocate();
     }
     

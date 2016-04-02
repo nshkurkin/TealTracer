@@ -7,6 +7,7 @@
 //
 
 #include "OpenGLShaders.hpp"
+#include "opengl_errors.hpp"
 
 ///
 std::shared_ptr<GLuint>
@@ -144,7 +145,7 @@ readFileContent(const std::string & filePath) {
     std::string line;
     while (!std::getline(source, line).eof()) {
         /// Remove all comments
-        content.append(line);
+        content.append(line + "\n");
     }
     
     return content;
@@ -257,7 +258,7 @@ OpenGLProgram::build(bool crashOnFailure) {
     bool foundBadShader = false;
     int whichShader = 0;
     while (whichShader < shaders.size() && !foundBadShader) {
-        auto shader = shaders[whichShader];
+        auto & shader = shaders[whichShader];
         shader.compile();
         foundBadShader = !shader.compiledSuccessfully();
         whichShader++;
@@ -273,7 +274,7 @@ OpenGLProgram::build(bool crashOnFailure) {
         }
         
         glLinkProgram(handle());
-        if (linkSuccess()) {
+        if (!linkSuccess()) {
             std::cerr << "{" << __FILE__ << ":" << __LINE__ << " (" << __FUNCTION__ << ")} Linking failed! OpenGL error: " << statusMessage() << std::endl;
             assert(!crashOnFailure);
         }
