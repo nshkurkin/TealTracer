@@ -16,9 +16,9 @@
 /// A generic object that wraps around opengl allocated data.
 class OpenGLObject {
 public:
-    ///
+    /// Creates an empty, un-allocated OpenGLObject
     OpenGLObject();
-    ///
+    /// Creates an OpenGLObject that is already allocated with another handle
     OpenGLObject(GLuint handle);
     ///
     virtual ~OpenGLObject();
@@ -39,71 +39,21 @@ public:
     
 protected:
 
-    /// Override this to actuall allocated content
-    virtual std::shared_ptr<GLuint> allocateContent() = 0;
+    /// A pointer to the OpenGL handle for manipulation
+    GLuint * handlePtr();
+
+    /// Override this to actually allocate content
+    virtual void allocateContent() = 0;
 
     /// Override this to actually free the content
     virtual void freeContent() = 0;
     
 private:
 
+    /// Whether or not this has been
+    bool allocated_;
     /// The opengl handle for this object.
-    std::shared_ptr<GLuint> handle_;
-
-};
-
-///
-template <class C>
-class OpenGLObjectManager {
-public:
-    
-    ///
-    OpenGLObjectManager() {
-        handleObject_ = nullptr;
-    }
-    ///
-    virtual ~OpenGLObjectManager() {}
-
-
-    ///
-    void glAllocate() {
-        if (handleObject_ == nullptr) {
-            handleObject_ = std::shared_ptr<C>(new C());
-        }
-        setupHandleObject(handleObject_);
-        handleObject_->glAllocate();
-    }
-    
-    ///
-    bool allocated() const {
-        return handleObject_ != nullptr && handleObject_->allocated();
-    }
-
-    ///
-    void glFree() {
-        if (handleObject_ != nullptr) {
-            handleObject_->glFree();
-        }
-    }
-    
-    ///
-    GLuint handle() const {
-        return handleObject_->handle();
-    }
-    
-    ///
-    std::shared_ptr<C> handleObject() const {
-        return handleObject_;
-    }
-    
-protected:
-
-    ///
-    virtual void setupHandleObject(std::shared_ptr<C> object) {}
-
-private:
-
-    std::shared_ptr<C> handleObject_;
+    GLuint handle_;
 
 };
 

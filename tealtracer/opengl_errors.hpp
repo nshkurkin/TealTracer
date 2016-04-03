@@ -87,7 +87,7 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
 
 #define glGenVertexArrays(...) ns_safeGLCall(glGenVertexArrays, ##__VA_ARGS__)
 #define glBindVertexArray(...) ns_safeGLCall(glBindVertexArray, ##__VA_ARGS__)
-#define glDeleteBuffers(...) ns_safeGLCall(glDeleteBuffers, ##__VA_ARGS__)
+#define glDeleteVertexArrays(...) ns_safeGLCall(glDeleteVertexArrays, ##__VA_ARGS__)
 
 #define glGenTextures(...) ns_safeGLCall(glGenTextures, ##__VA_ARGS__)
 #define glDeleteTextures(...) ns_safeGLCall(glDeleteTextures, ##__VA_ARGS__)

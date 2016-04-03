@@ -32,18 +32,15 @@ OpenGLDataBufferMetaData::OpenGLDataBufferMetaData(void * pointer, GLuint bytesP
 }
 
 ///
-std::shared_ptr<GLuint>
-OpenGLDataBufferObject::allocateContent() {
-    GLuint * bufferHandle = new GLuint;
-    glGenBuffers(1, bufferHandle);
-    return std::shared_ptr<GLuint>(bufferHandle);
+void
+OpenGLDataBuffer::allocateContent() {
+    glGenBuffers(1, handlePtr());
 }
 
 ///
 void
-OpenGLDataBufferObject::freeContent() {
-    const GLuint bufferHandle = handle();
-    glDeleteBuffers(1, &bufferHandle);
+OpenGLDataBuffer::freeContent() {
+    glDeleteBuffers(1, handlePtr());
 }
 
 
@@ -69,15 +66,15 @@ OpenGLDataBuffer::OpenGLDataBuffer(GLenum type, OpenGLDataBufferMetaData metaDat
 }
 
 ///
-OpenGLDataBuffer
+std::shared_ptr<OpenGLDataBuffer>
 OpenGLDataBuffer::arrayBuffer(const OpenGLDataBufferMetaData & metaData) {
-    return OpenGLDataBuffer(GLenum(GL_ARRAY_BUFFER), metaData);
+    return std::shared_ptr<OpenGLDataBuffer>(new OpenGLDataBuffer(GLenum(GL_ARRAY_BUFFER), metaData));
 }
 
 ///
-OpenGLDataBuffer
+std::shared_ptr<OpenGLDataBuffer>
 OpenGLDataBuffer::elementArrayBuffer(const OpenGLDataBufferMetaData & metaData) {
-    return OpenGLDataBuffer(GLenum(GL_ELEMENT_ARRAY_BUFFER), metaData);
+    return std::shared_ptr<OpenGLDataBuffer>(new OpenGLDataBuffer(GLenum(GL_ELEMENT_ARRAY_BUFFER), metaData));
 }
 
 ///
@@ -124,18 +121,15 @@ OpenGLDataBuffer::setNeedsUpdate() {
 
 
 ///
-std::shared_ptr<GLuint>
-OpenGLVertexArrayObject::allocateContent() {
-    GLuint * bufferHandle = new GLuint;
-    glGenVertexArrays(1, bufferHandle);
-    return std::shared_ptr<GLuint>(bufferHandle);
+void
+OpenGLVertexArray::allocateContent() {
+    glGenVertexArrays(1, handlePtr());
 }
 
 ///
 void
-OpenGLVertexArrayObject::freeContent() {
-    const GLuint arrayHandle = handle();
-    glDeleteVertexArrays(1, &arrayHandle);
+OpenGLVertexArray::freeContent() {
+    glDeleteVertexArrays(1, handlePtr());
 }
 
 
@@ -196,18 +190,15 @@ OpenGLTextureMetaData::textureDimension() const {
 
 
 ///
-std::shared_ptr<GLuint>
-OpenGLTextureBufferObject::allocateContent() {
-    GLuint * newHandle = new GLuint;
-    glGenTextures(1, newHandle);
-    return std::shared_ptr<GLuint>(newHandle);
+void
+OpenGLTextureBuffer::allocateContent() {
+    glGenTextures(1, handlePtr());
 }
 
 ///
 void
-OpenGLTextureBufferObject::freeContent() {
-    const GLuint toDelete = handle();
-    glDeleteTextures(1, &toDelete);
+OpenGLTextureBuffer::freeContent() {
+    glDeleteTextures(1, handlePtr());
 }
 
     
@@ -235,7 +226,15 @@ void OpenGLTextureBuffer::setMetaData(const OpenGLTextureMetaData & metaData) {
 }
 
 ///
-OpenGLTextureBuffer::OpenGLTextureBuffer(GLenum textureUnit, OpenGLTextureMetaData metaData) {
+OpenGLTextureBuffer::OpenGLTextureBuffer() {
+    textureUnit_ = GL_TEXTURE0;
+    metaData_ = OpenGLTextureMetaData();
+    
+    dataIsSent_ = false;
+}
+
+///
+OpenGLTextureBuffer::OpenGLTextureBuffer(GLenum textureUnit, const OpenGLTextureMetaData & metaData) {
     this->textureUnit_ = textureUnit;
     this->metaData_ = metaData;
     

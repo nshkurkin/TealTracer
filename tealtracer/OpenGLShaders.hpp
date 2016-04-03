@@ -90,23 +90,9 @@ public:
     
 };
 
-///
-class OpenGLShaderObject : public OpenGLObject {
-protected:
-    friend class OpenGLShader;
-    /// The type of this shader, one of GL_*_SHADER
-    GLenum type;
-
-protected:
-    /// Override this to actuall allocated content
-    virtual std::shared_ptr<GLuint> allocateContent();
-    /// Override this to actually free the content
-    virtual void freeContent();
-};
-
 /// Represents a Shader, which is a component of a Program. The principle operation to perform on
 /// a shader is compiling the shader and then checking the compilation status.
-class OpenGLShader : public OpenGLObjectManager<OpenGLShaderObject> {
+class OpenGLShader : public OpenGLObject {
 public:
     /// The type of this shader, one of GL_*_SHADER
     GLenum type;
@@ -137,23 +123,25 @@ public:
     void init(GLenum type, const std::string & source, const std::string & filePath);
     
     /// Creates a vertex shader with the given source.
-    static OpenGLShader vertexShaderWithSource(const std::string & source);
+    static std::shared_ptr<OpenGLShader> vertexShaderWithSource(const std::string & source);
     /// Creates a fragment shader with the given source.
-    static OpenGLShader fragmentShaderWithSource(const std::string & source);
+    static std::shared_ptr<OpenGLShader> fragmentShaderWithSource(const std::string & source);
     /// Creates a goemetry shader with the given source.
-    static OpenGLShader geometryShaderWithSource(const std::string & source);
+    static std::shared_ptr<OpenGLShader> geometryShaderWithSource(const std::string & source);
     
     /// Tries to create a vertex shader with the given `filePath`.
-    static OpenGLShader vertexShaderWithFilePath(const std::string & filePath);
+    static std::shared_ptr<OpenGLShader> vertexShaderWithFilePath(const std::string & filePath);
     /// Tries to create a fragment shader with the given `filePath`.
-    static OpenGLShader fragmentShaderWithFilePath(const std::string & filePath);
+    static std::shared_ptr<OpenGLShader> fragmentShaderWithFilePath(const std::string & filePath);
     /// Tries to create a geometry shader with the given `filePath`.
-    static OpenGLShader geometryShaderWithFilePath(const std::string & filePath);
+    static std::shared_ptr<OpenGLShader> geometryShaderWithFilePath(const std::string & filePath);
     
 protected:
 
-    ///
-    virtual void setupHandleObject(std::shared_ptr<OpenGLShaderObject> object);
+    /// Override this to actuall allocated content
+    virtual void allocateContent();
+    /// Override this to actually free the content
+    virtual void freeContent();
     
 public:
     
@@ -183,22 +171,12 @@ struct OpenGLTypeInfo {
     OpenGLTypeInfo(GLenum type, const std::string & name, GLsizei size, GLuint numElements, GLenum elementType) : type(type), name(name), size(size), numElements(numElements), elementType(elementType) {}
 };
 
-///
-class OpenGLProgramObject : public OpenGLObject {
-protected:
-    /// Override this to actuall allocated content
-    virtual std::shared_ptr<GLuint> allocateContent();
-
-    /// Override this to actually free the content
-    virtual void freeContent();
-};
-
 /// Represents a Program, which is a collection of Shaders. Programs are built and linked against
 /// the shaders that make them up. Each shader in a program must uniquely represent a particular 
 /// part of the shader pipeline.
 ///
 /// Useful online resource: http://antongerdelan.net/opengl/shaders.html
-class OpenGLProgram : public OpenGLObjectManager<OpenGLProgramObject> {
+class OpenGLProgram : public OpenGLObject {
 public:
     /// The link status of this program.
     GLboolean linkSuccess() const;
@@ -207,7 +185,7 @@ public:
     GLboolean validationSuccess() const;
     
     /// The shaders that make up this program.
-    std::vector<OpenGLShader> shaders;
+    std::vector<std::shared_ptr<OpenGLShader>> shaders;
     
     /// Builds and links this program, optionally crashing when any particular
     /// step of the process of compilation and linking fails. This function
@@ -236,6 +214,14 @@ public:
     /// reference. This property should only be used after `build()` has been called.
     std::map<std::string, OpenGLShaderVariable> activeUniformMap;
     
+    
+protected:
+
+    /// Override this to actuall allocated content
+    virtual void allocateContent();
+    /// Override this to actually free the content
+    virtual void freeContent();
+
 private:
     
     /// To be called after `build()`, this function gathers all of the active uniforms and 
@@ -253,21 +239,21 @@ public:
     /// supplied `vao` and the active attributs in this program. After this function is called,
     /// one can simply set `vao` as active to bring back up all the connections created here
     /// for rendering purposes. 
-    void connectDataToProgram(OpenGLVertexArray & vao, const std::map<std::string, OpenGLDataBuffer> & attribNamesAndBuffers) {
+    void connectDataToProgram(OpenGLVertexArray * vao, const std::map<std::string, OpenGLDataBuffer *> & attribNamesAndBuffers) {
         auto oldProgramHandle = setAsActiveProgram();
-        auto oldVaoHandle = vao.setAsActiveVAO();
+        auto oldVaoHandle = vao->setAsActiveVAO();
         
         for (auto itr = attribNamesAndBuffers.begin(); itr != attribNamesAndBuffers.end(); itr++) {
             auto attribName = itr->first;
             auto buffer = itr->second;
             auto attrib = activeAttributeMap[attribName];
-            auto oldDboHandle = buffer.setAsActiveDBO();
+            auto oldDboHandle = buffer->setAsActiveDBO();
             attrib.glSetAttributeLayout();
             attrib.glEnableAttribute();
-            buffer.restoreActiveDBO(oldDboHandle);
+            buffer->restoreActiveDBO(oldDboHandle);
         }
         
-        vao.restoreActiveVAO(oldVaoHandle);
+        vao->restoreActiveVAO(oldVaoHandle);
         restoreActiveProgram(oldProgramHandle);
     }
 };

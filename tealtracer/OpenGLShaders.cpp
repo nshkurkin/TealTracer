@@ -10,18 +10,6 @@
 #include "opengl_errors.hpp"
 
 ///
-std::shared_ptr<GLuint>
-OpenGLShaderObject::allocateContent() {
-    return std::shared_ptr<GLuint>(new GLuint(glCreateShader(type)));
-}
-
-///
-void
-OpenGLShaderObject::freeContent() {
-    glDeleteShader(handle());
-}
-
-///
 bool
 OpenGLShaderVariable::isArray() const {
     return arraySize > 1;
@@ -83,6 +71,19 @@ OpenGLShaderVariable::glSetAttributeLayout() const {
     if (valid()) {
         glVertexAttribPointer(GLuint(location), numElements, valueType, GLboolean(GL_FALSE), GLsizei(0), nullptr);
     }
+}
+
+
+///
+void
+OpenGLShader::allocateContent() {
+    *handlePtr() = glCreateShader(type);
+}
+
+///
+void
+OpenGLShader::freeContent() {
+    glDeleteShader(handle());
 }
 
 ///
@@ -152,45 +153,39 @@ readFileContent(const std::string & filePath) {
 }
 
 ///
-OpenGLShader
+std::shared_ptr<OpenGLShader>
 OpenGLShader::vertexShaderWithSource(const std::string & source) {
-    return OpenGLShader(GLenum(GL_VERTEX_SHADER), source);
+    return std::shared_ptr<OpenGLShader>(new OpenGLShader(GLenum(GL_VERTEX_SHADER), source));
 }
 
 ///
-OpenGLShader
+std::shared_ptr<OpenGLShader>
 OpenGLShader::fragmentShaderWithSource(const std::string & source) {
-    return OpenGLShader(GLenum(GL_FRAGMENT_SHADER), source);
+    return std::shared_ptr<OpenGLShader>(new OpenGLShader(GLenum(GL_FRAGMENT_SHADER), source));
 }
 
 ///
-OpenGLShader
+std::shared_ptr<OpenGLShader>
 OpenGLShader::geometryShaderWithSource(const std::string & source) {
-    return OpenGLShader(GLenum(GL_GEOMETRY_SHADER), source);
+    return std::shared_ptr<OpenGLShader>(new OpenGLShader(GLenum(GL_GEOMETRY_SHADER), source));
 }
 
 ///
-OpenGLShader
+std::shared_ptr<OpenGLShader>
 OpenGLShader::vertexShaderWithFilePath(const std::string & filePath) {
-    return OpenGLShader(GLenum(GL_VERTEX_SHADER), readFileContent(filePath), filePath);
+    return std::shared_ptr<OpenGLShader>(new OpenGLShader(GLenum(GL_VERTEX_SHADER), readFileContent(filePath), filePath));
 }
 
 ///
-OpenGLShader
+std::shared_ptr<OpenGLShader>
 OpenGLShader::fragmentShaderWithFilePath(const std::string & filePath) {
-    return OpenGLShader(GLenum(GL_FRAGMENT_SHADER), readFileContent(filePath), filePath);
+    return std::shared_ptr<OpenGLShader>(new OpenGLShader(GLenum(GL_FRAGMENT_SHADER), readFileContent(filePath), filePath));
 }
 
 ///
-OpenGLShader
+std::shared_ptr<OpenGLShader>
 OpenGLShader::geometryShaderWithFilePath(const std::string & filePath) {
-    return OpenGLShader(GLenum(GL_GEOMETRY_SHADER), readFileContent(filePath), filePath);
-}
-
-///
-void
-OpenGLShader::setupHandleObject(std::shared_ptr<OpenGLShaderObject> object) {
-   object->type = type;
+    return std::shared_ptr<OpenGLShader>(new OpenGLShader(GLenum(GL_GEOMETRY_SHADER), readFileContent(filePath), filePath));
 }
 
 ///
@@ -239,14 +234,14 @@ OpenGLProgram::validationSuccess() const {
 }
 
 ///
-std::shared_ptr<GLuint>
-OpenGLProgramObject::allocateContent() {
-    return std::shared_ptr<GLuint>(new GLuint(glCreateProgram()));
+void
+OpenGLProgram::allocateContent() {
+    *handlePtr() = glCreateProgram();
 }
 
 ///
 void
-OpenGLProgramObject::freeContent() {
+OpenGLProgram::freeContent() {
     glDeleteProgram(handle());
 }
 
@@ -258,19 +253,19 @@ OpenGLProgram::build(bool crashOnFailure) {
     bool foundBadShader = false;
     int whichShader = 0;
     while (whichShader < shaders.size() && !foundBadShader) {
-        auto & shader = shaders[whichShader];
-        shader.compile();
-        foundBadShader = !shader.compiledSuccessfully();
+        auto shader = shaders[whichShader];
+        shader->compile();
+        foundBadShader = !shader->compiledSuccessfully();
         whichShader++;
     }
     
     if (foundBadShader) {
-        std::cerr << "{" << __FILE__ << ":" << __LINE__ << " (" << __FUNCTION__ << ")} Shader " << (whichShader - 1) << " with source " << shaders[whichShader-1].source << " failed to compile with error log: " << shaders[whichShader-1].statusMessage() << std::endl;
+        std::cerr << "{" << __FILE__ << ":" << __LINE__ << " (" << __FUNCTION__ << ")} Shader " << (whichShader - 1) << " with source " << shaders[whichShader-1]->source << " failed to compile with error log: " << shaders[whichShader-1]->statusMessage() << std::endl;
         assert(!crashOnFailure);
     }
     else {
         for (auto itr = shaders.begin(); itr != shaders.end(); itr++) {
-            glAttachShader(handle(), (*itr).handle());
+            glAttachShader(handle(), (*itr)->handle());
         }
         
         glLinkProgram(handle());
@@ -282,7 +277,7 @@ OpenGLProgram::build(bool crashOnFailure) {
         gatherAdditionalProgramInfo();
         
         for (auto itr = shaders.begin(); itr != shaders.end(); itr++) {
-            (*itr).glFree();
+            (*itr)->glFree();
         }
     }
 
@@ -333,7 +328,7 @@ OpenGLProgram::activeUniformCount() const {
 static inline OpenGLTypeInfo getTypeInfoForGLType(GLenum type) {
     static std::map<GLenum, OpenGLTypeInfo> info;
 
-    if (info.empty() == 0) {
+    if (info.empty()) {
         #define setField(type, name, size, els, elType) \
             info[GLenum(type)] = OpenGLTypeInfo(GLenum(type), name, GLsizei(size), GLuint(els), GLenum(elType))
         

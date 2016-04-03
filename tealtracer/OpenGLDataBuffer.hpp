@@ -31,15 +31,6 @@ struct OpenGLDataBufferMetaData {
     OpenGLDataBufferMetaData(void * pointer, GLuint bytesPerElement, GLuint numElements);
 };
 
-///
-class OpenGLDataBufferObject : public OpenGLObject {
-protected:
-    /// Override this to actuall allocated content
-    virtual std::shared_ptr<GLuint> allocateContent();
-    /// Override this to actually free the content
-    virtual void freeContent();
-};
-
 /// Represents a wrapper around data buffer objects in opengl. These are
 /// used send data to the GPU for use in your shaders. It can take any type,
 /// including Eigen types. All that is requires is that the objects have a
@@ -47,7 +38,7 @@ protected:
 /// GL_ARRAY_BUFFER and GL_ELEMENT_ARRAY_BUFFER. You are recommended to use
 /// the arrayBuffer(...) and elementArrayBuffer(..) static methods to create
 /// these two kinds of data buffer types.
-class OpenGLDataBuffer : public OpenGLObjectManager<OpenGLDataBufferObject> {
+class OpenGLDataBuffer : public OpenGLObject {
 public:
     
     /// The type buffer, either GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER.
@@ -63,10 +54,10 @@ public:
     
     /// Creates a GL_ARRAY_BUFFER data buffer object with the given
     /// (optional) `data`.
-    static OpenGLDataBuffer arrayBuffer(const OpenGLDataBufferMetaData & metaData);
+    static std::shared_ptr<OpenGLDataBuffer> arrayBuffer(const OpenGLDataBufferMetaData & metaData);
     /// Creates a GL_ELEMENT_ARRAY_BUFFER data buffer object with the given
     /// (optional) `metaData`.
-    static OpenGLDataBuffer elementArrayBuffer(const OpenGLDataBufferMetaData & metaData);
+    static std::shared_ptr<OpenGLDataBuffer> elementArrayBuffer(const OpenGLDataBufferMetaData & metaData);
     
     /// Makes this the current buffer in opengl and returns the last bound buffer
     /// of this `type`, `0` otherwise.
@@ -81,6 +72,12 @@ public:
     
     /// Call this to notify this buffer if the data needs to be re-sent to OpenGL
     void setNeedsUpdate();
+   
+protected:
+    /// Override this to actuall allocated content
+    virtual void allocateContent();
+    /// Override this to actually free the content
+    virtual void freeContent();
     
 private:
     /// The data of this data buffer object.
@@ -91,25 +88,21 @@ private:
     
 };
 
-
-///
-class OpenGLVertexArrayObject : public OpenGLObject {
-protected:
-    /// Override this to actuall allocated content
-    virtual std::shared_ptr<GLuint> allocateContent();
-    /// Override this to actually free the content
-    virtual void freeContent();
-};
-
 /// Represents an opengl Vertex Array Buffer object. It is used to collect
 /// together various DataBufferObjects together for drawing. Note that this
 /// is required by OpenGL 3.2+.
-class OpenGLVertexArray : public OpenGLObjectManager<OpenGLVertexArrayObject> {
+class OpenGLVertexArray : public OpenGLObject {
 public:
     /// Binds this VAO and then returns the last bound VAO
     GLuint setAsActiveVAO();
     /// Returns the buffer binding for `self.type` to `oldBinding`
     void restoreActiveVAO(GLuint oldBinding);
+    
+protected:
+    /// Override this to actuall allocated content
+    virtual void allocateContent();
+    /// Override this to actually free the content
+    virtual void freeContent();
     
 };
 
@@ -178,15 +171,6 @@ struct OpenGLTextureMetaData {
     bool linearlyInterpolated;
 };
 
-///
-class OpenGLTextureBufferObject : public OpenGLObject {
-protected:
-    /// Override this to actuall allocated content
-    virtual std::shared_ptr<GLuint> allocateContent();
-    /// Override this to actually free the content
-    virtual void freeContent();
-};
-
 /// Represents a wrapper around an opengl texture. It contains an associated
 /// `image` used for storing its pixel data. Note that changed the data
 /// in `image` will automaitcally refresh this buffer object once
@@ -194,11 +178,13 @@ protected:
 /// attach a texture to a program, see nsgl::Program.attach(...). These
 /// textures are hardcoded to be 2D textures (sorry if you needed something
 /// else).
-class OpenGLTextureBuffer : OpenGLObjectManager<OpenGLTextureBufferObject> {
+class OpenGLTextureBuffer : OpenGLObject {
 public:
-   
+    
     ///
-    OpenGLTextureBuffer(GLenum textureUnit, OpenGLTextureMetaData metaData);
+    OpenGLTextureBuffer();
+    ///
+    OpenGLTextureBuffer(GLenum textureUnit, const OpenGLTextureMetaData & metaData);
     
     /// Which texture unit this texture will be sent to. Equivalent to
     /// `textureUnit` - GL_TEXTURE0.
@@ -240,7 +226,13 @@ public:
     /// Sets the linear interpolation of thie texture. If `isBitMap` is TRUE
     /// then texture will not be anti-aliased.
     void setLinearInterpolation();
-    
+  
+protected:
+    /// Override this to actuall allocated content
+    virtual void allocateContent();
+    /// Override this to actually free the content
+    virtual void freeContent();
+
 private:
     /// The metadata of this texture.
     OpenGLTextureMetaData metaData_;
