@@ -12,8 +12,10 @@
 		C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9441CB05E1F003A3D8B /* compute_engine.cpp */; };
 		C064A94A1CB05E1F003A3D8B /* compute_math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9461CB05E1F003A3D8B /* compute_math.cpp */; };
 		C064A94D1CB05E2D003A3D8B /* data_loader.c in Sources */ = {isa = PBXBuildFile; fileRef = C064A94C1CB05E2D003A3D8B /* data_loader.c */; };
+		C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */; };
+		C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */; };
+		C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C125371CAB7D940024DA91 /* lab1_simple.pov */; };
 		C0C1231B1CAB20790024DA91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1231A1CAB20790024DA91 /* main.cpp */; };
-		C0C1231D1CAB20790024DA91 /* tealtracer.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C1231C1CAB20790024DA91 /* tealtracer.1 */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
 		C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1251A1CAB337F0024DA91 /* TSValue.cpp */; };
 		C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125211CAB35D10024DA91 /* TSApplication.cpp */; };
@@ -33,13 +35,15 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		C0C123151CAB20790024DA91 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
-				C0C1231D1CAB20790024DA91 /* tealtracer.1 in CopyFiles */,
+				C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */,
+				C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */,
+				C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 

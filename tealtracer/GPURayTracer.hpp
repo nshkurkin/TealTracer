@@ -69,8 +69,8 @@ public:
 
         gpuGLProgram = std::shared_ptr<OpenGLProgram>(new OpenGLProgram());
         gpuGLProgram->shaders = make_vector<std::shared_ptr<OpenGLShader>>(
-            OpenGLShader::vertexShaderWithFilePath("/Users/Bo/Documents/Programming/csc490/tealtracer/tealtracer/SampleVertexShader.glsl"),
-            OpenGLShader::fragmentShaderWithFilePath("/Users/Bo/Documents/Programming/csc490/tealtracer/tealtracer/SampleFragmentShader.glsl")
+            OpenGLShader::vertexShaderWithFilePath("SampleVertexShader.glsl"),
+            OpenGLShader::fragmentShaderWithFilePath("SampleFragmentShader.glsl")
         );
         
         scene.triangleVAO = std::shared_ptr<OpenGLVertexArray>(new OpenGLVertexArray());
