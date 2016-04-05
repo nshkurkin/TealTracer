@@ -11,8 +11,14 @@
 
 #include "TSWindow.hpp"
 #include "gl_include.h"
+#include "opengl_errors.hpp"
+#include "compute_engine.hpp"
+#include "stl_extensions.hpp"
 
+#include "OpenGLShaders.hpp"
 #include "PovrayScene.hpp"
+#include "TSLogger.hpp"
+#include "Image.hpp"
 
 /// From Lab 1:
 ///
@@ -26,6 +32,28 @@
 ///
 class CPURayTracer : public TSWindowDrawingDelegate, public TSUserEventListener {
 public:
+    
+    ///
+    /// Rendering pipeline:
+    ///
+    ///     1) Queue a Raytrace into "outputImage"
+    ///     2) When complete, copy data from "outputImage" to "outputTexture"
+    ///     3) Render "outputTexture"
+    ///
+    struct RenderTarget {
+        std::shared_ptr<OpenGLTextureBuffer> outputTexture;
+        std::shared_ptr<OpenGLProgram> program;
+        
+        std::vector<GLfloat> points;
+        std::vector<GLfloat> texcoords;
+        
+        std::shared_ptr<OpenGLVertexArray> triangleVAO;
+        std::shared_ptr<OpenGLDataBuffer> positionDBO;
+        std::shared_ptr<OpenGLDataBuffer> texcoordDBO;
+    };
+
+    Image outputImage;
+    std::shared_ptr<PovrayScene> scene;
 
     ///
     virtual void setupDrawingInWindow(TSWindow * window) {

@@ -242,9 +242,9 @@ OpenGLStateErrorInfo ns_glGetStateErrors() {
 
 #include "url_fopen.h"
 /// NOTE: to get this include working, you need to add -I/usr/local/include/libxml2
-#include <libxml2/libxml/HTMLparser.h>
-#include <libxml2/libxml/xpath.h>
-#include <libxml2/libxml/xpathInternals.h>
+#include <libxml/HTMLparser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #include <iostream>
 #include <cassert>

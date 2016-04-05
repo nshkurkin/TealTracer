@@ -15,6 +15,7 @@
 		C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */; };
 		C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */; };
 		C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C125371CAB7D940024DA91 /* lab1_simple.pov */; };
+		C064A95F1CB43ABE003A3D8B /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A95D1CB43ABE003A3D8B /* Image.cpp */; };
 		C0C1231B1CAB20790024DA91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1231A1CAB20790024DA91 /* main.cpp */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
 		C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1251A1CAB337F0024DA91 /* TSValue.cpp */; };
@@ -62,6 +63,8 @@
 		C064A9501CB06E6F003A3D8B /* stl_extensions.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = stl_extensions.hpp; sourceTree = "<group>"; };
 		C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SampleFragmentShader.glsl; sourceTree = "<group>"; };
 		C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SampleVertexShader.glsl; sourceTree = "<group>"; };
+		C064A95D1CB43ABE003A3D8B /* Image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
+		C064A95E1CB43ABE003A3D8B /* Image.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Image.hpp; sourceTree = "<group>"; };
 		C0C123171CAB20790024DA91 /* tealtracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tealtracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0C1231A1CAB20790024DA91 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		C0C1231C1CAB20790024DA91 /* tealtracer.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tealtracer.1; sourceTree = "<group>"; };
@@ -448,20 +451,13 @@
 			name = compute_engine;
 			sourceTree = "<group>";
 		};
-		C064A9521CB07BE6003A3D8B /* shaders */ = {
+		C064A9521CB07BE6003A3D8B /* shared shaders */ = {
 			isa = PBXGroup;
 			children = (
 				C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */,
 				C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */,
 			);
-			name = shaders;
-			sourceTree = "<group>";
-		};
-		C064A95B1CB430A1003A3D8B /* kernels */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = kernels;
+			name = "shared shaders";
 			sourceTree = "<group>";
 		};
 		C064A95C1CB43282003A3D8B /* cpu raytracer */ = {
@@ -469,8 +465,19 @@
 			children = (
 				C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */,
 				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
+				C064A95D1CB43ABE003A3D8B /* Image.cpp */,
+				C064A95E1CB43ABE003A3D8B /* Image.hpp */,
 			);
 			name = "cpu raytracer";
+			sourceTree = "<group>";
+		};
+		C064A9601CB43EE9003A3D8B /* gpu raytracer */ = {
+			isa = PBXGroup;
+			children = (
+				C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */,
+				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
+			);
+			name = "gpu raytracer";
 			sourceTree = "<group>";
 		};
 		C0C1230E1CAB20790024DA91 = {
@@ -493,8 +500,7 @@
 		C0C123191CAB20790024DA91 /* tealtracer */ = {
 			isa = PBXGroup;
 			children = (
-				C064A9521CB07BE6003A3D8B /* shaders */,
-				C064A95B1CB430A1003A3D8B /* kernels */,
+				C064A9521CB07BE6003A3D8B /* shared shaders */,
 				C0C125361CAB7D710024DA91 /* scenes */,
 				C0C1231A1CAB20790024DA91 /* main.cpp */,
 				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
@@ -502,8 +508,7 @@
 				C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */,
 				C0C125271CAB4A220024DA91 /* Window.cpp */,
 				C0C125281CAB4A220024DA91 /* Window.hpp */,
-				C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */,
-				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
+				C064A9601CB43EE9003A3D8B /* gpu raytracer */,
 				C064A95C1CB43282003A3D8B /* cpu raytracer */,
 				C0C125431CAC70240024DA91 /* opengl */,
 				C0C125411CAC6F850024DA91 /* povray */,
@@ -1279,6 +1284,7 @@
 				C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */,
 				C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */,
 				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,
+				C064A95F1CB43ABE003A3D8B /* Image.cpp in Sources */,
 				C064A94A1CB05E1F003A3D8B /* compute_math.cpp in Sources */,
 				C0C125291CAB4A220024DA91 /* Window.cpp in Sources */,
 			);
