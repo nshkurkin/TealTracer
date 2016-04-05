@@ -120,18 +120,18 @@ void PovrayPlane::parse(const std::string & body) {
     
     std::string localBody = body;
     
-    parseVector3(localBody, position_);
+    parseVector3(localBody, normal_);
     auto commaLoc = localBody.find(",");
     localBody = localBody.substr(commaLoc + 1, localBody.length() - commaLoc - 1);
-    parseFloat(localBody, depth_);
+    parseFloat(localBody, distance_);
     parseBody(localBody, content);
 }
 
 ///
 std::shared_ptr<PovraySceneElement> PovrayPlane::copy() const {
     auto plane = std::shared_ptr<PovrayPlane>(new PovrayPlane());
-    plane->position_ = position_;
-    plane->depth_ = depth_;
+    plane->normal_ = normal_;
+    plane->distance_ = distance_;
 
     plane->pigment_ = pigment_;
     plane->finish_ = finish_;
@@ -141,7 +141,7 @@ std::shared_ptr<PovraySceneElement> PovrayPlane::copy() const {
 
 ///
 void PovrayPlane::write(std::ostream & out) const {
-    out << "plane {" << writeOut(out, position_) <<  ", " << writeOut(out, depth_) << std::endl;
+    out << "plane {" << writeOut(out, normal_) <<  ", " << writeOut(out, distance_) << std::endl;
     out << "\tpigment\t" << writeOut(out, pigment_) << std::endl;
     out << "\tfinish\t" << writeOut(out, finish_) << std::endl;
     out << "}" << std::endl;

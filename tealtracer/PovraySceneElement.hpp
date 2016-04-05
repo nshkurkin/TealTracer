@@ -19,6 +19,18 @@
 #include "TSLogger.hpp"
 
 ///
+struct Ray {
+    Eigen::Vector3f origin;
+    Eigen::Vector3f direction;
+};
+
+///
+struct RayIntersectionResult {
+    bool intersected;
+    float timeOfIntersection;
+};
+
+///
 struct PovrayPigment {
     Eigen::Vector4f color;
 };
@@ -39,6 +51,9 @@ public:
     virtual std::shared_ptr<PovraySceneElement> copy() const = 0;
     ///
     virtual void write(std::ostream & out) const {}
+    
+    ///
+    virtual RayIntersectionResult intersect(const Ray & ray) = 0;
     
 protected:
 

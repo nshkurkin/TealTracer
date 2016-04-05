@@ -26,6 +26,13 @@ public:
     virtual std::shared_ptr<PovraySceneElement> copy() const;
     ///
     virtual void write(std::ostream & out) const;
+    
+    ///
+    virtual RayIntersectionResult intersect(const Ray & ray) {
+        RayIntersectionResult result;
+        result.intersected = false;
+        return result;
+    }
 
 private:
 
@@ -46,6 +53,13 @@ public:
     ///
     virtual void write(std::ostream & out) const;
 
+    ///
+    virtual RayIntersectionResult intersect(const Ray & ray) {
+        RayIntersectionResult result;
+        result.intersected = false;
+        return result;
+    }
+
 private:
 
     Eigen::Vector3f position_;
@@ -63,6 +77,22 @@ public:
     virtual std::shared_ptr<PovraySceneElement> copy() const;
     ///
     virtual void write(std::ostream & out) const;
+
+    ///
+    virtual RayIntersectionResult intersect(const Ray & ray) {
+        RayIntersectionResult result;
+        /// https://en.wikipedia.org/wiki/Vector_projection
+        Eigen::Vector3f toCenter = position_ - ray.origin;
+        Eigen::Vector3f alongRayDir = toCenter.dot(ray.direction) * ray.direction;
+        Eigen::Vector3f distVec = toCenter - alongRayDir;
+        float sqrDist = distVec.dot(distVec);
+        
+        result.intersected = sqrDist <= radius_ * radius_;
+        if (result.intersected) {
+            result.timeOfIntersection = alongRayDir.norm();
+        }
+        return result;
+    }
 
 private:
 
@@ -86,10 +116,23 @@ public:
     ///
     virtual void write(std::ostream & out) const;
 
+    ///
+    virtual RayIntersectionResult intersect(const Ray & ray) {
+        RayIntersectionResult result;
+        /// https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
+        float product = ray.direction.dot(normal_);
+        if (product > 0.001 && product < -0.001) {
+            result.timeOfIntersection = -(ray.origin.dot(normal_) - distance_) / product;
+        }
+        
+        result.intersected = result.timeOfIntersection >= 0.0;
+        return result;
+    }
+
 private:
 
-    Eigen::Vector3f position_;
-    float depth_;
+    Eigen::Vector3f normal_;
+    float distance_;
     
     PovrayPigment pigment_;
     PovrayFinish finish_;

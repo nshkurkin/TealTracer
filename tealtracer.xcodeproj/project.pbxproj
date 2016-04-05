@@ -457,6 +457,22 @@
 			name = shaders;
 			sourceTree = "<group>";
 		};
+		C064A95B1CB430A1003A3D8B /* kernels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = kernels;
+			sourceTree = "<group>";
+		};
+		C064A95C1CB43282003A3D8B /* cpu raytracer */ = {
+			isa = PBXGroup;
+			children = (
+				C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */,
+				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
+			);
+			name = "cpu raytracer";
+			sourceTree = "<group>";
+		};
 		C0C1230E1CAB20790024DA91 = {
 			isa = PBXGroup;
 			children = (
@@ -478,6 +494,7 @@
 			isa = PBXGroup;
 			children = (
 				C064A9521CB07BE6003A3D8B /* shaders */,
+				C064A95B1CB430A1003A3D8B /* kernels */,
 				C0C125361CAB7D710024DA91 /* scenes */,
 				C0C1231A1CAB20790024DA91 /* main.cpp */,
 				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
@@ -487,8 +504,7 @@
 				C0C125281CAB4A220024DA91 /* Window.hpp */,
 				C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */,
 				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
-				C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */,
-				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
+				C064A95C1CB43282003A3D8B /* cpu raytracer */,
 				C0C125431CAC70240024DA91 /* opengl */,
 				C0C125411CAC6F850024DA91 /* povray */,
 				C0C1251F1CAB33DB0024DA91 /* Helpers */,
