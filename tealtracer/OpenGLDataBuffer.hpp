@@ -124,10 +124,7 @@ struct OpenGLTextureMetaData {
     
     ///
     GLint textureDimension() const;
-    
-    /// The format of this texture data, e.g. GL_UNSIGNED_INT.
-    /// Equivalent to the `format` field of a glTextureImage* function
-    GLenum dataFormat;
+
     /// Specifies the number of color components in the texture. 
     /// See the 3 tables in https://www.opengl.org/sdk/docs/man/html/glTexImage3D.xhtml
     /// for more information. 

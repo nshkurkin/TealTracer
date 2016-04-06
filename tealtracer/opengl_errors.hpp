@@ -126,6 +126,52 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
 #define glGetActiveUniform(...) ns_safeGLCall(glGetActiveUniform, ##__VA_ARGS__)
 #define glGetUniformLocation(...) ns_safeGLCallWithReturn(glGetUniformLocation, ##__VA_ARGS__)
 
+#define glUniform1f(...) ns_safeGLCall(glUniform1f, ##__VA_ARGS__)
+#define glUniform2f(...) ns_safeGLCall(glUniform2f, ##__VA_ARGS__)
+#define glUniform3f(...) ns_safeGLCall(glUniform3f, ##__VA_ARGS__)
+#define glUniform4f(...) ns_safeGLCall(glUniform4f, ##__VA_ARGS__)
+
+#define glUniform1fv(...) ns_safeGLCall(glUniform1fv, ##__VA_ARGS__)
+#define glUniform2fv(...) ns_safeGLCall(glUniform2fv, ##__VA_ARGS__)
+#define glUniform3fv(...) ns_safeGLCall(glUniform3fv, ##__VA_ARGS__)
+#define glUniform4fv(...) ns_safeGLCall(glUniform4fv, ##__VA_ARGS__)
+
+#define glUniform1i(...) ns_safeGLCall(glUniform1i, ##__VA_ARGS__)
+#define glUniform2i(...) ns_safeGLCall(glUniform2i, ##__VA_ARGS__)
+#define glUniform3i(...) ns_safeGLCall(glUniform3i, ##__VA_ARGS__)
+#define glUniform4i(...) ns_safeGLCall(glUniform4i, ##__VA_ARGS__)
+
+#define glUniform1iv(...) ns_safeGLCall(glUniform1iv, ##__VA_ARGS__)
+#define glUniform2iv(...) ns_safeGLCall(glUniform2iv, ##__VA_ARGS__)
+#define glUniform3iv(...) ns_safeGLCall(glUniform3iv, ##__VA_ARGS__)
+#define glUniform4iv(...) ns_safeGLCall(glUniform4iv, ##__VA_ARGS__)
+
+#define glUniform1ui(...) ns_safeGLCall(glUniform1ui, ##__VA_ARGS__)
+#define glUniform2ui(...) ns_safeGLCall(glUniform2ui, ##__VA_ARGS__)
+#define glUniform3ui(...) ns_safeGLCall(glUniform3ui, ##__VA_ARGS__)
+#define glUniform4ui(...) ns_safeGLCall(glUniform4ui, ##__VA_ARGS__)
+
+#define glUniform1uiv(...) ns_safeGLCall(glUniform1uiv, ##__VA_ARGS__)
+#define glUniform2uiv(...) ns_safeGLCall(glUniform2uiv, ##__VA_ARGS__)
+#define glUniform3uiv(...) ns_safeGLCall(glUniform3uiv, ##__VA_ARGS__)
+#define glUniform4uiv(...) ns_safeGLCall(glUniform4uiv, ##__VA_ARGS__)
+
+#define glUniformMatrix2fv(...) ns_safeGLCall(glUniformMatrix2fv, ##__VA_ARGS__)
+#define glUniformMatrix3fv(...) ns_safeGLCall(glUniformMatrix3fv, ##__VA_ARGS__)
+#define glUniformMatrix4fv(...) ns_safeGLCall(glUniformMatrix4fv, ##__VA_ARGS__)
+
+#define glUniformMatrix2x3fv(...) ns_safeGLCall(glUniformMatrix2x3fv, ##__VA_ARGS__)
+#define glUniformMatrix3x2fv(...) ns_safeGLCall(glUniformMatrix3x2fv, ##__VA_ARGS__)
+#define glUniformMatrix2x4fv(...) ns_safeGLCall(glUniformMatrix2x4fv, ##__VA_ARGS__)
+#define glUniformMatrix4x2fv(...) ns_safeGLCall(glUniformMatrix4x2fv, ##__VA_ARGS__)
+#define glUniformMatrix3x4fv(...) ns_safeGLCall(glUniformMatrix3x4fv, ##__VA_ARGS__)
+#define glUniformMatrix4x3fv(...) ns_safeGLCall(glUniformMatrix4x3fv, ##__VA_ARGS__)
+
+#define glDrawArrays(...) ns_safeGLCall(glDrawArrays, ##__VA_ARGS__)
+#define glDrawElements(...) ns_safeGLCall(glDrawElements, ##__VA_ARGS__)
+
+#define glViewport(...) ns_safeGLCall(glViewport, ##__VA_ARGS__)
+
 #endif
 
 /// Takes the enum value given by |glGetError| and turns it into a parsed

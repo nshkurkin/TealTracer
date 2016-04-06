@@ -256,6 +256,34 @@ public:
         vao->restoreActiveVAO(oldVaoHandle);
         restoreActiveProgram(oldProgramHandle);
     }
+    
+    ///
+    bool hasUniform(const std::string & name) {
+        return activeUniformMap.count(name) != 0;
+    }
+    
+    ///
+    const OpenGLShaderVariable & uniform(const std::string & name) {
+        return activeUniformMap[name];
+    }
+    
+    ///
+    static const int noLocation = -1;
+    
+    ///
+    GLint uniformLocation(const std::string & name) {
+        if (hasUniform(name)) {
+            return uniform(name).location;
+        }
+        else {
+            return noLocation;
+        }
+    }
+    
+    ///
+    void attach(const std::string & name, OpenGLTextureBuffer * texture) {
+        glUniform1i(uniformLocation(name), texture->textureUnit());
+    }
 };
 
 
