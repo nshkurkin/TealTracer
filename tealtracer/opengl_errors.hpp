@@ -26,6 +26,9 @@
 
 /// NOTE: Include "gl.h" here, or your equivalent
 #include "gl_include.h"
+#if __cplusplus < 201103L
+    #define nullptr NULL
+#endif
 
 /// NOTE: You may need to add an include path for libxml to your build. For example:
 ///     -I/usr/local/include/libxml2
@@ -241,7 +244,7 @@ struct OpenGLAdditionalErrorInfo {
     std::vector<std::string> errorNotes;
 
     /// A map of various OpenGL errors and a list of error descriptions that accompany each.
-    std::map<GLenum, std::vector<std::string>> errorDescriptions;
+    std::map< GLenum, std::vector<std::string> > errorDescriptions;
     
     /// The errors for GL_INVALID_ENUM
     const std::vector<std::string> & invalidEnum() const;
