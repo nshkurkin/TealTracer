@@ -29,34 +29,57 @@ TealTracer::cpuWindow() {
     return this->getWindow(CPUWindow);
 }
 
+#include "json.hpp"
+using json = nlohmann::json;
+
 ///
 int
 TealTracer::run(const std::vector<std::string> & args) {
-    scene_ = PovrayScene::loadScene("/Users/Bo/Documents/Programming/csc490/tealtracer/tealtracer/lab1_simple.pov");
-    
     assert(glfwInit());
     for (int i = 0; i < NumWindows; i++) {
         this->createNewWindow(i);
     }
     
+    std::string file("config.json");
+    std::ifstream source;
+    source.open(file.c_str(), std::ios_base::in);
+    if (!source) {
+        TSLoggerLog(std::cout, "could not find file=", file);
+        assert(false);
+    }
+    
+    std::string content;
+    std::string line;
+    while (!std::getline(source, line).eof()) {
+        /// Remove all comments
+        content.append(line);
+    }
+    
     auto monitor = glfwGetPrimaryMonitor();
     auto videoMode = glfwGetVideoMode(monitor);
+    json config = json::parse(content);
+    
+    scene_ = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
     
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
-    gpuWindow()->setTitle("GPU Ray Tracer");
+    gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
+    gpuWindow()->setWidth(config["outputWidth"].get<int>());
+    gpuWindow()->setHeight(config["outputHeight"].get<int>());
     gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
     gpuWindow()->setDrawingDelegate(gpuRayTracer_);
     gpuWindow()->setEventListener(gpuRayTracer_);
     gpuRayTracer_->setScene(scene_);
     
     cpuRayTracer_ = std::shared_ptr<CPURayTracer>(new CPURayTracer());
-    cpuWindow()->setTitle("CPU Ray Tracer");
+    cpuWindow()->setTitle(config["CPURayTracer"]["initialTitle"].get<std::string>());
+    cpuWindow()->setWidth(config["outputWidth"].get<int>());
+    cpuWindow()->setHeight(config["outputHeight"].get<int>());
     cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
     cpuWindow()->setDrawingDelegate(cpuRayTracer_);
     cpuWindow()->setEventListener(cpuRayTracer_);
     cpuRayTracer_->setScene(scene_);
     
-    while (gpuWindow()->opened()) {
+    while (gpuWindow()->opened() && cpuWindow()->opened()) {
         glfwPollEvents();
         for (auto windowItr = windowsBegin(); windowItr != windowsEnd(); windowItr++) {
             windowItr->second->draw();
@@ -71,7 +94,7 @@ TealTracer::run(const std::vector<std::string> & args) {
 std::shared_ptr<TSWindow>
 TealTracer::newWindow() {
     auto window = Window::createManaged(new Window());
-    window->setup(400, 300, "Untitled");
+    window->setup(100, 100, "Untitled");
     return window;
 }
 

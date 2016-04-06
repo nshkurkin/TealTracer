@@ -74,6 +74,15 @@ public:
         lookAt_ = lookAt;
     }
     
+    ///
+    virtual PovrayPigment const * pigment() const {
+        return nullptr;
+    }
+    
+    ///
+    virtual PovrayFinish const * finish() const {
+        return nullptr;
+    }
 
 private:
 
@@ -99,6 +108,16 @@ public:
         RayIntersectionResult result;
         result.intersected = false;
         return result;
+    }
+
+    ///
+    virtual PovrayPigment const * pigment() const {
+        return nullptr;
+    }
+    
+    ///
+    virtual PovrayFinish const * finish() const {
+        return nullptr;
     }
 
 private:
@@ -146,6 +165,16 @@ public:
         
         return result;
     }
+    
+    ///
+    virtual PovrayPigment const * pigment() const {
+        return &pigment_;
+    }
+    
+    ///
+    virtual PovrayFinish const * finish() const {
+        return &finish_;
+    }
 
 private:
 
@@ -180,6 +209,16 @@ public:
         
         result.intersected = result.timeOfIntersection >= 0.0;
         return result;
+    }
+    
+    ///
+    virtual PovrayPigment const * pigment() const {
+        return &pigment_;
+    }
+    
+    ///
+    virtual PovrayFinish const * finish() const {
+        return &finish_;
     }
 
 private:

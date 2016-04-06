@@ -55,6 +55,11 @@ public:
     ///
     virtual RayIntersectionResult intersect(const Ray & ray) = 0;
     
+    ///
+    virtual PovrayPigment const * pigment() const = 0;
+    ///
+    virtual PovrayFinish const * finish() const = 0;
+    
 protected:
 
     ///

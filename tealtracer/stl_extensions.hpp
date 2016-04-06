@@ -42,6 +42,22 @@ void add_vector(std::vector<T> & vec, const T & t, Args... args);
 template <typename T, typename... Args>
 std::vector<T> make_vector(Args... args);
 
+#include <sstream>
+
+///
+template <typename T = void>
+void set_string_formatter(std::ostream & stream);
+///
+template <typename T>
+void set_string_formatter(std::ostream & stream, const T & val);
+///
+template <typename T, typename... Args>
+void set_string_formatter(std::ostream & stream, const T & val, Args... args);
+///
+template <typename... Args>
+std::string make_string(Args... args);
+
+
 /////////////////////////////////////////////////////////////////////////////////
 
 ///
@@ -102,6 +118,29 @@ std::vector<T> make_vector(Args... args) {
     std::vector<T> vec;
     add_vector<T>(vec, args...);
     return vec;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+void set_string_formatter(std::ostream & stream) {}
+
+template <typename T>
+void set_string_formatter(std::ostream & stream, const T & val) {
+    stream << val;
+}
+
+template <typename T, typename... Args>
+void set_string_formatter(std::ostream & stream, const T & val, Args... args) {
+    stream << val;
+    set_string_formatter(stream, args...);
+}
+
+template <typename... Args>
+std::string make_string(Args... args) {
+    std::ostringstream formatter;
+    set_string_formatter(formatter, args...);
+    return formatter.str();
 }
 
 #endif /* stl_extensions_hpp */

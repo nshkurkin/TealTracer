@@ -1,0 +1,13 @@
+{
+    "povrayScene" : "lab1_simple.pov",
+    "outputWidth" : 640,
+    "outputHeight" : 480,
+    
+    "CPURayTracer" : {
+        "initialTitle" : "CPU Ray Tracer"
+    },
+    
+    "GPURayTracer" : {
+        "initialTitle" : "GPU Ray Tracer"
+    }
+}

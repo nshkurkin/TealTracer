@@ -18,6 +18,8 @@
 		C064A95F1CB43ABE003A3D8B /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A95D1CB43ABE003A3D8B /* Image.cpp */; };
 		C064A9631CB489AE003A3D8B /* texture.frag.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9611CB443D8003A3D8B /* texture.frag.glsl */; };
 		C064A9641CB489AE003A3D8B /* texture.vert.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9621CB443E4003A3D8B /* texture.vert.glsl */; };
+		C064A9681CB5BE9A003A3D8B /* JobPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9661CB5BE9A003A3D8B /* JobPool.cpp */; };
+		C064A96E1CB5D23C003A3D8B /* config.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A96D1CB5CE5B003A3D8B /* config.json */; };
 		C0C1231B1CAB20790024DA91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1231A1CAB20790024DA91 /* main.cpp */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
 		C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1251A1CAB337F0024DA91 /* TSValue.cpp */; };
@@ -41,6 +43,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C064A96E1CB5D23C003A3D8B /* config.json in CopyFiles */,
 				C064A9631CB489AE003A3D8B /* texture.frag.glsl in CopyFiles */,
 				C064A9641CB489AE003A3D8B /* texture.vert.glsl in CopyFiles */,
 				C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */,
@@ -70,6 +73,10 @@
 		C064A95E1CB43ABE003A3D8B /* Image.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Image.hpp; sourceTree = "<group>"; };
 		C064A9611CB443D8003A3D8B /* texture.frag.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = texture.frag.glsl; sourceTree = "<group>"; };
 		C064A9621CB443E4003A3D8B /* texture.vert.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = texture.vert.glsl; sourceTree = "<group>"; };
+		C064A9661CB5BE9A003A3D8B /* JobPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JobPool.cpp; sourceTree = "<group>"; };
+		C064A9671CB5BE9A003A3D8B /* JobPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = JobPool.hpp; sourceTree = "<group>"; };
+		C064A96B1CB5CD8F003A3D8B /* json.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = json.hpp; sourceTree = "<group>"; };
+		C064A96D1CB5CE5B003A3D8B /* config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = config.json; sourceTree = "<group>"; };
 		C0C123171CAB20790024DA91 /* tealtracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tealtracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0C1231A1CAB20790024DA91 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		C0C1231C1CAB20790024DA91 /* tealtracer.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tealtracer.1; sourceTree = "<group>"; };
@@ -472,6 +479,8 @@
 				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
 				C064A95D1CB43ABE003A3D8B /* Image.cpp */,
 				C064A95E1CB43ABE003A3D8B /* Image.hpp */,
+				C064A9661CB5BE9A003A3D8B /* JobPool.cpp */,
+				C064A9671CB5BE9A003A3D8B /* JobPool.hpp */,
 			);
 			name = "cpu raytracer";
 			sourceTree = "<group>";
@@ -483,6 +492,14 @@
 				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
 			);
 			name = "gpu raytracer";
+			sourceTree = "<group>";
+		};
+		C064A9691CB5CD75003A3D8B /* nlohmann */ = {
+			isa = PBXGroup;
+			children = (
+				C064A96B1CB5CD8F003A3D8B /* json.hpp */,
+			);
+			name = nlohmann;
 			sourceTree = "<group>";
 		};
 		C0C1230E1CAB20790024DA91 = {
@@ -511,6 +528,7 @@
 				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
 				C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */,
 				C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */,
+				C064A96D1CB5CE5B003A3D8B /* config.json */,
 				C0C125271CAB4A220024DA91 /* Window.cpp */,
 				C0C125281CAB4A220024DA91 /* Window.hpp */,
 				C064A9601CB43EE9003A3D8B /* gpu raytracer */,
@@ -525,6 +543,7 @@
 		C0C123231CAB20A80024DA91 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				C064A9691CB5CD75003A3D8B /* nlohmann */,
 				C064A9431CB05E0D003A3D8B /* compute_engine */,
 				C0C123241CAB20B50024DA91 /* Eigen */,
 			);
@@ -1285,6 +1304,7 @@
 				C0C1231B1CAB20790024DA91 /* main.cpp in Sources */,
 				C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */,
 				C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */,
+				C064A9681CB5BE9A003A3D8B /* JobPool.cpp in Sources */,
 				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,
 				C064A95F1CB43ABE003A3D8B /* Image.cpp in Sources */,
 				C064A94A1CB05E1F003A3D8B /* compute_math.cpp in Sources */,
