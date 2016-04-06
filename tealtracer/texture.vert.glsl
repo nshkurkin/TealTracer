@@ -2,7 +2,7 @@
 // http://antongerdelan.net/opengl/vertexbuffers.html
 
 in vec3 vertex_position;
-in vec3 vertex_texcoord;
+in vec2 vertex_texcoord;
 
 out vec2 texcoord;
 

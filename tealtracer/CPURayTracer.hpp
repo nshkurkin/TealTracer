@@ -107,15 +107,12 @@ public:
         OpenGLTextureMetaData textureFormat;
         
         textureFormat.targetType = GL_TEXTURE_2D;
-        textureFormat.mipmapLevel = 0;
         textureFormat.pixelFormat = GL_RGBA;
         textureFormat.pixelType = GL_UNSIGNED_BYTE;
         textureFormat.internalDataFormat = GL_RGBA;
         textureFormat.width = outputImage.width;
         textureFormat.height = outputImage.height;
         textureFormat.dataPointer = outputImage.dataPtr();
-        textureFormat.mipMapped = false;
-        textureFormat.bitMapped = false;
         
         target.outputTexture = std::shared_ptr<OpenGLTextureBuffer>(new OpenGLTextureBuffer(0, textureFormat));
         target.outputTexture->sendData(GLenum(GL_DYNAMIC_DRAW));

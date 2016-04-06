@@ -16,6 +16,8 @@
 		C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */; };
 		C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C125371CAB7D940024DA91 /* lab1_simple.pov */; };
 		C064A95F1CB43ABE003A3D8B /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A95D1CB43ABE003A3D8B /* Image.cpp */; };
+		C064A9631CB489AE003A3D8B /* texture.frag.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9611CB443D8003A3D8B /* texture.frag.glsl */; };
+		C064A9641CB489AE003A3D8B /* texture.vert.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9621CB443E4003A3D8B /* texture.vert.glsl */; };
 		C0C1231B1CAB20790024DA91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1231A1CAB20790024DA91 /* main.cpp */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
 		C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1251A1CAB337F0024DA91 /* TSValue.cpp */; };
@@ -40,6 +42,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C064A9631CB489AE003A3D8B /* texture.frag.glsl in CopyFiles */,
+				C064A9641CB489AE003A3D8B /* texture.vert.glsl in CopyFiles */,
 				C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */,
 				C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */,
 				C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */,

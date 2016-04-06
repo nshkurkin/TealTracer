@@ -162,10 +162,13 @@ struct OpenGLTextureMetaData {
     ///
     bool mipMapped;
     ///
-    float mipMapBorderColor[4];
+    GLfloat mipMapBorderColor[4];
     
     ///
     bool linearlyInterpolated;
+    
+    ///
+    OpenGLTextureMetaData() : targetType(0), mipmapLevel(0), internalDataFormat(0), border(0), pixelFormat(0), pixelType(0), dataPointer(nullptr), bitMapped(false), mipMapped(false), mipMapBorderColor {0, 0, 0, 1}, linearlyInterpolated(false) {}
 };
 
 /// Represents a wrapper around an opengl texture. It contains an associated
@@ -181,10 +184,10 @@ public:
     ///
     OpenGLTextureBuffer();
     ///
-    OpenGLTextureBuffer(GLenum textureUnit, const OpenGLTextureMetaData & metaData);
+    OpenGLTextureBuffer(GLint textureUnit, const OpenGLTextureMetaData & metaData);
     
     /// Which texture unit this texture will be sent to. Equivalent to
-    /// `textureUnit` - GL_TEXTURE0.
+    /// `textureUnit_` - GL_TEXTURE0.
     GLint textureUnit() const;
     ///
     void setTextureUnit(GLint unit);

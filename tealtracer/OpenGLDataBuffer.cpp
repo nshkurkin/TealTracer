@@ -205,13 +205,13 @@ OpenGLTextureBuffer::freeContent() {
 ///
 GLint
 OpenGLTextureBuffer::textureUnit() const {
-    return GLint(textureUnit_) - GLint(GL_TEXTURE0);
+    return GLint(textureUnit_);
 }
 
 ///
 void
 OpenGLTextureBuffer::setTextureUnit(GLint unit) {
-    textureUnit_ = GLenum(GLint(GL_TEXTURE0) + unit);
+    textureUnit_ = unit;
 }
 
 ///
@@ -227,14 +227,14 @@ void OpenGLTextureBuffer::setMetaData(const OpenGLTextureMetaData & metaData) {
 
 ///
 OpenGLTextureBuffer::OpenGLTextureBuffer() {
-    textureUnit_ = GL_TEXTURE0;
+    textureUnit_ = 0;
     metaData_ = OpenGLTextureMetaData();
     
     dataIsSent_ = false;
 }
 
 ///
-OpenGLTextureBuffer::OpenGLTextureBuffer(GLenum textureUnit, const OpenGLTextureMetaData & metaData) {
+OpenGLTextureBuffer::OpenGLTextureBuffer(GLint textureUnit, const OpenGLTextureMetaData & metaData) {
     this->textureUnit_ = textureUnit;
     this->metaData_ = metaData;
     
@@ -246,7 +246,7 @@ GLenum
 OpenGLTextureBuffer::glSetActiveTextureUnit() {
     GLint lastActiveTextureUnit;
     glGetIntegerv(GLenum(GL_ACTIVE_TEXTURE), &lastActiveTextureUnit);
-    glActiveTexture(textureUnit_);
+    glActiveTexture(textureUnit_ + GL_TEXTURE0);
     return GLenum(lastActiveTextureUnit);
 }
 
@@ -294,7 +294,7 @@ OpenGLTextureBuffer::glBind() {
 ///
 void
 OpenGLTextureBuffer::glUnbind(const GLState & state) {
-    glActiveTexture(textureUnit_);
+    glActiveTexture(textureUnit_ + GL_TEXTURE0);
     glBindTexture(metaData_.targetType, state.lastBoundTexture);
     
     glActiveTexture(state.lastTextureUnit);
