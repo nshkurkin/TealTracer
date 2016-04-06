@@ -54,6 +54,30 @@ public:
     std::shared_ptr<PovrayCamera> camera() const {
         return findElements<PovrayCamera>()[0];
     }
+    
+    struct InstersectionResult {
+        std::shared_ptr<PovraySceneElement> element;
+        Ray ray;
+        float timeOfIntersection;
+    };
+    
+    ///
+    InstersectionResult closestIntersection(const Ray & ray) {
+        InstersectionResult result;
+        result.element = nullptr;
+        result.timeOfIntersection = std::numeric_limits<float>::infinity();
+        result.ray = ray;
+        
+        for (auto itr = elements_.begin(); itr != elements_.end(); itr++) {
+            auto hitTest = (*itr)->intersect(ray);
+            if (hitTest.intersected && hitTest.timeOfIntersection < result.timeOfIntersection) {
+                result.element = *itr;
+                result.timeOfIntersection = hitTest.timeOfIntersection;
+            }
+        }
+        
+        return result;
+    }
 
 private:
 

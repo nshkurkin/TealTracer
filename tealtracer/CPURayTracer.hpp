@@ -20,6 +20,8 @@
 #include "TSLogger.hpp"
 #include "Image.hpp"
 
+#include <atomic>
+
 /// From Lab 1:
 ///
 ///     *) Parse the scne description file
@@ -28,6 +30,29 @@
 ///     *) Recursive Tracing (reflection, refraction, shadows)
 ///     *) Write out resulting image
 ///
+
+static inline Eigen::Matrix4f lookAt(const Eigen::Vector3f & eye, const Eigen::Vector3f & center, const Eigen::Vector3f & up) {
+    Eigen::Vector3f f = (center - eye).normalized();
+    Eigen::Vector3f s = f.cross(up).normalized();
+    Eigen::Vector3f u = s.cross(f);
+    Eigen::Matrix4f result = Eigen::Matrix4f::Identity();
+    
+    result(0,0) = s.x();
+    result(1,0) = s.y();
+    result(2,0) = s.z();
+    result(0,1) = u.x();
+    result(1,1) = u.y();
+    result(2,1) = u.z();
+    result(0,2) = -f.x();
+    result(1,2) = -f.y();
+    result(2,2) = -f.z();
+    
+    result(3,0) = -s.dot(eye);
+    result(3,1) = -u.dot(eye);
+    result(3,2) =  f.dot(eye);
+    
+    return result;
+}
 
 ///
 class CPURayTracer : public TSWindowDrawingDelegate, public TSUserEventListener {
@@ -53,7 +78,6 @@ public:
     };
 
     Image outputImage;
-    std::shared_ptr<PovrayScene> scene;
     RenderTarget target;
 
     ///
@@ -68,7 +92,7 @@ public:
              1.0, -1.0, 0.0,
              1.0,  1.0, 0.0,
              
-             1.0, -1.0, 0.0,
+            -1.0, -1.0, 0.0,
              1.0,  1.0, 0.0,
             -1.0,  1.0, 0.0
         );
@@ -77,7 +101,7 @@ public:
             1.0, 0.0,
             1.0, 1.0,
             
-            1.0, 0.0,
+            0.0, 0.0,
             1.0, 1.0,
             0.0, 1.0
         );
@@ -103,8 +127,8 @@ public:
             "vertex_texcoord", target.texcoordDBO.get()
         ));
 
-        outputImage.setDimensions(400, 300);
-        OpenGLTextureMetaData textureFormat;
+        outputImage.setDimensions(256, 256, Image::Vector4ub(255, 255, 255, 255));
+        auto textureFormat = OpenGLTextureMetaData();
         
         textureFormat.targetType = GL_TEXTURE_2D;
         textureFormat.pixelFormat = GL_RGBA;
@@ -112,10 +136,12 @@ public:
         textureFormat.internalDataFormat = GL_RGBA;
         textureFormat.width = outputImage.width;
         textureFormat.height = outputImage.height;
+        textureFormat.linearlyInterpolated = true;
+        textureFormat.mipMapped = true;
         textureFormat.dataPointer = outputImage.dataPtr();
         
         target.outputTexture = std::shared_ptr<OpenGLTextureBuffer>(new OpenGLTextureBuffer(0, textureFormat));
-        target.outputTexture->sendData(GLenum(GL_DYNAMIC_DRAW));
+        target.outputTexture->sendData();
     }
 
     ///
@@ -123,10 +149,12 @@ public:
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         
         auto lastProgramHandle = target.program->setAsActiveProgram();
-        auto oldVaoHandle = target.triangleVAO->setAsActiveVAO();
-        auto oldTextureState = target.outputTexture->glBind();
         
+        auto oldTextureState = target.outputTexture->glBind();
+        target.outputTexture->sendData();
         target.program->attach("tex", target.outputTexture.get());
+        
+        auto oldVaoHandle = target.triangleVAO->setAsActiveVAO();
         glDrawArrays(GLenum(GL_TRIANGLES), 0, GLsizei(target.points.size()));
         
         target.outputTexture->glUnbind(oldTextureState);
@@ -152,7 +180,9 @@ public:
     
     ///
     virtual void keyDown(TSWindow * window, int key, int scancode, int mods) {
-    
+        if (key == GLFW_KEY_R) {
+            raytraceScene();
+        }
     }
     
     ///
@@ -178,6 +208,47 @@ public:
     ///
     virtual void mouseScroll(TSWindow * window, double dx, double dy) {
     
+    }
+    
+    static const Eigen::Vector3f Up;
+    static const Eigen::Vector3f Forward;
+    static const Eigen::Vector3f Right;
+    
+    ///
+    void raytraceScene() {
+        assert(scene_ != nullptr);
+        
+        /// Get the camera
+        auto camera = scene_->camera();
+        
+        /// TODO: build the photon map
+        
+        /// Create all of the rays
+        auto camPos = camera->location();
+        auto viewTransform = lookAt(camera->location(), camera->lookAt(), camera->up());
+        Eigen::Vector3f forward = (viewTransform * Eigen::Vector4f(Forward.x(), Forward.y(), Forward.z(), 0.0)).block<3,1>(0,0);
+        Eigen::Vector3f up = (viewTransform * Eigen::Vector4f(Up.x(), Up.y(), Up.z(), 0.0)).block<3,1>(0,0);
+        Eigen::Vector3f right = (viewTransform * Eigen::Vector4f(Right.x(), Right.y(), Right.z(), 0.0)).block<3,1>(0,0);
+        
+        for (int px = 0; px < outputImage.width; px++) {
+            for (int py = 0; py < outputImage.height; py++) {
+                Ray ray;
+                ray.origin = camPos;
+                Eigen::Vector3f pixelPos = camPos + forward - 0.5*up - 0.5*right + right*(0.5+(double)px)/(double)outputImage.width + up*(0.5+(double)py)/(double)outputImage.height;
+                ray.direction = (pixelPos - camPos).normalized();
+                
+                auto hitTest = scene_->closestIntersection(ray);
+                Image::Vector4ub color = Image::Vector4ub(100, 100, 100, 255);
+                
+                if (hitTest.element != nullptr) {
+                    color = Image::Vector4ub(200, 0, 0, 255);
+                }
+                
+                outputImage.pixel(px, py) = color;
+            }
+        }
+        
+        target.outputTexture->setNeedsUpdate();
     }
     
 protected:

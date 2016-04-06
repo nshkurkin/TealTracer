@@ -32,11 +32,11 @@ struct Image {
     }
     
     ///
-    void setDimensions(int width, int height) {
+    void setDimensions(int width, int height, const Vector4ub & fill = Vector4ub(100, 100, 100, 255)) {
         this->width = width;
         this->height = height;
         
-        pixels.resize(width * height, Vector4ub(0, 0, 0, 1));
+        pixels.resize(width * height, fill);
     }
     
     ///

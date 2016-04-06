@@ -26,6 +26,8 @@
 
 /// NOTE: Include "gl.h" here, or your equivalent
 #include "gl_include.h"
+
+/// http://stackoverflow.com/questions/5047971/how-do-i-check-for-c11-support
 #if __cplusplus < 201103L
     #define nullptr NULL
 #endif
@@ -34,7 +36,7 @@
 ///     -I/usr/local/include/libxml2
 ///
 /// NOTE: You may need to add the following options to your linker:
-///     -L/usr/local/lib -lcurl -lxml
+///     -L/usr/local/lib -lcurl -lxml2
 
 #include <string>
 #include <vector>

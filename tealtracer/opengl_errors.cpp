@@ -76,7 +76,7 @@ OpenGLEnumInfo::OpenGLEnumInfo(GLenum enumValue) : enumValue(enumValue) {}
 /// Returns whether `enumValue` contains `value` in its bits.
 bool
 OpenGLEnumInfo::enumMatches(GLenum value) const {
-    return (enumValue & value) == value;
+    return enumValue == value;
 }
 
 /// Whether this error contains GL_INVALID_ENUM
@@ -247,7 +247,8 @@ std::string OpenGLAdditionalErrorInfo::description() const {
      + " " + invalidValueDescription()
      + " " + invalidOperationDescription()
      + " " + invalidFramebufferOperationDescription()
-     + " " + outOfMemoryDescription();
+     + " " + outOfMemoryDescription()
+     + " " + joinStringsWithSeperator(errorNotes, " ");
 }
 
 
@@ -327,11 +328,34 @@ static std::vector<xmlNodePtr> findXMLNodeChildrenForXPath(
     return nodes;
 }
 
+//#include <libxml/parser.h>
+///// http://www.xmlsoft.org/tutorial/xmltutorial.pdf
+//static xmlChar * convertXMLToEncoding(xmlChar * in, const char * encoding) {
+//    xmlChar out[1024] = {0};
+//    int ret,size = 512,out_size = 512,temp;
+//    xmlCharEncodingHandlerPtr handler;
+//    handler = xmlFindCharEncodingHandler(encoding);
+//    temp=size-1;
+//    ret = handler->input(out, &out_size, in, &temp);
+//    if (ret || (temp - size + 1) != 0) {
+//        printf("conversion wasn't successful.\n");
+//    }
+//    return NULL;
+//}
+
 ///
 std::string unannotedXMLNodeContent(xmlNode * node) {
     std::string result = "";
-    if (node->content != nullptr) {
-        result += std::string((char *)node->content);
+    auto encodedString = node->content; ///xmlNodeListGetString(node->doc, node, true);
+    if (encodedString != nullptr) {
+//        convertXMLToEncoding(encodedString, "ASCII");
+        auto content = encodedString;
+        while (*content != '\0') {
+            if (*content <= 255) {
+                result += char(*content);
+            }
+            content++;
+        }
     }
     auto child = node->children;
     while (child != nullptr) {
@@ -341,6 +365,8 @@ std::string unannotedXMLNodeContent(xmlNode * node) {
     
     return result;
 }
+
+//#include "TSLogger.hpp"
 
 ///
 OpenGLAdditionalErrorInfo ns_requestOpenGLAPIErrorInfoForFunction(const std::string & function) {
@@ -416,7 +442,7 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
     auto stateErrors = ns_glGetStateErrors();
     if (stateErrors.encounteredError) {
         
-        std::cerr << "{" << fileName << ":" << lineNumber << " (" << functionName << ")} opengl assertion failure: " << message << std::endl;
+        std::cerr << "{" << fileName << ":" << lineNumber << " (" << functionName << ")} opengl assertion failure: " << message << std::endl << std::endl;
         
         if (oglFuncName.length() > 0) {
             std::string causeMessages = "";
@@ -428,15 +454,17 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
                 }
             }
             
+            /// General causes
+            std::cerr << "General causes: " << stateErrors.description << std::endl << std::endl;
+            
             if (causeMessages.length() > 0) {
                 /// Specific possible causes
-                std::cerr << "{" << fileName << ":" << lineNumber << " (" << functionName << ")} possible causes: " << causeMessages << " \n\nSource: " << additionalInfo.url << std::endl;
-            }
-            else {
-                /// General causes
-                std::cerr << "{" << fileName << ":" << lineNumber << " (" << functionName << ")} general causes: " << stateErrors.description << std::endl;
+                std::cerr << "Possible causes: " << causeMessages << std::endl << std::endl;
             }
             
+            if (additionalInfo.url.length() > 0) {
+                std::cerr << "For more information visit: " << additionalInfo.url << std::endl << std::endl;
+            }
         }
 
         assert(false);

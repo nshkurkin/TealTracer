@@ -178,7 +178,7 @@ struct OpenGLTextureMetaData {
 /// attach a texture to a program, see nsgl::Program.attach(...). These
 /// textures are hardcoded to be 2D textures (sorry if you needed something
 /// else).
-class OpenGLTextureBuffer : OpenGLObject {
+class OpenGLTextureBuffer : public OpenGLObject {
 public:
     
     ///
@@ -214,7 +214,7 @@ public:
     /// Sends the image data of this texture if needed. In particular, this
     /// method boths checks if the image has changed or whether the data
     /// for this texture has never been sent.
-    void sendData(bool deleteDataAfterSend = false);
+    void sendData();
     
     /// Call this to notify this buffer if the data needs to be re-sent to OpenGL
     void setNeedsUpdate();

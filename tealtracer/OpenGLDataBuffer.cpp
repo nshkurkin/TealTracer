@@ -331,7 +331,7 @@ static inline void (*ns_textureFunctionForType(GLenum type)) (const OpenGLTextur
 
 ///
 void
-OpenGLTextureBuffer::sendData(bool deleteDataAfterSend) {
+OpenGLTextureBuffer::sendData() {
     glAllocate();
 
     if (!dataIsSent_) {
