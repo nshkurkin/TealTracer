@@ -17,6 +17,14 @@
 #include "PovraySceneElement.hpp"
 
 ///
+struct PovrayCameraData {
+    Eigen::Vector3f location;
+    Eigen::Vector3f up;
+    Eigen::Vector3f right;
+    Eigen::Vector3f lookAt;
+};
+
+///
 class PovrayCamera : public PovraySceneElement {
 public:
 
@@ -28,61 +36,32 @@ public:
     virtual void write(std::ostream & out) const;
     
     ///
-    virtual RayIntersectionResult intersect(const Ray & ray) {
-        RayIntersectionResult result;
-        result.intersected = false;
-        return result;
-    }
+    virtual RayIntersectionResult intersect(const Ray & ray);
     
     ///
-    const Eigen::Vector3f & location() const {
-        return location_;
-    }
+    const Eigen::Vector3f & location() const;
+    ///
+    void setLocation(const Eigen::Vector3f & location);
     
     ///
-    void setLocation(const Eigen::Vector3f & location) {
-        location_ = location;
-    }
+    const Eigen::Vector3f & up() const;
+    ///
+    void setUp(const Eigen::Vector3f & up);
     
     ///
-    const Eigen::Vector3f & up() const {
-        return up_;
-    }
+    const Eigen::Vector3f & right() const;
+    ///
+    void setRight(const Eigen::Vector3f & right);
     
     ///
-    void setUp(const Eigen::Vector3f & up) {
-        up_ = up;
-    }
+    const Eigen::Vector3f & lookAt() const;
+    ///
+    void setLookAt(const Eigen::Vector3f & lookAt);
     
     ///
-    const Eigen::Vector3f & right() const {
-        return right_;
-    }
-    
+    virtual PovrayPigment const * pigment() const;
     ///
-    void setRight(const Eigen::Vector3f & right) {
-        right_ = right;
-    }
-    
-    ///
-    const Eigen::Vector3f & lookAt() const {
-        return lookAt_;
-    }
-    
-    ///
-    void setLookAt(const Eigen::Vector3f & lookAt) {
-        lookAt_ = lookAt;
-    }
-    
-    ///
-    virtual PovrayPigment const * pigment() const {
-        return nullptr;
-    }
-    
-    ///
-    virtual PovrayFinish const * finish() const {
-        return nullptr;
-    }
+    virtual PovrayFinish const * finish() const;
 
 private:
 
@@ -90,6 +69,12 @@ private:
     Eigen::Vector3f up_;
     Eigen::Vector3f right_;
     Eigen::Vector3f lookAt_;
+};
+
+///
+struct PovrayLightSourceData {
+    Eigen::Vector3f position;
+    Eigen::Vector4f color;
 };
 
 ///
@@ -104,21 +89,12 @@ public:
     virtual void write(std::ostream & out) const;
 
     ///
-    virtual RayIntersectionResult intersect(const Ray & ray) {
-        RayIntersectionResult result;
-        result.intersected = false;
-        return result;
-    }
+    virtual RayIntersectionResult intersect(const Ray & ray);
 
     ///
-    virtual PovrayPigment const * pigment() const {
-        return nullptr;
-    }
-    
+    virtual PovrayPigment const * pigment() const;
     ///
-    virtual PovrayFinish const * finish() const {
-        return nullptr;
-    }
+    virtual PovrayFinish const * finish() const;
 
 private:
 
@@ -126,6 +102,16 @@ private:
     Eigen::Vector4f color_;
 };
 
+///
+struct PovraySphereData {
+    Eigen::Vector3f position;
+    float radius;
+    
+    PovrayPigment pigment;
+    PovrayFinish finish;
+    
+    Eigen::Matrix4f transform;
+};
 
 ///
 class PovraySphere : public PovraySceneElement {
@@ -139,42 +125,12 @@ public:
     virtual void write(std::ostream & out) const;
 
     ///
-    virtual RayIntersectionResult intersect(const Ray & ray) {
-        RayIntersectionResult result;
-        
-        float A = ray.direction.dot(ray.direction);
-        float B = 2.0 * (ray.origin - position_).dot(ray.direction);
-        float C = (ray.origin - position_).dot(ray.origin - position_) - radius_ * radius_;
-        
-        float radical = B*B - 4.0*A*C;
-        if (radical >= 0) {
-            float sqrRadical = std::sqrt(radical);
-            float t0 = (-B + sqrRadical)/(2.0 * A);
-            float t1 = (-B - sqrRadical)/(2.0 * A);
-            result.intersected = t0 >= 0 || t1 >= 0;
-            if (t0 >= 0 && t1 >= 0) {
-                result.timeOfIntersection = std::min(t0, t1);
-            }
-            else if (t0 >= 0) {
-                result.timeOfIntersection = t0;
-            }
-            else if (t1 >= 0) {
-                result.timeOfIntersection = t1;
-            }
-        }
-        
-        return result;
-    }
+    virtual RayIntersectionResult intersect(const Ray & ray);
     
     ///
-    virtual PovrayPigment const * pigment() const {
-        return &pigment_;
-    }
-    
+    virtual PovrayPigment const * pigment() const;
     ///
-    virtual PovrayFinish const * finish() const {
-        return &finish_;
-    }
+    virtual PovrayFinish const * finish() const;
 
 private:
 
@@ -185,6 +141,15 @@ private:
     PovrayFinish finish_;
     
     Eigen::Vector3f translate_;
+};
+
+///
+struct PovrayPlaneData {
+    Eigen::Vector3f normal;
+    float distance;
+    
+    PovrayPigment pigment;
+    PovrayFinish finish;
 };
 
 ///
@@ -199,27 +164,12 @@ public:
     virtual void write(std::ostream & out) const;
 
     ///
-    virtual RayIntersectionResult intersect(const Ray & ray) {
-        RayIntersectionResult result;
-        /// https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
-        float product = ray.direction.dot(normal_);
-        if (product > 0.001 || product < -0.001) {
-            result.timeOfIntersection = -(ray.origin.dot(normal_) - distance_) / product;
-        }
-        
-        result.intersected = result.timeOfIntersection >= 0.0;
-        return result;
-    }
+    virtual RayIntersectionResult intersect(const Ray & ray);
     
     ///
-    virtual PovrayPigment const * pigment() const {
-        return &pigment_;
-    }
-    
+    virtual PovrayPigment const * pigment() const;
     ///
-    virtual PovrayFinish const * finish() const {
-        return &finish_;
-    }
+    virtual PovrayFinish const * finish() const;
 
 private:
 

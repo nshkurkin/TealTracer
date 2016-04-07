@@ -42,6 +42,9 @@ struct PovrayFinish {
 };
 
 ///
+
+
+///
 class PovraySceneElement {
 public:
     virtual ~PovraySceneElement();

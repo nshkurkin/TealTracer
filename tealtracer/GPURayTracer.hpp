@@ -48,7 +48,7 @@ public:
         target.init(window->width(), window->height(), &empty[0]);
         
         /// OpenCL
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
+        ocl_computeSquares(); // test code
     }
 
     ///
@@ -100,6 +100,47 @@ public:
     ///
     virtual void mouseScroll(TSWindow * window, double dx, double dy) {
     
+    }
+    
+    /// Tests the usage on "ComputeEngine" following the example given at the
+    /// following web address:
+    ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
+    void ocl_computeSquares() {
+    
+        /// OpenCL
+        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
+        
+        /// Copy the elements of the scene onto the GPU
+        unsigned int elementCount = 10000;
+        
+        computeEngine.createProgramFromFile("square_prog", "sample_square.cl");
+        computeEngine.createKernel("square_prog", "square");
+        computeEngine.createBuffer("square_input", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(float) * elementCount);
+        computeEngine.createBuffer("square_output", ComputeEngine::MemFlags::MEM_WRITE_ONLY, sizeof(float) * elementCount);
+        
+        std::vector<float> values;
+        for (int i = 0; i < elementCount; i++) {
+            values.push_back(float(i));
+        }
+        computeEngine.writeBuffer("square_input", 0, 0, sizeof(float) * elementCount, &values[0]);
+        
+        computeEngine.setKernelArg("square", 0, &computeEngine.getBuffer("square_input"), sizeof(cl_mem));
+        computeEngine.setKernelArg("square", 1, &computeEngine.getBuffer("square_output"), sizeof(cl_mem));
+        computeEngine.setKernelArg("square", 2, &elementCount, sizeof(unsigned int));
+        
+        size_t globalCount = elementCount;
+        size_t localCount = 1000; //computeEngine.getEstimatedWorkGroupSize("square", 0); == 1024?
+        computeEngine.executeKernel("square", 0, &globalCount, &localCount, 1);
+        computeEngine.finish(0);
+        
+        std::vector<float> output(elementCount, 1.0);
+        computeEngine.readBuffer("square_output", 0, 0, sizeof(float) * elementCount, &output[0]);
+        
+        for (int i = 0; i < elementCount; i++) {
+            assert(output[i] == values[i] * values[i]);
+        }
+        
+        computeEngine.disconnect();
     }
     
 protected:

@@ -799,8 +799,9 @@ ComputeEngine::executeKernel(
     uint uiDimCount)
 {
     KernelMapIter pkKernelIter = m_akKernels.find(acKernelName);
-    if(pkKernelIter == m_akKernels.end())
-        return false;
+    if(pkKernelIter == m_akKernels.end()) {
+        assert(false);
+    }
                 
     cl_kernel kKernel = pkKernelIter->second;
     
@@ -820,7 +821,7 @@ ComputeEngine::executeKernel(
 	{
         printf("Compute Engine: Error executing kernel '%s'\n", acKernelName);
 		ReportError(iError);
-		return false;
+		assert(false);
 	}  
     
 	return true;
@@ -1025,7 +1026,7 @@ ComputeEngine::swapMemObjects(
     return true;
 }
 
-cl_mem
+cl_mem &
 ComputeEngine::getBuffer(
     const char* acMemObjName)
 {
@@ -1172,7 +1173,7 @@ ComputeEngine::writeImage(
     return true;
 }
 
-cl_mem 
+cl_mem &
 ComputeEngine::getMemObject(
     const char* acMemObjName)
 {
@@ -1180,11 +1181,11 @@ ComputeEngine::getMemObject(
     if(pkMemObjIter == m_akMemObjects.end())
 	{
 		printf("Compute Engine: Failed to locate memory object '%s'!\n", acMemObjName);
-        return 0;
+        assert(false);
 	}
 	
-    cl_mem kMemObject = pkMemObjIter->second;
-	return kMemObject;
+//    cl_mem kMemObject = pkMemObjIter->second;
+	return pkMemObjIter->second;
 }
         
 uint 
@@ -1494,13 +1495,13 @@ ComputeEngine::getEstimatedWorkGroupSize(
     if(pkKernelIter == m_akKernels.end())
     {
         printf("Compute Engine: Failed to retrieve kernel for work group size estimation!\n");
-        return 0;
+        assert(false);
     }
     
     if(uiDeviceIndex >= m_uiDeviceCount)
     {
         printf("Compute Engine: Invalid device index specified for work group size estimation!\n");
-        return 0;
+        assert(false);
     }
         
     size_t iMaxSize = 0;
@@ -1513,7 +1514,7 @@ ComputeEngine::getEstimatedWorkGroupSize(
     {
         printf("Compute Engine: Failed to retrieve kernel work group info!\n");
         ReportError(iError);
-        return 0;
+        assert(false);
     }
     
     return (uint) iMaxSize;

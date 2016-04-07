@@ -23,6 +23,63 @@ void PovrayCamera::parse(const std::string & body) {
 }
 
 ///
+RayIntersectionResult PovrayCamera::intersect(const Ray & ray) {
+    RayIntersectionResult result;
+    result.intersected = false;
+    return result;
+}
+
+///
+const Eigen::Vector3f & PovrayCamera::location() const {
+    return location_;
+}
+
+///
+void PovrayCamera::setLocation(const Eigen::Vector3f & location) {
+    location_ = location;
+}
+
+///
+const Eigen::Vector3f & PovrayCamera::up() const {
+    return up_;
+}
+
+///
+void PovrayCamera::setUp(const Eigen::Vector3f & up) {
+    up_ = up;
+}
+
+///
+const Eigen::Vector3f & PovrayCamera::right() const {
+    return right_;
+}
+
+///
+void PovrayCamera::setRight(const Eigen::Vector3f & right) {
+    right_ = right;
+}
+
+///
+const Eigen::Vector3f & PovrayCamera::lookAt() const {
+    return lookAt_;
+}
+
+///
+void PovrayCamera::setLookAt(const Eigen::Vector3f & lookAt) {
+    lookAt_ = lookAt;
+}
+
+///
+PovrayPigment const * PovrayCamera::pigment() const {
+    return nullptr;
+}
+
+///
+PovrayFinish const * PovrayCamera::finish() const {
+    return nullptr;
+}
+
+///
 std::shared_ptr<PovraySceneElement> PovrayCamera::copy() const {
     auto camera = std::shared_ptr<PovrayCamera>(new PovrayCamera());
     camera->location_ = location_;
@@ -70,6 +127,23 @@ void PovrayLightSource::write(std::ostream & out) const {
     out << "light_source {" << writeOut(out, position_) << " color rgbf " << writeOut(out, color_) << "}" << std::endl;
 }
 
+///
+RayIntersectionResult PovrayLightSource::intersect(const Ray & ray) {
+    RayIntersectionResult result;
+    result.intersected = false;
+    return result;
+}
+
+///
+PovrayPigment const * PovrayLightSource::pigment() const {
+    return nullptr;
+}
+
+///
+PovrayFinish const * PovrayLightSource::finish() const {
+    return nullptr;
+}
+
 /// Sets this element's content to "body"
 void PovraySphere::parse(const std::string & body) {
 //        TSLoggerLog(std::cout, "parsing sphere");
@@ -110,6 +184,44 @@ void PovraySphere::write(std::ostream & out) const {
     out << "}" << std::endl;
 }
 
+///
+RayIntersectionResult PovraySphere::intersect(const Ray & ray) {
+    RayIntersectionResult result;
+    
+    float A = ray.direction.dot(ray.direction);
+    float B = 2.0 * (ray.origin - position_).dot(ray.direction);
+    float C = (ray.origin - position_).dot(ray.origin - position_) - radius_ * radius_;
+    
+    float radical = B*B - 4.0*A*C;
+    if (radical >= 0) {
+        float sqrRadical = std::sqrt(radical);
+        float t0 = (-B + sqrRadical)/(2.0 * A);
+        float t1 = (-B - sqrRadical)/(2.0 * A);
+        result.intersected = t0 >= 0 || t1 >= 0;
+        if (t0 >= 0 && t1 >= 0) {
+            result.timeOfIntersection = std::min(t0, t1);
+        }
+        else if (t0 >= 0) {
+            result.timeOfIntersection = t0;
+        }
+        else if (t1 >= 0) {
+            result.timeOfIntersection = t1;
+        }
+    }
+    
+    return result;
+}
+
+///
+PovrayPigment const * PovraySphere::pigment() const {
+    return &pigment_;
+}
+
+///
+PovrayFinish const * PovraySphere::finish() const {
+    return &finish_;
+}
+
 /// Sets this element's content to "body"
 void PovrayPlane::parse(const std::string & body) {
     std::map<std::string, std::pair<ValueType, void *>> content;
@@ -146,3 +258,27 @@ void PovrayPlane::write(std::ostream & out) const {
     out << "\tfinish\t" << writeOut(out, finish_) << std::endl;
     out << "}" << std::endl;
 }
+
+///
+RayIntersectionResult PovrayPlane::intersect(const Ray & ray) {
+    RayIntersectionResult result;
+    /// https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
+    float product = ray.direction.dot(normal_);
+    if (product > 0.0001 || product < -0.0001) {
+        result.timeOfIntersection = -(ray.origin.dot(normal_) - distance_) / product;
+    }
+    
+    result.intersected = result.timeOfIntersection >= 0.0;
+    return result;
+}
+
+///
+PovrayPigment const * PovrayPlane::pigment() const {
+    return &pigment_;
+}
+
+///
+PovrayFinish const * PovrayPlane::finish() const {
+    return &finish_;
+}
+

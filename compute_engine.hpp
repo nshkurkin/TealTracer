@@ -178,7 +178,7 @@ public:
         size_t kBytes,
         void* pvData);
     
-    cl_mem getBuffer(
+    cl_mem & getBuffer(
         const char* acMemObjName);
     
     void dumpBuffer(
@@ -218,7 +218,7 @@ public:
     cl_kernel getKernelObject(
         const char* acKernelName);
         
-    cl_mem getMemObject(
+    cl_mem & getMemObject(
         const char* acMemObjName);
 
     bool clearMemory(
