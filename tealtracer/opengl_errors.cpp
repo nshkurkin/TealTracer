@@ -261,7 +261,6 @@ OpenGLStateErrorInfo ns_glGetStateErrors() {
     
     if (error != GLenum(GL_NO_ERROR)) {
         foundError = true;
-        toRet += "GL State Error(s): ";
     }
     
     while (error != GLenum(GL_NO_ERROR)) {
@@ -297,11 +296,11 @@ static std::vector<xmlNodePtr> findXMLNodeChildrenForXPath(
     
     std::vector<xmlNodePtr> nodes;
     auto ctxt = xmlXPathNewContext(node->doc);
-    assert(ctxt != nullptr);
+    assert(ctxt != NULL);
     ctxt->node = node;
     
     auto result = xmlXPathEval((const xmlChar*)xpath.c_str(), ctxt);
-    assert(result != nullptr); // Bad path given
+    assert(result != NULL); // Bad path given
     assert(result->type == XPATH_NODESET); // Only nodeset result types are supported.
     
     auto nodeset = result->nodesetval;
@@ -328,37 +327,22 @@ static std::vector<xmlNodePtr> findXMLNodeChildrenForXPath(
     return nodes;
 }
 
-//#include <libxml/parser.h>
-///// http://www.xmlsoft.org/tutorial/xmltutorial.pdf
-//static xmlChar * convertXMLToEncoding(xmlChar * in, const char * encoding) {
-//    xmlChar out[1024] = {0};
-//    int ret,size = 512,out_size = 512,temp;
-//    xmlCharEncodingHandlerPtr handler;
-//    handler = xmlFindCharEncodingHandler(encoding);
-//    temp=size-1;
-//    ret = handler->input(out, &out_size, in, &temp);
-//    if (ret || (temp - size + 1) != 0) {
-//        printf("conversion wasn't successful.\n");
-//    }
-//    return NULL;
-//}
-
 ///
 std::string unannotedXMLNodeContent(xmlNode * node) {
     std::string result = "";
     auto encodedString = node->content; ///xmlNodeListGetString(node->doc, node, true);
-    if (encodedString != nullptr) {
-//        convertXMLToEncoding(encodedString, "ASCII");
+    if (encodedString != NULL) {
         auto content = encodedString;
         while (*content != '\0') {
-            if (*content <= 255) {
-                result += char(*content);
+            auto val = *content;
+            if (val > 0 && val < 128 && val != '\n' && val != '\t' && !(val == ' ' && content[1] == ' ')) {
+                result += char(val);
             }
             content++;
         }
     }
     auto child = node->children;
-    while (child != nullptr) {
+    while (child != NULL) {
         result += unannotedXMLNodeContent(child);
         child = child->next;
     }
@@ -366,42 +350,41 @@ std::string unannotedXMLNodeContent(xmlNode * node) {
     return result;
 }
 
-//#include "TSLogger.hpp"
-
 ///
 OpenGLAdditionalErrorInfo ns_requestOpenGLAPIErrorInfoForFunction(const std::string & function) {
     std::vector<std::string> invalidEnum, invalidValue, invalidOperation, invalidFramebufferOperation, outOfMemory, errorNotes;
     
-    URL_FILE * urlDataStream = nullptr;
+    URL_FILE * urlDataStream = NULL;
     int subStringLen = (int) function.length();
     std::string functionGroupName;
     std::string url;
     
-    while (urlDataStream == nullptr && subStringLen > 0) {
+    while (urlDataStream == NULL && subStringLen > 0) {
         functionGroupName = function.substr(0, subStringLen);
         url = "https://www.opengl.org/sdk/docs/man/html/" + functionGroupName + ".xhtml";
         
         urlDataStream = url_fopen(url.c_str(), "r");
-        if (urlDataStream == nullptr) {
+        if (urlDataStream == NULL) {
             subStringLen--;
         }
     }
     
-    if (urlDataStream != nullptr) {
+    if (urlDataStream != NULL) {
         std::string urlData = "";
-//        TSLoggerLog(std::cout, "url=", url);
-//        TSLoggerLog(std::cout, "found a man page for function ", function);
-        char buffer[256] = {'\0'};
+        xmlChar buffer[256] = {'\0'};
         while (url_fread(buffer, sizeof(buffer), sizeof(char), urlDataStream) > 0) {
-            urlData += std::string(buffer);
+            for (int i = 0; i < 256; i++) {
+                /// We intentionally skip over all of the non-ASCII characters
+                if (buffer[i] > 0 && buffer[i] < 128) {
+                    urlData += buffer[i];
+                }
+            }
         }
-//        TSLoggerLog(std::cout, "Read data from url: ", urlData);
         auto doc = htmlReadDoc((xmlChar*)urlData.c_str(), NULL, NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
         auto root = xmlDocGetRootElement(doc);
         auto errorSearch = findXMLNodeChildrenForXPath("//div[@id='errors']/p", root);
         for (auto itr = errorSearch.begin(); itr != errorSearch.end(); itr++) {
             auto content = unannotedXMLNodeContent(*itr);
-//            TSLoggerLog(std::cout, "found content: ", content);
             if (content.find("GL_INVALID_ENUM") != std::string::npos) {
                 invalidEnum.push_back(content);
             }
@@ -455,7 +438,7 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
             }
             
             /// General causes
-            std::cerr << "General causes: " << stateErrors.description << std::endl << std::endl;
+            std::cerr << "General Information: " << stateErrors.description << std::endl << std::endl;
             
             if (causeMessages.length() > 0) {
                 /// Specific possible causes

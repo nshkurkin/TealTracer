@@ -27,11 +27,6 @@
 /// NOTE: Include "gl.h" here, or your equivalent
 #include "gl_include.h"
 
-/// http://stackoverflow.com/questions/5047971/how-do-i-check-for-c11-support
-#if __cplusplus < 201103L
-    #define nullptr NULL
-#endif
-
 /// NOTE: You may need to add an include path for libxml to your build. For example:
 ///     -I/usr/local/include/libxml2
 ///
@@ -81,55 +76,55 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
 #define NS_OVERWRITE_GL_FUNCTIONS
 #ifdef NS_OVERWRITE_GL_FUNCTIONS
 
-#define glGetIntegerv(...) ns_safeGLCall(glGetIntegerv, ##__VA_ARGS__)
-#define glGetBooleanv(...) ns_safeGLCall(glGetBooleanv, ##__VA_ARGS__)
-#define glGetString(...) ns_safeGLCallWithReturn(glGetString, ##__VA_ARGS__)
+#define glGetIntegerv(...)  ns_safeGLCall(glGetIntegerv, ##__VA_ARGS__)
+#define glGetBooleanv(...)  ns_safeGLCall(glGetBooleanv, ##__VA_ARGS__)
+#define glGetString(...)    ns_safeGLCallWithReturn(glGetString, ##__VA_ARGS__)
 
-#define glGenBuffers(...) ns_safeGLCall(glGenBuffers, ##__VA_ARGS__)
-#define glBindBuffer(...) ns_safeGLCall(glBindBuffer, ##__VA_ARGS__)
+#define glGenBuffers(...)   ns_safeGLCall(glGenBuffers, ##__VA_ARGS__)
+#define glBindBuffer(...)   ns_safeGLCall(glBindBuffer, ##__VA_ARGS__)
 #define glDeleteBuffers(...) ns_safeGLCall(glDeleteBuffers, ##__VA_ARGS__)
-#define glBufferData(...) ns_safeGLCall(glBufferData, ##__VA_ARGS__)
+#define glBufferData(...)   ns_safeGLCall(glBufferData, ##__VA_ARGS__)
 
-#define glGenVertexArrays(...) ns_safeGLCall(glGenVertexArrays, ##__VA_ARGS__)
-#define glBindVertexArray(...) ns_safeGLCall(glBindVertexArray, ##__VA_ARGS__)
+#define glGenVertexArrays(...)  ns_safeGLCall(glGenVertexArrays, ##__VA_ARGS__)
+#define glBindVertexArray(...)  ns_safeGLCall(glBindVertexArray, ##__VA_ARGS__)
 #define glDeleteVertexArrays(...) ns_safeGLCall(glDeleteVertexArrays, ##__VA_ARGS__)
 
-#define glGenTextures(...) ns_safeGLCall(glGenTextures, ##__VA_ARGS__)
-#define glDeleteTextures(...) ns_safeGLCall(glDeleteTextures, ##__VA_ARGS__)
-#define glTexImage1D(...) ns_safeGLCall(glTexImage1D, ##__VA_ARGS__)
-#define glTexImage2D(...) ns_safeGLCall(glTexImage2D, ##__VA_ARGS__)
-#define glTexImage3D(...) ns_safeGLCall(glTexImage3D, ##__VA_ARGS__)
-#define glActiveTexture(...) ns_safeGLCall(glActiveTexture, ##__VA_ARGS__)
-#define glBindTexture(...) ns_safeGLCall(glBindTexture, ##__VA_ARGS__)
-#define glGenerateMipmap(...) ns_safeGLCall(glGenerateMipmap, ##__VA_ARGS__)
-#define glTexParameterf(...) ns_safeGLCall(glTexParameterf, ##__VA_ARGS__)
-#define glTexParameterfv(...) ns_safeGLCall(glTexParameterfv, ##__VA_ARGS__)
+#define glGenTextures(...)      ns_safeGLCall(glGenTextures, ##__VA_ARGS__)
+#define glDeleteTextures(...)   ns_safeGLCall(glDeleteTextures, ##__VA_ARGS__)
+#define glTexImage1D(...)       ns_safeGLCall(glTexImage1D, ##__VA_ARGS__)
+#define glTexImage2D(...)       ns_safeGLCall(glTexImage2D, ##__VA_ARGS__)
+#define glTexImage3D(...)       ns_safeGLCall(glTexImage3D, ##__VA_ARGS__)
+#define glActiveTexture(...)    ns_safeGLCall(glActiveTexture, ##__VA_ARGS__)
+#define glBindTexture(...)      ns_safeGLCall(glBindTexture, ##__VA_ARGS__)
+#define glGenerateMipmap(...)   ns_safeGLCall(glGenerateMipmap, ##__VA_ARGS__)
+#define glTexParameterf(...)    ns_safeGLCall(glTexParameterf, ##__VA_ARGS__)
+#define glTexParameterfv(...)   ns_safeGLCall(glTexParameterfv, ##__VA_ARGS__)
 
-#define glCreateShader(...) ns_safeGLCallWithReturn(glCreateShader, ##__VA_ARGS__)
-#define glShaderSource(...) ns_safeGLCall(glShaderSource, ##__VA_ARGS__)
-#define glGetShaderiv(...) ns_safeGLCall(glGetShaderiv, ##__VA_ARGS__)
+#define glCreateShader(...)     ns_safeGLCallWithReturn(glCreateShader, ##__VA_ARGS__)
+#define glShaderSource(...)     ns_safeGLCall(glShaderSource, ##__VA_ARGS__)
+#define glGetShaderiv(...)      ns_safeGLCall(glGetShaderiv, ##__VA_ARGS__)
 #define glGetShaderInfoLog(...) ns_safeGLCall(glGetShaderInfoLog, ##__VA_ARGS__)
-#define glCompileShader(...) ns_safeGLCall(glCompileShader, ##__VA_ARGS__)
-#define glDeleteShader(...) ns_safeGLCall(glDeleteShader, ##__VA_ARGS__)
+#define glCompileShader(...)    ns_safeGLCall(glCompileShader, ##__VA_ARGS__)
+#define glDeleteShader(...)     ns_safeGLCall(glDeleteShader, ##__VA_ARGS__)
 
-#define glCreateProgram(...) ns_safeGLCallWithReturn(glCreateProgram, ##__VA_ARGS__)
-#define glAttachShader(...) ns_safeGLCall(glAttachShader, ##__VA_ARGS__)
-#define glLinkProgram(...) ns_safeGLCall(glLinkProgram, ##__VA_ARGS__)
-#define glGetProgramiv(...) ns_safeGLCall(glGetProgramiv, ##__VA_ARGS__)
-#define glDeleteProgram(...) ns_safeGLCall(glDeleteProgram, ##__VA_ARGS__)
+#define glCreateProgram(...)    ns_safeGLCallWithReturn(glCreateProgram, ##__VA_ARGS__)
+#define glAttachShader(...)     ns_safeGLCall(glAttachShader, ##__VA_ARGS__)
+#define glLinkProgram(...)      ns_safeGLCall(glLinkProgram, ##__VA_ARGS__)
+#define glGetProgramiv(...)     ns_safeGLCall(glGetProgramiv, ##__VA_ARGS__)
+#define glDeleteProgram(...)    ns_safeGLCall(glDeleteProgram, ##__VA_ARGS__)
 #define glGetProgramInfoLog(...) ns_safeGLCall(glGetProgramInfoLog, ##__VA_ARGS__)
-#define glValidateProgram(...) ns_safeGLCall(glValidateProgram, ##__VA_ARGS__)
-#define glUseProgram(...) ns_safeGLCall(glUseProgram, ##__VA_ARGS__)
+#define glValidateProgram(...)  ns_safeGLCall(glValidateProgram, ##__VA_ARGS__)
+#define glUseProgram(...)       ns_safeGLCall(glUseProgram, ##__VA_ARGS__)
 
-#define glEnableVertexAttribArray(...) ns_safeGLCall(glEnableVertexAttribArray, ##__VA_ARGS__)
+#define glEnableVertexAttribArray(...)  ns_safeGLCall(glEnableVertexAttribArray, ##__VA_ARGS__)
 #define glDisableVertexAttribArray(...) ns_safeGLCall(glDisableVertexAttribArray, ##__VA_ARGS__)
-#define glVertexAttribPointer(...) ns_safeGLCall(glVertexAttribPointer, ##__VA_ARGS__)
-#define glGetActiveAttrib(...) ns_safeGLCall(glGetActiveAttrib, ##__VA_ARGS__)
-#define glGetAttribLocation(...) ns_safeGLCallWithReturn(glGetAttribLocation, ##__VA_ARGS__)
+#define glVertexAttribPointer(...)      ns_safeGLCall(glVertexAttribPointer, ##__VA_ARGS__)
+#define glGetActiveAttrib(...)          ns_safeGLCall(glGetActiveAttrib, ##__VA_ARGS__)
+#define glGetAttribLocation(...)        ns_safeGLCallWithReturn(glGetAttribLocation, ##__VA_ARGS__)
 
-#define glGetActiveUniformsiv(...) ns_safeGLCall(glGetActiveUniformsiv, ##__VA_ARGS__)
-#define glGetActiveUniform(...) ns_safeGLCall(glGetActiveUniform, ##__VA_ARGS__)
-#define glGetUniformLocation(...) ns_safeGLCallWithReturn(glGetUniformLocation, ##__VA_ARGS__)
+#define glGetActiveUniformsiv(...)  ns_safeGLCall(glGetActiveUniformsiv, ##__VA_ARGS__)
+#define glGetActiveUniform(...)     ns_safeGLCall(glGetActiveUniform, ##__VA_ARGS__)
+#define glGetUniformLocation(...)   ns_safeGLCallWithReturn(glGetUniformLocation, ##__VA_ARGS__)
 
 #define glUniform1f(...) ns_safeGLCall(glUniform1f, ##__VA_ARGS__)
 #define glUniform2f(...) ns_safeGLCall(glUniform2f, ##__VA_ARGS__)
@@ -172,7 +167,7 @@ void ns_assertNoOpenGLErrors(const std::string & message, const std::string & fu
 #define glUniformMatrix3x4fv(...) ns_safeGLCall(glUniformMatrix3x4fv, ##__VA_ARGS__)
 #define glUniformMatrix4x3fv(...) ns_safeGLCall(glUniformMatrix4x3fv, ##__VA_ARGS__)
 
-#define glDrawArrays(...) ns_safeGLCall(glDrawArrays, ##__VA_ARGS__)
+#define glDrawArrays(...)   ns_safeGLCall(glDrawArrays, ##__VA_ARGS__)
 #define glDrawElements(...) ns_safeGLCall(glDrawElements, ##__VA_ARGS__)
 
 #define glViewport(...) ns_safeGLCall(glViewport, ##__VA_ARGS__)
