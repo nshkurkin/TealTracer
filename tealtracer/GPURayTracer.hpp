@@ -18,81 +18,43 @@
 #include "OpenGLShaders.hpp"
 #include "PovrayScene.hpp"
 #include "TSLogger.hpp"
+#include "TextureRenderTarget.hpp"
 
 class GPURayTracer : public TSWindowDrawingDelegate, public TSUserEventListener {
 public:
 
     ///
-    struct Scene {
-        std::vector<GLfloat> points;
-        std::vector<GLfloat> colors;
-        
-        std::shared_ptr<OpenGLVertexArray> triangleVAO;
-        std::shared_ptr<OpenGLDataBuffer> positionDBO;// = OpenGLDataBufferObject.arrayBuffer()
-        std::shared_ptr<OpenGLDataBuffer> colorDBO; // = OpenGLDataBufferObject.arrayBuffer()
-    };
+    /// Rendering pipeline setup:
+    ///     1) Have an OpenGL texture to display on screen, connect it to GPU
+    ///     2) Perform raycasts on the GPU and fill the texture with content
+    ///     3) Display the texture
+    ///
     
-    ComputeEngine computeEngine;// = OpenCLComputeEngine(useOpenGLContext: true)
-    std::shared_ptr<OpenGLProgram> gpuGLProgram; //: OpenGLProgram? = nil
-    Scene scene;
+    ComputeEngine computeEngine;
+    TextureRenderTarget target;
 
     ///
     virtual void setupDrawingInWindow(TSWindow * window) {
         
         TSLoggerLog(std::cout, glGetString(GL_VERSION));
-        
-        ///
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 2, true);
     
-        ///
+        /// OpenGL
         glClearColor(0.3, 0.3, 0.3, 1.0);
         glEnable(GLenum(GL_DEPTH_TEST));
         glDepthFunc(GLenum(GL_LESS));
         
-        scene.points = make_vector<GLfloat>(
-            0.0, 0.5, 0.0,
-            0.5, -0.5, 0.0,
-            -0.5, -0.5, 0.0
-        );
-        scene.colors = make_vector<GLfloat>(
-            1.0, 0.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 0.0, 1.0
-        );
-            
-        /// http://antongerdelan.net/opengl/vertexbuffers.html
-        scene.positionDBO = OpenGLDataBuffer::arrayBuffer(OpenGLDataBufferMetaData(&scene.points[0], GLuint(sizeof(GLfloat) * 3), GLuint(scene.points.size())));
-        scene.positionDBO->sendData(GLenum(GL_STATIC_DRAW));
+        std::vector<uint8_t> empty;
+        empty.resize(window->width() * window->height() * 4, 100);
+        target.init(window->width(), window->height(), &empty[0]);
         
-        scene.colorDBO = OpenGLDataBuffer::arrayBuffer(OpenGLDataBufferMetaData(&scene.colors[0], GLuint(sizeof(GLfloat) * 3), GLuint(scene.colors.size())));
-        scene.colorDBO->sendData(GLenum(GL_STATIC_DRAW));
-
-        gpuGLProgram = std::shared_ptr<OpenGLProgram>(new OpenGLProgram());
-        gpuGLProgram->shaders = make_vector<std::shared_ptr<OpenGLShader>>(
-            OpenGLShader::vertexShaderWithFilePath("SampleVertexShader.glsl"),
-            OpenGLShader::fragmentShaderWithFilePath("SampleFragmentShader.glsl")
-        );
-        
-        scene.triangleVAO = std::shared_ptr<OpenGLVertexArray>(new OpenGLVertexArray());
-        
-        gpuGLProgram->build(true);
-        gpuGLProgram->connectDataToProgram(scene.triangleVAO.get(), make_map<std::string, OpenGLDataBuffer*>(
-            "vertex_position", scene.positionDBO.get(),
-            "vertex_color", scene.colorDBO.get()
-        ));
+        /// OpenCL
+        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
     }
 
     ///
     virtual void drawInWindow(TSWindow * window) {
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        
-        auto lastProgramHandle = gpuGLProgram->setAsActiveProgram();
-        auto oldVaoHandle = scene.triangleVAO->setAsActiveVAO();
-        
-        glDrawArrays(GLenum(GL_TRIANGLES), 0, GLsizei(scene.points.size()));
-        
-        scene.triangleVAO->restoreActiveVAO(oldVaoHandle);
-        gpuGLProgram->restoreActiveProgram(lastProgramHandle);
+        target.draw();
     }
     
     ///

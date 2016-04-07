@@ -42,62 +42,8 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     glEnable(GLenum(GL_DEPTH_TEST));
     glDepthFunc(GLenum(GL_LESS));
     
-    target.points = make_vector<GLfloat>(
-        -1.0, -1.0, 0.0,
-         1.0, -1.0, 0.0,
-         1.0,  1.0, 0.0,
-         
-        -1.0, -1.0, 0.0,
-         1.0,  1.0, 0.0,
-        -1.0,  1.0, 0.0
-    );
-    target.texcoords = make_vector<GLfloat>(
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        
-        0.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0
-    );
-        
-    ///
-    target.positionDBO = OpenGLDataBuffer::arrayBuffer(OpenGLDataBufferMetaData(&target.points[0], GLuint(sizeof(GLfloat) * 3), GLuint(target.points.size())));
-    target.positionDBO->sendData(GLenum(GL_STATIC_DRAW));
-    
-    target.texcoordDBO = OpenGLDataBuffer::arrayBuffer(OpenGLDataBufferMetaData(&target.texcoords[0], GLuint(sizeof(GLfloat) * 2), GLuint(target.texcoords.size())));
-    target.texcoordDBO->sendData(GLenum(GL_STATIC_DRAW));
-
-    target.program = std::shared_ptr<OpenGLProgram>(new OpenGLProgram());
-    target.program->shaders = make_vector<std::shared_ptr<OpenGLShader>>(
-        OpenGLShader::vertexShaderWithFilePath("texture.vert.glsl"),
-        OpenGLShader::fragmentShaderWithFilePath("texture.frag.glsl")
-    );
-    
-    target.triangleVAO = std::shared_ptr<OpenGLVertexArray>(new OpenGLVertexArray());
-    
-    target.program->build(true);
-    target.program->connectDataToProgram(target.triangleVAO.get(), make_map<std::string, OpenGLDataBuffer*>(
-        "vertex_position", target.positionDBO.get(),
-        "vertex_texcoord", target.texcoordDBO.get()
-    ));
-
     outputImage.setDimensions(window->width(), window->height());
-    auto textureFormat = OpenGLTextureMetaData();
-    
-    textureFormat.targetType = GL_TEXTURE_2D;
-    textureFormat.pixelFormat = GL_RGBA;
-    textureFormat.pixelType = GL_UNSIGNED_BYTE;
-    textureFormat.internalDataFormat = GL_RGBA;
-    textureFormat.width = outputImage.width;
-    textureFormat.height = outputImage.height;
-    textureFormat.linearlyInterpolated = true;
-    textureFormat.mipMapped = true;
-    textureFormat.dataPointer = outputImage.dataPtr();
-    
-    target.outputTexture = std::shared_ptr<OpenGLTextureBuffer>(new OpenGLTextureBuffer(0, textureFormat));
-    target.outputTexture->sendData();
-    firstDraw = true;
+    target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
     
     jobPool = JobPool(1);
     
@@ -124,25 +70,7 @@ void CPURayTracer::enqueRayTrace() {
 void CPURayTracer::drawInWindow(TSWindow * window) {
     glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     
-    auto lastProgramHandle = target.program->setAsActiveProgram();
-    OpenGLTextureBuffer::GLState oldTextureState;
-    
-    if (!firstDraw) {
-        target.outputTexture->sendData();
-        oldTextureState = target.outputTexture->glBind();
-        target.program->attach("tex", target.outputTexture.get());
-    }
-    
-    auto oldVaoHandle = target.triangleVAO->setAsActiveVAO();
-    glDrawArrays(GLenum(GL_TRIANGLES), 0, GLsizei(target.points.size()));
-    
-    if (!firstDraw) {
-        target.outputTexture->glUnbind(oldTextureState);
-    }
-    target.triangleVAO->restoreActiveVAO(oldVaoHandle);
-    target.program->restoreActiveProgram(lastProgramHandle);
-    firstDraw = false;
-    
+    target.draw();
     jobPool.checkAndUpdateFinishedJobs();
     
     float FPS = 0;

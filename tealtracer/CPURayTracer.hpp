@@ -20,6 +20,7 @@
 #include "TSLogger.hpp"
 #include "Image.hpp"
 #include "JobPool.hpp"
+#include "TextureRenderTarget.hpp"
 
 /// From Lab 1:
 ///
@@ -43,20 +44,9 @@ public:
     ///     2) When complete, copy data from "outputImage" to "outputTexture"
     ///     3) Render "outputTexture"
     ///
-    struct RenderTarget {
-        std::shared_ptr<OpenGLTextureBuffer> outputTexture;
-        std::shared_ptr<OpenGLProgram> program;
-        
-        std::vector<GLfloat> points;
-        std::vector<GLfloat> texcoords;
-        
-        std::shared_ptr<OpenGLVertexArray> triangleVAO;
-        std::shared_ptr<OpenGLDataBuffer> positionDBO;
-        std::shared_ptr<OpenGLDataBuffer> texcoordDBO;
-    };
 
     Image outputImage;
-    RenderTarget target;
+    TextureRenderTarget target;
     JobPool jobPool;
 
     ///
@@ -67,8 +57,6 @@ public:
 
     ///
     void enqueRayTrace();
-
-    bool firstDraw;
 
     ///
     virtual void drawInWindow(TSWindow * window);
