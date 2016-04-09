@@ -170,34 +170,37 @@ public:
         auto cameraData = CLPovrayCameraData(camera->data());
         
         auto spheres = scene_->findElements<PovraySphere>();
-        std::vector<CLPovraySphereData> sphereData;
+        std::vector<cl_float> sphereData;
         for (auto itr = spheres.begin(); itr != spheres.end(); itr++) {
-            sphereData.push_back((*itr)->data());
+            CLPovraySphereData((*itr)->data()).writeOutData(sphereData);
         }
         
         auto planes = scene_->findElements<PovrayPlane>();
-        std::vector<CLPovrayPlaneData> planeData;
+        std::vector<cl_float> planeData;
         for (auto itr = planes.begin(); itr != planes.end(); itr++) {
-            planeData.push_back((*itr)->data());
+            CLPovrayPlaneData((*itr)->data()).writeOutData(planeData);
         }
         
-        computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(CLPovraySphereData) * spheres.size());
-        computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(CLPovrayPlaneData) * planes.size());
+        computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
+        computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
         computeEngine.createBuffer("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, imageDataSize);
 
         if (spheres.size() > 0) {
-            computeEngine.writeBuffer("spheres", 0, 0, sizeof(CLPovraySphereData) * spheres.size(), &sphereData[0]);
+            computeEngine.writeBuffer("spheres", 0, 0, sizeof(cl_float) * sphereData.size(), &sphereData[0]);
         }
         if (planes.size() > 0) {
-            computeEngine.writeBuffer("planes", 0, 0, sizeof(CLPovrayPlaneData) * planes.size(), &planeData[0]);
+            computeEngine.writeBuffer("planes", 0, 0, sizeof(cl_float) * planeData.size(), &planeData[0]);
         }
 
         computeEngine.setKernelArgs("raytrace_one_ray",
-           cameraData,
+           cameraData.location,
+           cameraData.up,
+           cameraData.right,
+           cameraData.lookAt,
            
            computeEngine.getBuffer("spheres"),
            (cl_uint) spheres.size(),
-           
+
            computeEngine.getBuffer("planes"),
            (cl_uint) planes.size(),
            
@@ -207,7 +210,7 @@ public:
         );
         
         size_t globalCount = rayCount;
-        size_t localCount = 20;//imageWidth;
+        size_t localCount = imageWidth;
         
         computeEngine.executeKernel("raytrace_one_ray", 0, &globalCount, &localCount, 1);
         computeEngine.finish(0);

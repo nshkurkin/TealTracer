@@ -12,12 +12,21 @@
 #include "compute_engine.hpp"
 #include "PovraySceneElements.hpp"
 
+#include <vector>
+
 ///
 struct CLPovrayPigment {
     float4 color;
     
     CLPovrayPigment() : color(0,0,0,1) {}
     CLPovrayPigment(const PovrayPigment & data) : color(data.color.x(), data.color.y(), data.color.z(), data.color.w()) {}
+    
+    void writeOutData(std::vector<cl_float> & data) {
+        data.push_back(color.x);
+        data.push_back(color.y);
+        data.push_back(color.z);
+        data.push_back(color.w);
+    }
 };
 
 ///
@@ -27,6 +36,11 @@ struct CLPovrayFinish {
     
     CLPovrayFinish() : ambient(0.0), diffuse(0.0) {}
     CLPovrayFinish(const PovrayFinish & data) : ambient(data.ambient), diffuse(data.diffuse) {}
+    
+    void writeOutData(std::vector<cl_float> & data) {
+        data.push_back(ambient);
+        data.push_back(diffuse);
+    }
 };
 
 ///
@@ -59,6 +73,15 @@ struct CLPovraySphereData {
     
     CLPovraySphereData() : position(0,0,0), radius(1.0), pigment(), finish() {}
     CLPovraySphereData(const PovraySphereData & data) : position(data.position.x(), data.position.y(), data.position.z()), radius(data.radius), pigment(data.pigment), finish(data.finish) {}
+    
+    void writeOutData(std::vector<cl_float> & data) {
+        data.push_back(position.x);
+        data.push_back(position.y);
+        data.push_back(position.z);
+        data.push_back(radius);
+        pigment.writeOutData(data);
+        finish.writeOutData(data);
+    }
 };
 
 ///
@@ -72,6 +95,15 @@ struct CLPovrayPlaneData {
     
     CLPovrayPlaneData() : normal(0,1,0), distance(0), pigment(), finish() {}
     CLPovrayPlaneData(const PovrayPlaneData & data) : normal(data.normal.x(), data.normal.y(), data.normal.z()), distance(data.distance), pigment(data.pigment), finish(data.finish) {}
+    
+    void writeOutData(std::vector<cl_float> & data) {
+        data.push_back(normal.x);
+        data.push_back(normal.y);
+        data.push_back(normal.z);
+        data.push_back(distance);
+        pigment.writeOutData(data);
+        finish.writeOutData(data);
+    }
 };
 
 #endif /* CLPovrayElementData_hpp */

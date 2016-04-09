@@ -58,6 +58,7 @@
 #include <sys/stat.h>
 #include <OpenGL/OpenGL.h>
 #include <OpenCL/opencl.h>
+#include <iostream>
 
 #include "compute_types.hpp"
 
@@ -168,7 +169,7 @@ public:
         const char * kernelName,
         uint argIndex,
         const T & value, Args... args) {
-    
+//        std::cout << "arg type: " << typeid(T).name() << std::endl;
         return setKernelArg(kernelName, argIndex++, value) && setKernelArgs_(kernelName, argIndex, args...);
     }
     

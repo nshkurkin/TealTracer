@@ -27,11 +27,15 @@ struct PovrayPigment {
     float4 color;
 };
 
+__constant const unsigned int kPovrayPigmentStride = 4;
+
 ///
 struct PovrayFinish {
     float ambient;
     float diffuse;
 };
+
+__constant const unsigned int kPovrayFinishStride = 2;
 
 ///
 struct PovraySphereData {
@@ -42,6 +46,8 @@ struct PovraySphereData {
     struct PovrayFinish finish;
 };
 
+__constant unsigned int kPovraySphereStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride;
+
 ///
 struct PovrayPlaneData {
     float3 normal;
@@ -50,6 +56,8 @@ struct PovrayPlaneData {
     struct PovrayPigment pigment;
     struct PovrayFinish finish;
 };
+
+__constant unsigned int kPovrayPlaneStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -80,10 +88,10 @@ void mat4x4_loadIdentity(struct mat4x4 * mat);
 ///
 void mat4x4_loadLookAt(struct mat4x4 * result, float3 eye, float3 center, float3 up);
 
-///
-float3 normalized(float3 vec);
-///
-float3 crossed(float3 vecA, float3 vecB);
+/////
+//float3 normalized(float3 vec);
+/////
+//float3 crossed(float3 vecA, float3 vecB);
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -146,50 +154,120 @@ void mat4x4_loadIdentity(struct mat4x4 * mat) {
     }
 }
 
-float3 normalized(float3 vec) {
-    float len = length(vec);
-    if (len < 0.001) {
-        return (float3) {0,0,1};
-    }
-    else {
-        return vec / len;
-    }
-}
-
-float3 crossed(float3 vecA, float3 vecB) {
-    return (float3) {
-        vecA.y * vecB.z - vecA.z * vecB.y,
-        vecA.z * vecB.x - vecA.x * vecB.z,
-        vecA.x * vecB.y - vecA.y * vecB.x
-    };
-}
-
 ///
 void mat4x4_loadLookAt(struct mat4x4 * result, float3 eye, float3 center, float3 up) {
-//    float3 f = normalized(center - eye);
-//    float3 s = normalized(crossed(f, up));
-//    float3 u = cross(s, f);
+    float3 f = normalize(center - eye);
+    float3 s = normalize(cross(f, up));
+    float3 u = cross(s, f);
     
-//    mat4x4_loadIdentity(result);
+    mat4x4_loadIdentity(result);
     
-//    mat4x4_set(result,0,0, s.x);
-//    mat4x4_set(result,1,0, s.y);
-//    mat4x4_set(result,2,0, s.z);
-//    mat4x4_set(result,0,1, u.x);
-//    mat4x4_set(result,1,1, u.y);
-//    mat4x4_set(result,2,1, u.z);
-//    mat4x4_set(result,0,2, -f.x);
-//    mat4x4_set(result,1,2, -f.y);
-//    mat4x4_set(result,2,2, -f.z);
+    mat4x4_set(result,0,0, s.x);
+    mat4x4_set(result,1,0, s.y);
+    mat4x4_set(result,2,0, s.z);
+    mat4x4_set(result,0,1, u.x);
+    mat4x4_set(result,1,1, u.y);
+    mat4x4_set(result,2,1, u.z);
+    mat4x4_set(result,0,2, -f.x);
+    mat4x4_set(result,1,2, -f.y);
+    mat4x4_set(result,2,2, -f.z);
     
-//    mat4x4_set(result,3,0, -dot(s, eye));
-//    mat4x4_set(result,3,1, -dot(u, eye));
-//    mat4x4_set(result,3,2, dot(f, eye));
+    mat4x4_set(result,3,0, -dot(s, eye));
+    mat4x4_set(result,3,1, -dot(u, eye));
+    mat4x4_set(result,3,2, dot(f, eye));
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
+///
+enum ObjectType {
+    InvalidObjectTyoe = 0,
+    SphereObjectType = 1,
+    PlaneObjectType = 2
+};
 
+///
+struct RayIntersectionResult {
+    bool intersected;
+    float timeOfIntersection;
+    
+    enum ObjectType type;
+    __global float * dataPtr;
+};
+
+///
+struct PovraySphereData PovraySphereData_fromData(__global float * data);
+///
+struct RayIntersectionResult closest_sphere_intersection(__global float * data, unsigned int numDataElements, float3 rayOrigin, float3 rayDirection);
+///
+void sphere_intersect(struct PovraySphereData data, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result);
+
+
+///
+struct PovraySphereData PovraySphereData_fromData(__global float * data) {
+    struct PovraySphereData result;
+    
+    result.position = (float3) { data[0], data[1], data[2] };
+    result.radius = data[3];
+    result.pigment.color = (float4) { data[4], data[5], data[6], data[7] };
+    result.finish.ambient = data[8];
+    result.finish.diffuse = data[9];
+    
+    return result;
+}
+
+///
+struct RayIntersectionResult closest_sphere_intersection(__global float * data, unsigned int numDataElements, float3 rayOrigin, float3 rayDirection) {
+
+    struct RayIntersectionResult result;
+    result.intersected = false;
+    result.timeOfIntersection = INFINITY;
+    
+    for (unsigned int i = 0; i < numDataElements; i++) {
+        struct RayIntersectionResult currentResult;
+        currentResult.intersected = false;
+        currentResult.timeOfIntersection = INFINITY;
+    
+        __global float * dataStart = &data[i*kPovraySphereStride];
+        struct PovraySphereData data = PovraySphereData_fromData(dataStart);
+        currentResult.dataPtr = dataStart;
+        
+        sphere_intersect(data, rayOrigin, rayDirection, &currentResult);
+        
+        if (currentResult.intersected && currentResult.timeOfIntersection < result.timeOfIntersection) {
+            result = currentResult;
+        }
+    }
+    
+    result.type = SphereObjectType;
+    return result;
+
+}
+
+///
+void sphere_intersect(struct PovraySphereData data, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result) {
+    
+    float A = dot(rayDirection, rayDirection);
+    float B = 2.0 * dot(rayOrigin - data.position, rayDirection);
+    float C = dot(rayOrigin - data.position, rayOrigin - data.position) - data.radius * data.radius;
+    
+    float radical = B*B - 4.0*A*C;
+    if (radical >= 0) {
+        float sqrRadical = sqrt(radical);
+        float t0 = (-B + sqrRadical)/(2.0 * A);
+        float t1 = (-B - sqrRadical)/(2.0 * A);
+        result->intersected = t0 >= 0 || t1 >= 0;
+        if (t0 >= 0 && t1 >= 0) {
+            result->timeOfIntersection = min(t0, t1);
+        }
+        else if (t0 >= 0) {
+            result->timeOfIntersection = t0;
+        }
+        else if (t1 >= 0) {
+            result->timeOfIntersection = t1;
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////
 ///
@@ -203,13 +281,15 @@ void mat4x4_loadLookAt(struct mat4x4 * result, float3 eye, float3 center, float3
 
 __kernel void raytrace_one_ray(
     /// input
+    const float3 camera_location,
+    const float3 camera_up,
+    const float3 camera_right,
+    const float3 camera_lookAt,
     
-    const struct PovrayCameraData camera,
-    
-    __global struct PovraySphereData * spheres,
+    __global float * sphereData,
     const unsigned int numSpheres,
-    
-    __global struct PovrayPlaneData * planes,
+
+    __global float * planeData,
     const unsigned int numPlanes,
     
     /// output
@@ -219,28 +299,14 @@ __kernel void raytrace_one_ray(
     const unsigned int imageHeight
     ) {
     
-    /// Create all of the rays
+    /// Create the ray for this given pixel
     struct mat4x4 viewTransform;
 
-    float3 lookAt = camera.lookAt;
-    float3 location = camera.location;
-    float3 diff = lookAt - location;
-    float3 f = diff / length(diff);
-    float3 up = camera.up;
-    float3 crossedFUP = crossed(f, up);
-    float lenCrossedFUP = length(crossedFUP);
-    
-//    float3 s = crossedFUP / length(crossedFUP);
-//    float3 s = normalized(crossed(f, up));
-//    float3 f = normalized(camera.lookAt - camera.location);
-//    float3 s = normalize(cross(f, camera.up));
-//    float3 u = cross(s, f);
+    mat4x4_loadLookAt(&viewTransform, camera_location, camera_lookAt, camera_up);
 
-//    mat4x4_loadLookAt(&viewTransform, camera.location, camera.lookAt, camera.up);
-//
-//    float3 forward = mat4x4_mult4x1(&viewTransform, (float4){Forward.x, Forward.y, Forward.z, 0.0}).xyz;
-//    float3 up = mat4x4_mult4x1(&viewTransform, (float4){Up.x, Up.y, Up.z, 0.0}).xyz * length(camera.up);
-//    float3 right = mat4x4_mult4x1(&viewTransform, (float4){Right.x, Right.y, Right.z, 0.0}).xyz * length(camera.right);
+    float3 forward = mat4x4_mult4x1(&viewTransform, (float4){Forward.x, Forward.y, Forward.z, 0.0}).xyz;
+    float3 up = mat4x4_mult4x1(&viewTransform, (float4){Up.x, Up.y, Up.z, 0.0}).xyz * length(camera_up);
+    float3 right = mat4x4_mult4x1(&viewTransform, (float4){Right.x, Right.y, Right.z, 0.0}).xyz * length(camera_right);
     
     unsigned int threadId = (unsigned int) get_global_id(0);
     
@@ -248,13 +314,21 @@ __kernel void raytrace_one_ray(
     int py = threadId / imageWidth;
     struct ubyte4 color;
     
-    color = ubyte4_make(200,px%255,py%255,255);
+    color = ubyte4_make(0,px%255,py%255,255);
     
-//    float3 rayPos
-//        = camera.location + forward - 0.5f*up - 0.5f*right
-//        + right * ((0.5f+(float)px)/(float)imageWidth)
-//        + up * ((0.5f+(float)py)/(float)imageHeight);
-//    float3 rayDirection = normalize(rayPos - camera.location);
+    float3 rayOrigin
+        = camera_location + forward - 0.5f*up - 0.5f*right
+        + right * ((0.5f+(float)px)/(float)imageWidth)
+        + up * ((0.5f+(float)py)/(float)imageHeight);
+    float3 rayDirection = normalize(rayOrigin - camera_location);
+    
+    /// Now we need to perform intersection tests
+    struct RayIntersectionResult sphereIntersection = closest_sphere_intersection(sphereData, numSpheres, rayOrigin, rayDirection);
+    
+    if (sphereIntersection.intersected) {
+        struct PovraySphereData sphere = PovraySphereData_fromData(sphereIntersection.dataPtr);
+        color = ubyte4_make(sphere.pigment.color.x * 255, sphere.pigment.color.y * 255, sphere.pigment.color.z * 255, sphere.pigment.color.w * 255);
+    }
     
     /// Update the output
     for (int i = 0; i < 4; i++) {
