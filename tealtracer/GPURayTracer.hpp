@@ -19,6 +19,8 @@
 #include "PovrayScene.hpp"
 #include "TSLogger.hpp"
 #include "TextureRenderTarget.hpp"
+#include "Image.hpp"
+#include "CLPovrayElementData.hpp"
 
 class GPURayTracer : public TSWindowDrawingDelegate, public TSUserEventListener {
 public:
@@ -32,6 +34,8 @@ public:
     
     ComputeEngine computeEngine;
     TextureRenderTarget target;
+    
+    Image outputImage;
 
     ///
     virtual void setupDrawingInWindow(TSWindow * window) {
@@ -43,12 +47,12 @@ public:
         glEnable(GLenum(GL_DEPTH_TEST));
         glDepthFunc(GLenum(GL_LESS));
         
-        std::vector<uint8_t> empty;
-        empty.resize(window->width() * window->height() * 4, 100);
-        target.init(window->width(), window->height(), &empty[0]);
+        outputImage.setDimensions(window->width(), window->height());
+        target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
         
         /// OpenCL
-        ocl_computeSquares(); // test code
+//        ocl_computeSquares(); // test code
+        ocl_raytraceRays();
     }
 
     ///
@@ -124,9 +128,10 @@ public:
         }
         computeEngine.writeBuffer("square_input", 0, 0, sizeof(float) * elementCount, &values[0]);
         
-        computeEngine.setKernelArg("square", 0, &computeEngine.getBuffer("square_input"), sizeof(cl_mem));
-        computeEngine.setKernelArg("square", 1, &computeEngine.getBuffer("square_output"), sizeof(cl_mem));
-        computeEngine.setKernelArg("square", 2, &elementCount, sizeof(unsigned int));
+        computeEngine.setKernelArgs("square",
+            computeEngine.getBuffer("square_input"),
+            computeEngine.getBuffer("square_output"),
+            (unsigned int) elementCount);
         
         size_t globalCount = elementCount;
         size_t localCount = 1000; //computeEngine.getEstimatedWorkGroupSize("square", 0); == 1024?
@@ -141,6 +146,76 @@ public:
         }
         
         computeEngine.disconnect();
+    }
+    
+    /// Tests the usage on "ComputeEngine" following the example given at the
+    /// following web address:
+    ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
+    void ocl_raytraceRays() {
+    
+        /// OpenCL
+        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
+        
+        unsigned int imageWidth = outputImage.width;
+        unsigned int imageHeight = outputImage.height;
+        void * imageData = outputImage.dataPtr();
+        size_t imageDataSize = outputImage.dataSize();
+        
+        unsigned int rayCount = imageWidth * imageHeight;
+        
+        computeEngine.createProgramFromFile("raytrace_prog", "raytrace.cl");
+        computeEngine.createKernel("raytrace_prog", "raytrace_one_ray");
+        
+        auto camera = scene_->camera();
+        auto cameraData = CLPovrayCameraData(camera->data());
+        
+        auto spheres = scene_->findElements<PovraySphere>();
+        std::vector<CLPovraySphereData> sphereData;
+        for (auto itr = spheres.begin(); itr != spheres.end(); itr++) {
+            sphereData.push_back((*itr)->data());
+        }
+        
+        auto planes = scene_->findElements<PovrayPlane>();
+        std::vector<CLPovrayPlaneData> planeData;
+        for (auto itr = planes.begin(); itr != planes.end(); itr++) {
+            planeData.push_back((*itr)->data());
+        }
+        
+        computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(CLPovraySphereData) * spheres.size());
+        computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(CLPovrayPlaneData) * planes.size());
+        computeEngine.createBuffer("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, imageDataSize);
+
+        if (spheres.size() > 0) {
+            computeEngine.writeBuffer("spheres", 0, 0, sizeof(CLPovraySphereData) * spheres.size(), &sphereData[0]);
+        }
+        if (planes.size() > 0) {
+            computeEngine.writeBuffer("planes", 0, 0, sizeof(CLPovrayPlaneData) * planes.size(), &planeData[0]);
+        }
+
+        computeEngine.setKernelArgs("raytrace_one_ray",
+           cameraData,
+           
+           computeEngine.getBuffer("spheres"),
+           (cl_uint) spheres.size(),
+           
+           computeEngine.getBuffer("planes"),
+           (cl_uint) planes.size(),
+           
+           computeEngine.getBuffer("imageOutput"),
+           (cl_uint) imageWidth,
+           (cl_uint) imageHeight
+        );
+        
+        size_t globalCount = rayCount;
+        size_t localCount = 20;//imageWidth;
+        
+        computeEngine.executeKernel("raytrace_one_ray", 0, &globalCount, &localCount, 1);
+        computeEngine.finish(0);
+        
+        computeEngine.readBuffer("imageOutput", 0, 0, imageDataSize, imageData);
+        computeEngine.disconnect();
+        
+        target.outputTexture->setNeedsUpdate();
     }
     
 protected:

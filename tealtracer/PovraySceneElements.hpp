@@ -63,6 +63,18 @@ public:
     ///
     virtual PovrayFinish const * finish() const;
 
+    ///
+    PovrayCameraData data() const {
+        PovrayCameraData dat;
+        
+        dat.location = location_;
+        dat.up = up_;
+        dat.right = right_;
+        dat.lookAt = lookAt_;
+        
+        return dat;
+    }
+
 private:
 
     Eigen::Vector3f location_;
@@ -96,6 +108,16 @@ public:
     ///
     virtual PovrayFinish const * finish() const;
 
+    ///
+    PovrayLightSourceData data() const {
+        PovrayLightSourceData dat;
+        
+        dat.position = position_;
+        dat.color = color_;
+        
+        return dat;
+    }
+
 private:
 
     Eigen::Vector3f position_;
@@ -109,8 +131,6 @@ struct PovraySphereData {
     
     PovrayPigment pigment;
     PovrayFinish finish;
-    
-    Eigen::Matrix4f transform;
 };
 
 ///
@@ -131,6 +151,18 @@ public:
     virtual PovrayPigment const * pigment() const;
     ///
     virtual PovrayFinish const * finish() const;
+    
+    ///
+    PovraySphereData data() const {
+        PovraySphereData dat;
+        
+        dat.position = position_;
+        dat.radius = radius_;
+        dat.pigment = pigment_;
+        dat.finish = finish_;
+        
+        return dat;
+    }
 
 private:
 
@@ -170,6 +202,18 @@ public:
     virtual PovrayPigment const * pigment() const;
     ///
     virtual PovrayFinish const * finish() const;
+
+    ///
+    PovrayPlaneData data() const {
+        PovrayPlaneData dat;
+        
+        dat.normal = normal_;
+        dat.distance = distance_;
+        dat.pigment = pigment_;
+        dat.finish = finish_;
+        
+        return dat;
+    }
 
 private:
 

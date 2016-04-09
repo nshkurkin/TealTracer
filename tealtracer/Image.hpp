@@ -53,6 +53,11 @@ struct Image {
             return nullptr;
         }
     }
+    
+    //
+    size_t dataSize() {
+        return sizeof(uint8_t) * size_t(4 * width * height);
+    }
 };
 
 #endif /* Image_hpp */

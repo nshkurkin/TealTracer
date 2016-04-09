@@ -62,22 +62,22 @@ TealTracer::run(const std::vector<std::string> & args) {
     scene_ = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
     
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
+    gpuRayTracer_->setScene(scene_);
     gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
     gpuWindow()->setWidth(config["outputWidth"].get<int>());
     gpuWindow()->setHeight(config["outputHeight"].get<int>());
     gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
     gpuWindow()->setDrawingDelegate(gpuRayTracer_);
     gpuWindow()->setEventListener(gpuRayTracer_);
-    gpuRayTracer_->setScene(scene_);
     
     cpuRayTracer_ = std::shared_ptr<CPURayTracer>(new CPURayTracer());
+    cpuRayTracer_->setScene(scene_);
     cpuWindow()->setTitle(config["CPURayTracer"]["initialTitle"].get<std::string>());
     cpuWindow()->setWidth(config["outputWidth"].get<int>());
     cpuWindow()->setHeight(config["outputHeight"].get<int>());
     cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
     cpuWindow()->setDrawingDelegate(cpuRayTracer_);
     cpuWindow()->setEventListener(cpuRayTracer_);
-    cpuRayTracer_->setScene(scene_);
     
     while (gpuWindow()->opened() && cpuWindow()->opened()) {
         glfwPollEvents();

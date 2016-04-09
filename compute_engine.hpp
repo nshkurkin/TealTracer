@@ -137,13 +137,48 @@ public:
         uint uiIndex,  
         void *pvArgsValue, 
         size_t ptArgsSize);
-        
+private:
     bool setKernelArgs(
         const char* acKernelName,
         uint uiNumArgs, 
         uint *piArgsIndices, 
         void **pvArgsValue, 
         size_t *ptArgsSize);
+
+public:
+    template <typename T>
+    bool setKernelArg(
+        const char * kernelName,
+        uint argIndex,
+        const T & value) {
+        
+        return setKernelArg(kernelName, argIndex, (T *) &value, sizeof(T));
+    }
+
+    template <typename T = void>
+    bool setKernelArgs_(
+        const char * kernelName,
+        uint argIndex) {
+        
+        return true;
+    }
+    
+    template <typename T, typename... Args>
+    bool setKernelArgs_(
+        const char * kernelName,
+        uint argIndex,
+        const T & value, Args... args) {
+    
+        return setKernelArg(kernelName, argIndex++, value) && setKernelArgs_(kernelName, argIndex, args...);
+    }
+    
+    template <typename... Args>
+    bool setKernelArgs(
+        const char * kernelName,
+        Args... args) {
+    
+        return setKernelArgs_(kernelName, 0, args...);
+    }
 
     uint getKernelArgCount(
         const char* acKernelName);

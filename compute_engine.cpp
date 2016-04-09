@@ -372,7 +372,7 @@ GetErrorString(int iError, char** acString, size_t *kStringLength)
 }
 
 static void
-ReportError(int iError)
+ReportError(int iError, const char * file, const int line, const char * function)
 {
     char *acErrorString = 0;
     size_t kLength;
@@ -381,10 +381,13 @@ ReportError(int iError)
     
     if(kLength)
     {
-        printf("OpenCL Error[%d]: %s\n", iError, acErrorString);
+        printf("{%s:%d (%s)} OpenCL Error[%d]: %s\n", file, line, function, iError, acErrorString);
+        assert(false);
         delete [] acErrorString;
     }
 }
+
+#define ReportError(err) ReportError(err, __FILE__, __LINE__, __FUNCTION__)
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -747,14 +750,14 @@ ComputeEngine::setKernelArg(
         return false;
 		
 #ifdef DEBUG
-	printf("Compute Engine SetKernelArg: %s %d %f (%d)\n", 
-		acKernelName, uiIndex, *(float*)pvArgsValue, *(unsigned int*)pvArgsValue);
+	printf("Compute Engine SetKernelArg: name=%s, index=%d size=%zu,floatVal=%f intVal=(%d)\n",
+		acKernelName, uiIndex, ptArgsSize, *(float*)pvArgsValue, *(unsigned int*)pvArgsValue);
 #endif
 
     cl_kernel kKernel = pkKernelIter->second;
     
     int iError = clSetKernelArg(kKernel, uiIndex, ptArgsSize, pvArgsValue);
-    if(iError)
+    if(iError != CL_SUCCESS)
     {
         printf("Compute Engine: Error setting kernel argument '%d' for '%s'\n", uiIndex, acKernelName);
         ReportError(iError);
@@ -867,23 +870,25 @@ ComputeEngine::readBuffer(
     void* pvData)
 {
     cl_mem kBuffer = getMemObject(acMemObjName);
-    if(kBuffer == 0)
-        return false;
+    if(kBuffer == 0) {
+        assert(false);
+    }
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
         printf("Invalid device index for reading buffer '%s'!\n", acMemObjName);
-        return false;
+        assert(false);
     }   
 
-    int iError = clEnqueueReadBuffer(m_akCommandQueues[uiDeviceIndex], kBuffer, CL_TRUE, 
+    auto queue = m_akCommandQueues[uiDeviceIndex];
+    int iError = clEnqueueReadBuffer(queue, kBuffer, CL_TRUE,
                                      (size_t)uiStart, (size_t)kBytes, 
                                      pvData, 0, NULL, NULL);
-    if(iError)
+    if(iError != CL_SUCCESS)
 	{
         printf("Compute Engine: Error reading buffer %s\n", acMemObjName);
 		ReportError(iError);
-		return false;
+		assert(false);
 	}
 
     return true;
