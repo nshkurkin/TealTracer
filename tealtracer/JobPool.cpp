@@ -38,7 +38,6 @@ void JobPool::checkAndUpdateFinishedJobs() {
     /// Push jobs onto the job wait pool if there is room available.
     while ((int) jobWaitPool.size() < maxNumThreads && pendingJobs.size() > 0) {
         jobWaitPool.emplace_back(std::async(
-            std::launch::async,
             async_OGSDispatch,
             pendingJobs[0].first, pendingJobs[0].second
         ));
@@ -47,8 +46,9 @@ void JobPool::checkAndUpdateFinishedJobs() {
     /// Check to see if any jobs completed
     for (int i = 0; i < (int) jobWaitPool.size(); i++) {
         std::future< std::function<void(void)> > & ftr = jobWaitPool[i];
-        if (ftr.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+        if (ftr.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
             completed.push_back(i);
+        }
     }
 #else
     int which = -1;

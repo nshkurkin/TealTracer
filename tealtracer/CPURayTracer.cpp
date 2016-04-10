@@ -55,11 +55,12 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
 
 void CPURayTracer::enqueRayTrace() {
     jobPool.emplaceJob([=](){
+        auto startTime = glfwGetTime();
         this->raytraceScene();
+        auto endTime = glfwGetTime();
+        lastRayTraceTime = endTime - startTime;
     }, [=](){
-        auto oldTime = lastRayTraceTime;
-        lastRayTraceTime = glfwGetTime();
-        rayTraceElapsedTime = lastRayTraceTime - oldTime;
+        rayTraceElapsedTime = lastRayTraceTime;
         framesRendered++;
         this->target.outputTexture->setNeedsUpdate();
         this->enqueRayTrace();

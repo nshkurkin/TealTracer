@@ -36,6 +36,7 @@ public:
     ///
     /// Some ideas:
     ///     *) Use an OpenGL texture reference instead of a local copy buffer
+    ///             Note: this will likely only save about 2-3 ms per frame
     ///     *) Build in a solid system for camera controls.
     ///     *) Port photon mapping from Swift project
     ///     *) Implement a photon mapping kernel
@@ -140,18 +141,19 @@ public:
     ///
     void enqueRayTrace() {
         jobPool.emplaceJob([=](){
+            auto startTime = glfwGetTime();
             this->ocl_raytraceRays();
+            auto endTime = glfwGetTime();
+            lastRayTraceTime = endTime - startTime;
         }, [=](){
-            auto oldTime = lastRayTraceTime;
-            lastRayTraceTime = glfwGetTime();
-            rayTraceElapsedTime = lastRayTraceTime - oldTime;
+            rayTraceElapsedTime = lastRayTraceTime;
             framesRendered++;
             this->target.outputTexture->setNeedsUpdate();
             this->enqueRayTrace();
         });
     }
     
-    ///
+    /// 0.018 (job work),
     unsigned int numSpheres, numPlanes;
     
     ///
@@ -248,10 +250,9 @@ public:
         
         size_t globalCount = rayCount;
         size_t localCount = imageWidth;
-        
+      
         computeEngine.executeKernel("raytrace_one_ray", 0, &globalCount, &localCount, 1);
         computeEngine.finish(0);
-        
         computeEngine.readBuffer("imageOutput", 0, 0, imageDataSize, imageData);
         
         target.outputTexture->setNeedsUpdate();
