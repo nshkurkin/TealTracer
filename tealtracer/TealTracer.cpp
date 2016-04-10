@@ -63,6 +63,7 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
     gpuRayTracer_->setScene(scene_);
+    gpuRayTracer_->useGPU = config["GPURayTracer"]["useGPU"].get<bool>();
     gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
     gpuWindow()->setWidth(config["outputWidth"].get<int>());
     gpuWindow()->setHeight(config["outputHeight"].get<int>());

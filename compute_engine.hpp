@@ -320,6 +320,8 @@ public:
     uint getDeviceCount()       { return m_uiDeviceCount; }
     cl_device_id getDeviceId(uint uiIndex) { return (uiIndex < m_uiDeviceCount) ? (m_akDeviceIds[uiIndex]) : (cl_device_id)0; }
 
+    DeviceType requestedDeviceType;
+
 protected:
 
     typedef std::map<const char*, cl_kernel>::iterator KernelMapIter;

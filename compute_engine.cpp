@@ -61,7 +61,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define DEBUG_CL_printf(...) 
-//printf( __VA_ARGS__ )
+// printf( __VA_ARGS__ )
 
 unsigned int ComputeEngine::ms_uiMaxDeviceCount = 256;
 
@@ -428,7 +428,9 @@ ComputeEngine::connect(
     unsigned int uiDeviceCount;
     cl_device_id akAvailableDeviceIds[ms_uiMaxDeviceCount];
     cl_device_type kRequestedDeviceType = (cl_device_type)eDeviceType;
-               
+    
+    requestedDeviceType = eDeviceType;
+    
     if(bUseOpenGLContext)
     {
         DEBUG_CL_printf(SEPARATOR);

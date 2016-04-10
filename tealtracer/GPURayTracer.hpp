@@ -152,14 +152,19 @@ public:
             this->enqueRayTrace();
         });
     }
-    
-    /// 0.018 (job work),
+
+    bool useGPU;
     unsigned int numSpheres, numPlanes;
     
     ///
     void ocl_raytraceSetup() {
-
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
+        
+        if (useGPU) {
+            computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 2, true);
+        }
+        else {
+            computeEngine.connect(ComputeEngine::DEVICE_TYPE_CPU, 4, false);
+        }
 
         size_t imageDataSize = outputImage.dataSize();
         
@@ -250,6 +255,9 @@ public:
         
         size_t globalCount = rayCount;
         size_t localCount = imageWidth;
+        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
+            localCount = 20;
+        }
       
         computeEngine.executeKernel("raytrace_one_ray", 0, &globalCount, &localCount, 1);
         computeEngine.finish(0);

@@ -8,6 +8,7 @@
     },
     
     "GPURayTracer" : {
-        "initialTitle" : "GPU Ray Tracer"
+        "initialTitle" : "GPU Ray Tracer",
+        "useGPU": false
     }
 }
