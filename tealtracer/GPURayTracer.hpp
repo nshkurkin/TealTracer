@@ -33,6 +33,13 @@ public:
     ///     3) Display the texture
     ///
     
+    ///
+    /// Some ideas:
+    ///     *) Use an OpenGL texture reference instead of a local copy buffer
+    ///     *) Build in a solid system for camera controls.
+    ///     *) Port photon mapping from Swift project
+    ///     *) Implement a photon mapping kernel
+    
     ComputeEngine computeEngine;
     TextureRenderTarget target;
     
