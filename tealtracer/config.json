@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "lab1_simple.pov",
+    "povrayScene" : "spheres.pov",
     "outputWidth" : 640,
     "outputHeight" : 480,
     

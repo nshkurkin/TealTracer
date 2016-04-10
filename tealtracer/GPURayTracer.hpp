@@ -21,6 +21,7 @@
 #include "TextureRenderTarget.hpp"
 #include "Image.hpp"
 #include "CLPovrayElementData.hpp"
+#include "JobPool.hpp"
 
 class GPURayTracer : public TSWindowDrawingDelegate, public TSUserEventListener {
 public:
@@ -50,15 +51,33 @@ public:
         outputImage.setDimensions(window->width(), window->height());
         target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
         
+        FPSsaved = 0.0;
+        
         /// OpenCL
-//        ocl_computeSquares(); // test code
-        ocl_raytraceRays();
+        ocl_raytraceSetup();
+        ocl_pushSceneData();
+        enqueRayTrace();
     }
+
+    float FPSsaved;
 
     ///
     virtual void drawInWindow(TSWindow * window) {
         glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         target.draw();
+        
+        jobPool.checkAndUpdateFinishedJobs();
+    
+        float FPS = 0;
+        if (rayTraceElapsedTime > 0.001) {
+            FPS = 1.0 / rayTraceElapsedTime;
+        }
+        
+        if (framesRendered % 10 == 0) {
+            FPSsaved = FPS;
+        }
+        
+        window->setTitle(make_string("GPU Ray Tracer (FPS: ", FPSsaved, ", frames: ", framesRendered, ")"));
     }
     
     ///
@@ -106,68 +125,39 @@ public:
     
     }
     
-    /// Tests the usage on "ComputeEngine" following the example given at the
-    /// following web address:
-    ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
-    void ocl_computeSquares() {
     
-        /// OpenCL
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
-        
-        /// Copy the elements of the scene onto the GPU
-        unsigned int elementCount = 10000;
-        
-        computeEngine.createProgramFromFile("square_prog", "sample_square.cl");
-        computeEngine.createKernel("square_prog", "square");
-        computeEngine.createBuffer("square_input", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(float) * elementCount);
-        computeEngine.createBuffer("square_output", ComputeEngine::MemFlags::MEM_WRITE_ONLY, sizeof(float) * elementCount);
-        
-        std::vector<float> values;
-        for (int i = 0; i < elementCount; i++) {
-            values.push_back(float(i));
-        }
-        computeEngine.writeBuffer("square_input", 0, 0, sizeof(float) * elementCount, &values[0]);
-        
-        computeEngine.setKernelArgs("square",
-            computeEngine.getBuffer("square_input"),
-            computeEngine.getBuffer("square_output"),
-            (unsigned int) elementCount);
-        
-        size_t globalCount = elementCount;
-        size_t localCount = 1000; //computeEngine.getEstimatedWorkGroupSize("square", 0); == 1024?
-        computeEngine.executeKernel("square", 0, &globalCount, &localCount, 1);
-        computeEngine.finish(0);
-        
-        std::vector<float> output(elementCount, 1.0);
-        computeEngine.readBuffer("square_output", 0, 0, sizeof(float) * elementCount, &output[0]);
-        
-        for (int i = 0; i < elementCount; i++) {
-            assert(output[i] == values[i] * values[i]);
-        }
-        
-        computeEngine.disconnect();
+    JobPool jobPool;
+    int framesRendered;
+    double lastRayTraceTime, rayTraceElapsedTime;
+    
+    ///
+    void enqueRayTrace() {
+        jobPool.emplaceJob([=](){
+            this->ocl_raytraceRays();
+        }, [=](){
+            auto oldTime = lastRayTraceTime;
+            lastRayTraceTime = glfwGetTime();
+            rayTraceElapsedTime = lastRayTraceTime - oldTime;
+            framesRendered++;
+            this->target.outputTexture->setNeedsUpdate();
+            this->enqueRayTrace();
+        });
     }
     
-    /// Tests the usage on "ComputeEngine" following the example given at the
-    /// following web address:
-    ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
-    void ocl_raytraceRays() {
+    ///
+    unsigned int numSpheres, numPlanes;
     
-        /// OpenCL
+    ///
+    void ocl_raytraceSetup() {
+
         computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 1, true);
-        
-        unsigned int imageWidth = outputImage.width;
-        unsigned int imageHeight = outputImage.height;
-        void * imageData = outputImage.dataPtr();
+
         size_t imageDataSize = outputImage.dataSize();
-        
-        unsigned int rayCount = imageWidth * imageHeight;
         
         computeEngine.createProgramFromFile("raytrace_prog", "raytrace.cl");
         computeEngine.createKernel("raytrace_prog", "raytrace_one_ray");
         
         auto camera = scene_->camera();
-        auto cameraData = CLPovrayCameraData(camera->data());
         
         auto spheres = scene_->findElements<PovraySphere>();
         std::vector<cl_float> sphereData;
@@ -181,16 +171,56 @@ public:
             CLPovrayPlaneData((*itr)->data()).writeOutData(planeData);
         }
         
-        computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
-        computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
+        if (spheres.size() > 0) {
+            computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
+        }
+        if (planes.size() > 0) {
+            computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
+        }
+        
         computeEngine.createBuffer("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, imageDataSize);
-
+    }
+    
+    ///
+    void ocl_pushSceneData() {
+    
+        auto spheres = scene_->findElements<PovraySphere>();
+        std::vector<cl_float> sphereData;
+        for (auto itr = spheres.begin(); itr != spheres.end(); itr++) {
+            CLPovraySphereData((*itr)->data()).writeOutData(sphereData);
+        }
+        
+        auto planes = scene_->findElements<PovrayPlane>();
+        std::vector<cl_float> planeData;
+        for (auto itr = planes.begin(); itr != planes.end(); itr++) {
+            CLPovrayPlaneData((*itr)->data()).writeOutData(planeData);
+        }
+    
+        numSpheres = (unsigned int) spheres.size();
+        numPlanes = (unsigned int) planes.size();
+        
         if (spheres.size() > 0) {
             computeEngine.writeBuffer("spheres", 0, 0, sizeof(cl_float) * sphereData.size(), &sphereData[0]);
         }
         if (planes.size() > 0) {
             computeEngine.writeBuffer("planes", 0, 0, sizeof(cl_float) * planeData.size(), &planeData[0]);
         }
+    }
+    
+    /// Tests the usage on "ComputeEngine" following the example given at the
+    /// following web address:
+    ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
+    void ocl_raytraceRays() {
+        
+        unsigned int imageWidth = outputImage.width;
+        unsigned int imageHeight = outputImage.height;
+        void * imageData = outputImage.dataPtr();
+        size_t imageDataSize = outputImage.dataSize();
+        
+        unsigned int rayCount = imageWidth * imageHeight;
+        
+        auto camera = scene_->camera();
+        auto cameraData = CLPovrayCameraData(camera->data());
 
         computeEngine.setKernelArgs("raytrace_one_ray",
            cameraData.location,
@@ -199,10 +229,10 @@ public:
            cameraData.lookAt,
            
            computeEngine.getBuffer("spheres"),
-           (cl_uint) spheres.size(),
+           (cl_uint) numSpheres,
 
            computeEngine.getBuffer("planes"),
-           (cl_uint) planes.size(),
+           (cl_uint) numPlanes,
            
            computeEngine.getBuffer("imageOutput"),
            (cl_uint) imageWidth,
@@ -216,7 +246,6 @@ public:
         computeEngine.finish(0);
         
         computeEngine.readBuffer("imageOutput", 0, 0, imageDataSize, imageData);
-        computeEngine.disconnect();
         
         target.outputTexture->setNeedsUpdate();
     }

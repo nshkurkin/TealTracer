@@ -49,6 +49,9 @@ struct PovraySphereData {
 __constant unsigned int kPovraySphereStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride;
 
 ///
+struct PovraySphereData PovraySphereData_fromData(__global float * data);
+
+///
 struct PovrayPlaneData {
     float3 normal;
     float distance;
@@ -58,6 +61,38 @@ struct PovrayPlaneData {
 };
 
 __constant unsigned int kPovrayPlaneStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride;
+
+///
+struct PovrayPlaneData PovrayPlaneData_fromData(__global float * data);
+
+////////////////////////////////////////////////////////////////////////////
+
+///
+struct PovraySphereData PovraySphereData_fromData(__global float * data) {
+    struct PovraySphereData result;
+    
+    result.position = (float3) { data[0], data[1], data[2] };
+    result.radius = data[3];
+    result.pigment.color = (float4) { data[4], data[5], data[6], data[7] };
+    result.finish.ambient = data[8];
+    result.finish.diffuse = data[9];
+    
+    return result;
+}
+
+///
+struct PovrayPlaneData PovrayPlaneData_fromData(__global float * data) {
+    struct PovrayPlaneData result;
+    
+    result.normal = (float3) { data[0], data[1], data[2] };
+    result.distance = data[3];
+    result.pigment.color = (float4) { data[4], data[5], data[6], data[7] };
+    result.finish.ambient = data[8];
+    result.finish.diffuse = data[9];
+    
+    return result;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -87,11 +122,6 @@ float4 mat4x4_mult4x1(struct mat4x4 * mat, float4 vec);
 void mat4x4_loadIdentity(struct mat4x4 * mat);
 ///
 void mat4x4_loadLookAt(struct mat4x4 * result, float3 eye, float3 center, float3 up);
-
-/////
-//float3 normalized(float3 vec);
-/////
-//float3 crossed(float3 vecA, float3 vecB);
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -181,9 +211,9 @@ void mat4x4_loadLookAt(struct mat4x4 * result, float3 eye, float3 center, float3
 
 ///
 enum ObjectType {
-    InvalidObjectTyoe = 0,
-    SphereObjectType = 1,
-    PlaneObjectType = 2
+    SphereObjectType = 0,
+    PlaneObjectType = 1,
+    NumObjectTypes = 2
 };
 
 ///
@@ -196,28 +226,27 @@ struct RayIntersectionResult {
 };
 
 ///
-struct PovraySphereData PovraySphereData_fromData(__global float * data);
+struct RayIntersectionResult closest_intersection(
+    __global float * data,
+    unsigned int numDataElements,
+    unsigned int dataStride,
+    float3 rayOrigin, float3 rayDirection,
+    enum ObjectType type);
+
 ///
-struct RayIntersectionResult closest_sphere_intersection(__global float * data, unsigned int numDataElements, float3 rayOrigin, float3 rayDirection);
+void sphere_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result);
 ///
-void sphere_intersect(struct PovraySphereData data, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result);
+void plane_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result);
 
 
 ///
-struct PovraySphereData PovraySphereData_fromData(__global float * data) {
-    struct PovraySphereData result;
-    
-    result.position = (float3) { data[0], data[1], data[2] };
-    result.radius = data[3];
-    result.pigment.color = (float4) { data[4], data[5], data[6], data[7] };
-    result.finish.ambient = data[8];
-    result.finish.diffuse = data[9];
-    
-    return result;
-}
-
 ///
-struct RayIntersectionResult closest_sphere_intersection(__global float * data, unsigned int numDataElements, float3 rayOrigin, float3 rayDirection) {
+struct RayIntersectionResult closest_intersection(
+    __global float * data,
+    unsigned int numDataElements,
+    unsigned int dataStride,
+    float3 rayOrigin, float3 rayDirection,
+    enum ObjectType type) {
 
     struct RayIntersectionResult result;
     result.intersected = false;
@@ -228,24 +257,35 @@ struct RayIntersectionResult closest_sphere_intersection(__global float * data, 
         currentResult.intersected = false;
         currentResult.timeOfIntersection = INFINITY;
     
-        __global float * dataStart = &data[i*kPovraySphereStride];
-        struct PovraySphereData data = PovraySphereData_fromData(dataStart);
+        __global float * dataStart = &data[i*dataStride];
         currentResult.dataPtr = dataStart;
         
-        sphere_intersect(data, rayOrigin, rayDirection, &currentResult);
+        switch (type) {
+            case SphereObjectType:
+                sphere_intersect(dataStart, rayOrigin, rayDirection, &currentResult);
+                break;
+            case PlaneObjectType:
+                plane_intersect(dataStart, rayOrigin, rayDirection, &currentResult);
+                break;
+            default:
+                break;
+        }
         
-        if (currentResult.intersected && currentResult.timeOfIntersection < result.timeOfIntersection) {
+        if (currentResult.intersected
+         && currentResult.timeOfIntersection < result.timeOfIntersection) {
             result = currentResult;
         }
     }
     
-    result.type = SphereObjectType;
+    result.type = type;
     return result;
-
 }
 
+
 ///
-void sphere_intersect(struct PovraySphereData data, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result) {
+void sphere_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result) {
+    
+    struct PovraySphereData data = PovraySphereData_fromData(dataPtr);
     
     float A = dot(rayDirection, rayDirection);
     float B = 2.0 * dot(rayOrigin - data.position, rayDirection);
@@ -267,6 +307,19 @@ void sphere_intersect(struct PovraySphereData data, float3 rayOrigin, float3 ray
             result->timeOfIntersection = t1;
         }
     }
+}
+
+///
+void plane_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result) {
+    
+    struct PovrayPlaneData data = PovrayPlaneData_fromData(dataPtr);
+    
+    float product = dot(rayDirection, data.normal);
+    if (product > 0.0001 || product < -0.0001) {
+        result->timeOfIntersection = -(dot(rayOrigin, data.normal) - data.distance) / product;
+    }
+    
+    result->intersected = result->timeOfIntersection >= 0.0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -314,7 +367,7 @@ __kernel void raytrace_one_ray(
     int py = threadId / imageWidth;
     struct ubyte4 color;
     
-    color = ubyte4_make(0,px%255,py%255,255);
+    color = ubyte4_make(0,0,0,255);
     
     float3 rayOrigin
         = camera_location + forward - 0.5f*up - 0.5f*right
@@ -322,12 +375,43 @@ __kernel void raytrace_one_ray(
         + up * ((0.5f+(float)py)/(float)imageHeight);
     float3 rayDirection = normalize(rayOrigin - camera_location);
     
-    /// Now we need to perform intersection tests
-    struct RayIntersectionResult sphereIntersection = closest_sphere_intersection(sphereData, numSpheres, rayOrigin, rayDirection);
+    /// Calculate intersections
+    struct RayIntersectionResult bestIntersection;
+    bestIntersection.intersected = false;
+    bestIntersection.timeOfIntersection = INFINITY;
     
-    if (sphereIntersection.intersected) {
-        struct PovraySphereData sphere = PovraySphereData_fromData(sphereIntersection.dataPtr);
-        color = ubyte4_make(sphere.pigment.color.x * 255, sphere.pigment.color.y * 255, sphere.pigment.color.z * 255, sphere.pigment.color.w * 255);
+    __global float * dataPtrs[2] = { sphereData, planeData };
+    unsigned int dataCounts[2] = { numSpheres, numPlanes };
+    unsigned int dataStrides[2] = { kPovraySphereStride, kPovrayPlaneStride };
+    
+    for (unsigned int i = 0; i < (unsigned int) NumObjectTypes; i++) {
+        struct RayIntersectionResult intersection = closest_intersection(
+            dataPtrs[i], dataCounts[i], dataStrides[i],
+            rayOrigin, rayDirection,
+            (enum ObjectType) i);
+        
+        if (intersection.intersected
+         && intersection.timeOfIntersection < bestIntersection.timeOfIntersection) {
+            bestIntersection = intersection;
+        }
+    }
+    
+    /// Calculate color
+    if (bestIntersection.intersected) {
+        switch (bestIntersection.type) {
+            case SphereObjectType: {
+                struct PovraySphereData data = PovraySphereData_fromData(bestIntersection.dataPtr);
+                color = ubyte4_make(data.pigment.color.x * 255, data.pigment.color.y * 255, data.pigment.color.z * 255, data.pigment.color.w * 255);
+                break;
+            }
+            case PlaneObjectType: {
+                struct PovrayPlaneData data = PovrayPlaneData_fromData(bestIntersection.dataPtr);
+                color = ubyte4_make(data.pigment.color.x * 255, data.pigment.color.y * 255, data.pigment.color.z * 255, data.pigment.color.w * 255);
+            }
+                break;
+            default:
+                break;
+        }
     }
     
     /// Update the output

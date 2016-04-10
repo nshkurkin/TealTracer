@@ -60,6 +60,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define DEBUG_CL_printf(...) 
+//printf( __VA_ARGS__ )
+
 unsigned int ComputeEngine::ms_uiMaxDeviceCount = 256;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,71 +97,71 @@ DumpBufferValues(
     uint uiDumpType,
     uint uiDumpComponents)
 {
-    printf(SEPARATOR);
-    
-    if(uiDumpType == 1)
-    {
-        float *afMin = new float[uiDumpComponents];
-        float *afMax = new float[uiDumpComponents];
-        
-        memset(afMin,  999999, sizeof(float) * uiDumpComponents);
-        memset(afMax, -999999, sizeof(float) * uiDumpComponents);
-        
-        uint uiElemCount = ((uint) kBytes) / (sizeof(float));
-        float* afData = (float*)pvData;
-        for(uint i = uiStart; i < uiElemCount / 4; i++)
-        {
-            for(uint j = 0; j < uiDumpComponents; j++)
-            {
-                float fValue = afData[i*uiDumpComponents+j];
-                afMin[j] = afMin[j] < fValue ? afMin[j] : fValue;
-                afMax[j] = afMax[j] > fValue ? afMax[j] : fValue;
-            }
-            
-            printf("%s[%6d]: ", acMemObjName, i);
-            for(uint j = 0; j < uiDumpComponents; j++)
-                printf("%15.3f ", afData[i*uiDumpComponents+j]);
-            printf("\n");
-        }
-        
-        printf("%s:  Count[%6d] ", acMemObjName, uiElemCount / 4);
-        printf("Min[");
-        for(uint j = 0; j < uiDumpComponents; j++)
-            printf("%8.5f ", afMin[j]);
-        printf("] Max[");
-        for(uint j = 0; j < uiDumpComponents; j++)
-            printf("%8.5f ", afMax[j]);
-        printf("]\n");
-        
-        delete [] afMin;
-        delete [] afMax;
-    }
-    else if(uiDumpType == 2)
-    {
-        uint uiElemCount = (uint) (kBytes) / (sizeof(int));
-        int* aiData = (int*)pvData;
-        for(uint i = uiStart; i < uiElemCount / 4; i++)
-        {
-            printf("%s[%6d]: ", acMemObjName, i);
-            for(uint j = 0; j < uiDumpComponents; j++)
-                printf("%6d ", aiData[i*uiDumpComponents+j]);
-            printf("\n");
-        }
-    }
-    else if(uiDumpType == 3)
-    {
-        uint uiElemCount = (uint) (kBytes) / (sizeof(uint));
-        uint* auiData = (uint*)pvData;
-        for(uint i = uiStart; i < uiElemCount / 4; i++)
-        {
-            printf("%s[%6d]: ", acMemObjName, i);
-            for(uint j = 0; j < uiDumpComponents; j++)
-                printf("%6d ", auiData[i*uiDumpComponents+j]);
-            printf("\n");
-        }
-    }
-    printf(SEPARATOR);
-    
+//    DEBUG_CL_printf(SEPARATOR);
+//    
+//    if(uiDumpType == 1)
+//    {
+//        float *afMin = new float[uiDumpComponents];
+//        float *afMax = new float[uiDumpComponents];
+//        
+//        memset(afMin,  999999, sizeof(float) * uiDumpComponents);
+//        memset(afMax, -999999, sizeof(float) * uiDumpComponents);
+//        
+//        uint uiElemCount = ((uint) kBytes) / (sizeof(float));
+//        float* afData = (float*)pvData;
+//        for(uint i = uiStart; i < uiElemCount / 4; i++)
+//        {
+//            for(uint j = 0; j < uiDumpComponents; j++)
+//            {
+//                float fValue = afData[i*uiDumpComponents+j];
+//                afMin[j] = afMin[j] < fValue ? afMin[j] : fValue;
+//                afMax[j] = afMax[j] > fValue ? afMax[j] : fValue;
+//            }
+//            
+//            DEBUG_CL_printf("%s[%6d]: ", acMemObjName, i);
+//            for(uint j = 0; j < uiDumpComponents; j++)
+//                DEBUG_CL_printf("%15.3f ", afData[i*uiDumpComponents+j]);
+//            DEBUG_CL_printf("\n");
+//        }
+//        
+//        DEBUG_CL_printf("%s:  Count[%6d] ", acMemObjName, uiElemCount / 4);
+//        DEBUG_CL_printf("Min[");
+//        for(uint j = 0; j < uiDumpComponents; j++)
+//            DEBUG_CL_printf("%8.5f ", afMin[j]);
+//        DEBUG_CL_printf("] Max[");
+//        for(uint j = 0; j < uiDumpComponents; j++)
+//            DEBUG_CL_printf("%8.5f ", afMax[j]);
+//        DEBUG_CL_printf("]\n");
+//        
+//        delete [] afMin;
+//        delete [] afMax;
+//    }
+//    else if(uiDumpType == 2)
+//    {
+//        uint uiElemCount = (uint) (kBytes) / (sizeof(int));
+//        int* aiData = (int*)pvData;
+//        for(uint i = uiStart; i < uiElemCount / 4; i++)
+//        {
+//            DEBUG_CL_printf("%s[%6d]: ", acMemObjName, i);
+//            for(uint j = 0; j < uiDumpComponents; j++)
+//                DEBUG_CL_printf("%6d ", aiData[i*uiDumpComponents+j]);
+//            DEBUG_CL_printf("\n");
+//        }
+//    }
+//    else if(uiDumpType == 3)
+//    {
+//        uint uiElemCount = (uint) (kBytes) / (sizeof(uint));
+//        uint* auiData = (uint*)pvData;
+//        for(uint i = uiStart; i < uiElemCount / 4; i++)
+//        {
+//            DEBUG_CL_printf("%s[%6d]: ", acMemObjName, i);
+//            for(uint j = 0; j < uiDumpComponents; j++)
+//                DEBUG_CL_printf("%6d ", auiData[i*uiDumpComponents+j]);
+//            DEBUG_CL_printf("\n");
+//        }
+//    }
+//    DEBUG_CL_printf(SEPARATOR);
+//    
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -178,13 +181,13 @@ LoadProgramSourceFromFile(
 	fd = open(file_name, O_RDONLY);
 	if (fd == -1) 
 	{
-		printf("Error opening file %s\n", file_name);
+		DEBUG_CL_printf("Error opening file %s\n", file_name);
 		return -1;
 	}
 	ret = fstat(fd, &file_status);
 	if (ret) 
 	{
-		printf("Error reading status for file %s\n", file_name);
+		DEBUG_CL_printf("Error reading status for file %s\n", file_name);
 		return -1;
 	}
 	file_len = (unsigned) file_status.st_size;
@@ -193,7 +196,7 @@ LoadProgramSourceFromFile(
 	ret = (int) read(fd, *result_string, file_len);
 	if (!ret) 
 	{
-		printf("Error reading from file %s\n", file_name);
+		DEBUG_CL_printf("Error reading from file %s\n", file_name);
 		return -1;
 	}
 	(*result_string)[file_len] = '\0';
@@ -216,14 +219,14 @@ ReportBuildLog(cl_program kProgram, cl_device_id kDeviceId)
 	
     clGetProgramBuildInfo(kProgram, kDeviceId, CL_PROGRAM_BUILD_LOG, sizeof(acBuildLog), acBuildLog, &kLogLength);
     if(strlen(acBuildLog) < 1)
-        printf("Compute Engine: Empty Build Log! Unkown Error!\n");
+        DEBUG_CL_printf("Compute Engine: Empty Build Log! Unkown Error!\n");
     
     else
-        printf("%s\n", acBuildLog);
+        DEBUG_CL_printf("%s\n", acBuildLog);
     
     delete[] acBuildLog;
 
-    printf(SEPARATOR);
+    DEBUG_CL_printf(SEPARATOR);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -381,7 +384,7 @@ ReportError(int iError, const char * file, const int line, const char * function
     
     if(kLength)
     {
-        printf("{%s:%d (%s)} OpenCL Error[%d]: %s\n", file, line, function, iError, acErrorString);
+        DEBUG_CL_printf("{%s:%d (%s)} OpenCL Error[%d]: %s\n", file, line, function, iError, acErrorString);
         assert(false);
         delete [] acErrorString;
     }
@@ -428,8 +431,8 @@ ComputeEngine::connect(
                
     if(bUseOpenGLContext)
     {
-        printf(SEPARATOR);
-        printf("Compute Engine: Using active OpenGL context...\n");
+        DEBUG_CL_printf(SEPARATOR);
+        DEBUG_CL_printf("Compute Engine: Using active OpenGL context...\n");
     
         CGLContextObj kCGLContext = CGLGetCurrentContext();              
         CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
@@ -449,7 +452,7 @@ ComputeEngine::connect(
         iError = clGetDeviceIDs(NULL, kRequestedDeviceType, uiCount, akAvailableDeviceIds, &uiAvailableDeviceCount);
         if (iError != CL_SUCCESS)
         {
-            printf("Error: Failed to locate compute device!\n");
+            DEBUG_CL_printf("Error: Failed to locate compute device!\n");
             return false;
         }      
 
@@ -458,7 +461,7 @@ ComputeEngine::connect(
     
     if (!m_kContext)
     {
-        printf("Compute Engine: Failed to create compute context!\n");
+        DEBUG_CL_printf("Compute Engine: Failed to create compute context!\n");
         return false;
     }
     
@@ -468,7 +471,7 @@ ComputeEngine::connect(
 
     if(iError != CL_SUCCESS || kReturnedSize < 1)
     {
-        printf("Compute Engine: Error: Failed to retrieve compute devices for context!\n");
+        DEBUG_CL_printf("Compute Engine: Error: Failed to retrieve compute devices for context!\n");
         return false;
     }
 
@@ -477,7 +480,7 @@ ComputeEngine::connect(
     m_akCommandQueues = new cl_command_queue[uiDeviceCount];
     if(!m_akDeviceIds || !m_akCommandQueues)
     {
-        printf("Compute Engine: Error: Failed to allocate device ids!\n");
+        DEBUG_CL_printf("Compute Engine: Error: Failed to allocate device ids!\n");
         return false;
     }        
     
@@ -501,22 +504,22 @@ ComputeEngine::connect(
         iError|= clGetDeviceInfo(m_akDeviceIds[i], CL_DEVICE_NAME, sizeof(acDeviceName), acDeviceName, &kReturnedSize);
         if (iError != CL_SUCCESS)
         {
-            printf("Error: Failed to retrieve device info!\n");
+            DEBUG_CL_printf("Error: Failed to retrieve device info!\n");
             return false;
         }
     
-        printf(SEPARATOR);
-        printf("Creating command queue for %s %s...\n", acVendorName, acDeviceName);
+        DEBUG_CL_printf(SEPARATOR);
+        DEBUG_CL_printf("Creating command queue for %s %s...\n", acVendorName, acDeviceName);
         
         m_akCommandQueues[i] = clCreateCommandQueue(m_kContext, m_akDeviceIds[i], 0, &iError);
         if (!m_akCommandQueues[i] || iError)
         {
-            printf("Error: Failed to create a command queue!\n");
+            DEBUG_CL_printf("Error: Failed to create a command queue!\n");
             return false;
         }
     }
 
-    printf(SEPARATOR);
+    DEBUG_CL_printf(SEPARATOR);
 
     m_akPrograms.clear();
     m_akKernels.clear();
@@ -599,12 +602,12 @@ ComputeEngine::createProgramFromFile(
     if(!acFileName)
         return false;
 
-    printf("Compute Engine: Loading program '%s' from file '%s'...\n", acProgramName, acFileName);
+    DEBUG_CL_printf("Compute Engine: Loading program '%s' from file '%s'...\n", acProgramName, acFileName);
     
     int iError = LoadProgramSourceFromFile(acFileName, &acSourceString, &uiStringLength);
     if(iError)
 	{
-		printf("Compute Engine: Failed to load program source '%s'!\n", acFileName);
+		DEBUG_CL_printf("Compute Engine: Failed to load program source '%s'!\n", acFileName);
 		ReportError(iError);
 		return false;
 	}
@@ -638,7 +641,7 @@ ComputeEngine::createProgramFromSourceString(
         acProgramSource = new char[strlen(acSourceString) + strlen(acMacroDefinitions) + 2];
         if(!acProgramSource)
         {
-            printf("Error: Failed to allocate program source! %s\n", acProgramName);
+            DEBUG_CL_printf("Error: Failed to allocate program source! %s\n", acProgramName);
             return false;
         }
         acProgramSource[0] = '\0';
@@ -649,7 +652,7 @@ ComputeEngine::createProgramFromSourceString(
         acProgramSource = new char[strlen(acSourceString) + 1];
         if(!acProgramSource)
         {
-            printf("Error: Failed to allocate program source! %s\n", acProgramName);
+            DEBUG_CL_printf("Error: Failed to allocate program source! %s\n", acProgramName);
             return false;
         }
         acProgramSource[0] = '\0';
@@ -662,30 +665,30 @@ ComputeEngine::createProgramFromSourceString(
 
     if (!kProgram || iError != CL_SUCCESS)
     {
-        printf("Error: Failed to create compute program! %s\n", acProgramName);
+        DEBUG_CL_printf("Error: Failed to create compute program! %s\n", acProgramName);
         ReportError(iError);
         if(kProgram)
             clReleaseProgram(kProgram);
         return false;
     }
 
-    printf(SEPARATOR);
-    printf("Building compute program '%s'...\n", acProgramName);
+    DEBUG_CL_printf(SEPARATOR);
+    DEBUG_CL_printf("Building compute program '%s'...\n", acProgramName);
     iError = clBuildProgram(kProgram, m_uiDeviceCount, m_akDeviceIds, NULL, NULL, NULL);
     if (iError != CL_SUCCESS)
     {
-        printf("Error: Failed to build program executable!\n");
+        DEBUG_CL_printf("Error: Failed to build program executable!\n");
         ReportError(iError);
         for(uint i = 0; i < m_uiDeviceCount; i++)
         {
-            printf("Build log for device '%d':\n", i);
+            DEBUG_CL_printf("Build log for device '%d':\n", i);
             ReportBuildLog(kProgram, m_akDeviceIds[i]);
         }
         clReleaseProgram(kProgram);
         return false;
     }
 
-    printf(SEPARATOR);
+    DEBUG_CL_printf(SEPARATOR);
     m_akPrograms[acProgramName] = kProgram;
     return true;
 }
@@ -698,7 +701,7 @@ ComputeEngine::createKernel(
     KernelMapIter pkKernelIter = m_akKernels.find(acKernelName);
     if(pkKernelIter != m_akKernels.end())
     {
-        printf("Compute Engine: Releasing existing kernel '%s'...\n", acKernelName);
+        DEBUG_CL_printf("Compute Engine: Releasing existing kernel '%s'...\n", acKernelName);
         clReleaseKernel(pkKernelIter->second);
         m_akKernels.erase(pkKernelIter);
     }    
@@ -709,13 +712,13 @@ ComputeEngine::createKernel(
 
     cl_program kProgram = pkPgmIter->second;
     
-    printf("Compute Engine: Creating kernel '%s' for program '%s'...\n", acKernelName, acProgramName);
+    DEBUG_CL_printf("Compute Engine: Creating kernel '%s' for program '%s'...\n", acKernelName, acProgramName);
     
     int iError = CL_SUCCESS;
     cl_kernel kKernel = clCreateKernel(kProgram, acKernelName, &iError);
     if(!kKernel || iError != CL_SUCCESS)
     {
-        printf("Compute Engine: Failed to create kernel '%s'\n", acKernelName);    
+        DEBUG_CL_printf("Compute Engine: Failed to create kernel '%s'\n", acKernelName);    
         ReportError(iError);
         return false;
     }
@@ -750,7 +753,7 @@ ComputeEngine::setKernelArg(
         return false;
 		
 #ifdef DEBUG
-	printf("Compute Engine SetKernelArg: name=%s, index=%d size=%zu,floatVal=%f intVal=(%d)\n",
+	DEBUG_CL_printf("Compute Engine SetKernelArg: name=%s, index=%d size=%zu,floatVal=%f intVal=(%d)\n",
 		acKernelName, uiIndex, ptArgsSize, *(float*)pvArgsValue, *(unsigned int*)pvArgsValue);
 #endif
 
@@ -759,7 +762,7 @@ ComputeEngine::setKernelArg(
     int iError = clSetKernelArg(kKernel, uiIndex, ptArgsSize, pvArgsValue);
     if(iError != CL_SUCCESS)
     {
-        printf("Compute Engine: Error setting kernel argument '%d' for '%s'\n", uiIndex, acKernelName);
+        DEBUG_CL_printf("Compute Engine: Error setting kernel argument '%d' for '%s'\n", uiIndex, acKernelName);
         ReportError(iError);
         return false;
     }
@@ -785,7 +788,7 @@ ComputeEngine::setKernelArgs(
         int iError = clSetKernelArg(kKernel, i, ptArgsSize[i], pvArgsValue[i]);
         if(iError)
         {
-            printf("Compute Engine: Error setting kernel args '%s'\n", acKernelName);
+            DEBUG_CL_printf("Compute Engine: Error setting kernel args '%s'\n", acKernelName);
             ReportError(iError);
             return false;
         }
@@ -809,7 +812,7 @@ ComputeEngine::executeKernel(
     cl_kernel kKernel = pkKernelIter->second;
     
 #ifdef DEBUG    
-    printf("Compute Engine: Execute Kernel '%s': Global[%zu, %zu]  Local[%zu, %zu]\n",
+    DEBUG_CL_printf("Compute Engine: Execute Kernel '%s': Global[%zu, %zu]  Local[%zu, %zu]\n",
         acKernelName, 
         auiGlobalDim[0], uiDimCount > 1 ? auiGlobalDim[1] : 0,
         auiLocalDim[0], uiDimCount > 1 ? auiLocalDim[1] : 0);
@@ -822,7 +825,7 @@ ComputeEngine::executeKernel(
 
     if(iError != CL_SUCCESS)
 	{
-        printf("Compute Engine: Error executing kernel '%s'\n", acKernelName);
+        DEBUG_CL_printf("Compute Engine: Error executing kernel '%s'\n", acKernelName);
 		ReportError(iError);
 		assert(false);
 	}  
@@ -837,13 +840,13 @@ ComputeEngine::createBuffer(
     MemFlags eMemFlags, 
     size_t kBytes)
 {
-    printf("Compute Engine: Creating Buffer '%s' with %d bytes (%5.2f Mbytes) total)...\n",
+    DEBUG_CL_printf("Compute Engine: Creating Buffer '%s' with %d bytes (%5.2f Mbytes) total)...\n",
         acMemObjName, (int)kBytes, (float)kBytes / 1024.0f / 1024.0f);
         
     MemObjectMapIter pkMemObjIter = m_akMemObjects.find(acMemObjName);
     if(pkMemObjIter != m_akMemObjects.end())
     {
-        printf("Compute Engine: Releasing Existing Buffer\n");
+        DEBUG_CL_printf("Compute Engine: Releasing Existing Buffer\n");
         clReleaseMemObject(pkMemObjIter->second);
         m_akMemObjects.erase(pkMemObjIter);
     }
@@ -852,7 +855,7 @@ ComputeEngine::createBuffer(
     cl_mem kBuffer = clCreateBuffer(m_kContext, (cl_mem_flags)eMemFlags, (size_t)kBytes, NULL, &iError);
     if(kBuffer == 0 || iError != CL_SUCCESS)
     {
-        printf("Compute Engine: Error creating device array '%s'\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Error creating device array '%s'\n", acMemObjName);
         ReportError(iError);
         return false;
     }
@@ -876,7 +879,7 @@ ComputeEngine::readBuffer(
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for reading buffer '%s'!\n", acMemObjName);
+        DEBUG_CL_printf("Invalid device index for reading buffer '%s'!\n", acMemObjName);
         assert(false);
     }   
 
@@ -886,7 +889,7 @@ ComputeEngine::readBuffer(
                                      pvData, 0, NULL, NULL);
     if(iError != CL_SUCCESS)
 	{
-        printf("Compute Engine: Error reading buffer %s\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Error reading buffer %s\n", acMemObjName);
 		ReportError(iError);
 		assert(false);
 	}
@@ -908,7 +911,7 @@ ComputeEngine::writeBuffer(
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for writing to buffer '%s'\n", acMemObjName);
+        DEBUG_CL_printf("Invalid device index for writing to buffer '%s'\n", acMemObjName);
         return false;
     }   
     
@@ -917,7 +920,7 @@ ComputeEngine::writeBuffer(
                                      pvData, 0, NULL, NULL);
     if(iError)
 	{
-	    printf("Compute Engine: Error writing buffer %s\n", acMemObjName);
+	    DEBUG_CL_printf("Compute Engine: Error writing buffer %s\n", acMemObjName);
 		ReportError(iError);
 		return false;
 	}
@@ -977,7 +980,7 @@ ComputeEngine::clearMemory(
     size_t auiLocalDim[] = { static_cast<size_t>(size_x), static_cast<size_t>(size_y) };
 
 #ifdef DEBUG    
-    printf("Compute Engine: Clear Memory '%s': Value[%f]  Size[%d]  GroupSize[%d, %d] Global[%zu, %zu]  Local[%zu, %zu]\n",
+    DEBUG_CL_printf("Compute Engine: Clear Memory '%s': Value[%f]  Size[%d]  GroupSize[%d, %d] Global[%zu, %zu]  Local[%zu, %zu]\n",
         acMemObjName, fValue, uiElements, 
         s_uiMaxWorkGroupSize, s_uiMinWorkGroupSize,
         auiGlobalDim[0], auiGlobalDim[1],
@@ -990,7 +993,7 @@ ComputeEngine::clearMemory(
         iError = clSetKernelArg(kKernel, i, ptArgsSize[i], pvArgsValue[i]);
         if(iError != CL_SUCCESS)
         {
-            printf("Compute Engine: Error setting kernel args '%s'\n", acMemSetKernelName);
+            DEBUG_CL_printf("Compute Engine: Error setting kernel args '%s'\n", acMemSetKernelName);
             ReportError(iError);
             return false;
         }
@@ -1005,7 +1008,7 @@ ComputeEngine::clearMemory(
     }
     if(iError != CL_SUCCESS)
 	{
-        printf("Compute Engine: Error executing kernel '%s'\n", acMemSetKernelName);
+        DEBUG_CL_printf("Compute Engine: Error executing kernel '%s'\n", acMemSetKernelName);
 		ReportError(iError);
 		return false;
 	}  
@@ -1031,7 +1034,7 @@ ComputeEngine::swapMemObjects(
     return true;
 }
 
-cl_mem &
+cl_mem
 ComputeEngine::getBuffer(
     const char* acMemObjName)
 {
@@ -1065,7 +1068,7 @@ ComputeEngine::createImage2D(
     MemObjectMapIter pkMemObjIter = m_akMemObjects.find(acMemObjName);
     if(pkMemObjIter != m_akMemObjects.end())
     {
-        printf("Compute Engine: Releasing Existing Image '%s'\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Releasing Existing Image '%s'\n", acMemObjName);
         clReleaseMemObject(pkMemObjIter->second);
         m_akMemObjects.erase(pkMemObjIter);
     }
@@ -1074,7 +1077,7 @@ ComputeEngine::createImage2D(
     if(uiChannelCount == 0)
         return false;
 
-    printf("Compute Engine: Creating 2D image '%s' %d x %d with %d channels...\n",
+    DEBUG_CL_printf("Compute Engine: Creating 2D image '%s' %d x %d with %d channels...\n",
         acMemObjName, uiWidth, uiHeight, uiChannelCount);
 
     cl_image_format kFormat;    
@@ -1094,7 +1097,7 @@ ComputeEngine::createImage2D(
 
     if(kImage == 0 || iError != CL_SUCCESS)
     {
-        printf("Compute Engine: Failed to create 2D image '%s'!\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Failed to create 2D image '%s'!\n", acMemObjName);
         ReportError(iError);
         return false;
     }
@@ -1118,7 +1121,7 @@ ComputeEngine::readImage(
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for reading from image '%s'\n", acMemObjName);
+        DEBUG_CL_printf("Invalid device index for reading from image '%s'\n", acMemObjName);
         return false;
     }   
     
@@ -1132,7 +1135,7 @@ ComputeEngine::readImage(
                                     pvData, 0, 0, 0);
     if(iError)
     {
-        printf("Compute Engine: Failed to read data from image '%s'!\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Failed to read data from image '%s'!\n", acMemObjName);
         ReportError(iError);
         return false;
 	}
@@ -1155,7 +1158,7 @@ ComputeEngine::writeImage(
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for reading from image '%s'\n", acMemObjName);
+        DEBUG_CL_printf("Invalid device index for reading from image '%s'\n", acMemObjName);
         return false;
     }   
     
@@ -1170,7 +1173,7 @@ ComputeEngine::writeImage(
     
     if(iError)
     {
-        printf("Compute Engine: Failed to write data to image '%s'!\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Failed to write data to image '%s'!\n", acMemObjName);
         ReportError(iError);
         return false;
 	}
@@ -1178,15 +1181,15 @@ ComputeEngine::writeImage(
     return true;
 }
 
-cl_mem &
+cl_mem
 ComputeEngine::getMemObject(
     const char* acMemObjName)
 {
     MemObjectMapIter pkMemObjIter = m_akMemObjects.find(acMemObjName);
     if(pkMemObjIter == m_akMemObjects.end())
 	{
-		printf("Compute Engine: Failed to locate memory object '%s'!\n", acMemObjName);
-        assert(false);
+		DEBUG_CL_printf("Compute Engine: Failed to locate memory object '%s'!\n", acMemObjName);
+        return cl_mem(0);
 	}
 	
 //    cl_mem kMemObject = pkMemObjIter->second;
@@ -1217,7 +1220,7 @@ ComputeEngine::getChannelCount(
             uiChannelCount = 4;
             break;
         default:
-            printf("Compute Engine: Invalid channel order for creating image!\n");
+            DEBUG_CL_printf("Compute Engine: Invalid channel order for creating image!\n");
             uiChannelCount = 0;
     }
     return uiChannelCount;    
@@ -1229,13 +1232,13 @@ ComputeEngine::createGLBufferReference(
     MemFlags eMemFlags, 
     uint uiBufferId)
 {
-    printf("Compute Engine: Creating OpenGL buffer reference '%s' for buffer id '%d'...\n",
+    DEBUG_CL_printf("Compute Engine: Creating OpenGL buffer reference '%s' for buffer id '%d'...\n",
         acMemObjName, uiBufferId);
         
     MemObjectMapIter pkMemObjIter = m_akMemObjects.find(acMemObjName);
     if(pkMemObjIter != m_akMemObjects.end())
     {
-        printf("Compute Engine: Releasing existing memory object '%s'...\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Releasing existing memory object '%s'...\n", acMemObjName);
         clReleaseMemObject(pkMemObjIter->second);
         m_akMemObjects.erase(pkMemObjIter);
     }
@@ -1245,7 +1248,7 @@ ComputeEngine::createGLBufferReference(
     cl_mem kReference = clCreateFromGLBuffer(m_kContext, kFlags, uiBufferId, &iError);
     if(kReference == 0 || iError != CL_SUCCESS)
     {
-        printf("Compute Engine: Error creating OpenGL buffer reference '%s' for buffer id '%d'\n", 
+        DEBUG_CL_printf("Compute Engine: Error creating OpenGL buffer reference '%s' for buffer id '%d'\n", 
             acMemObjName, uiBufferId);
         
         ReportError(iError);
@@ -1267,7 +1270,7 @@ ComputeEngine::attachGLBuffer(
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for attaching GL object!\n");
+        DEBUG_CL_printf("Invalid device index for attaching GL object!\n");
         return false;
     } 
 
@@ -1275,7 +1278,7 @@ ComputeEngine::attachGLBuffer(
     int iError = clEnqueueAcquireGLObjects(m_akCommandQueues[uiDeviceIndex], 1, &kMemObj, 0, NULL, NULL);
     if(iError)
 	{
-        printf("Compute Engine: Error attaching GL buffer %s\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Error attaching GL buffer %s\n", acMemObjName);
 		ReportError(iError);
 		return false;
 	}
@@ -1290,14 +1293,14 @@ ComputeEngine::attachGLBuffer(
 {
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for attaching GL object!\n");
+        DEBUG_CL_printf("Invalid device index for attaching GL object!\n");
         return false;
     } 
 
     int iError = clEnqueueAcquireGLObjects(m_akCommandQueues[uiDeviceIndex], 1, &kMemObj, 0, NULL, NULL);
     if(iError)
 	{
-        printf("Compute Engine: Error attaching GL buffer %p\n", &kMemObj);
+        DEBUG_CL_printf("Compute Engine: Error attaching GL buffer %p\n", &kMemObj);
 		ReportError(iError);
 		return false;
 	}
@@ -1316,14 +1319,14 @@ ComputeEngine::detachGLBuffer(
 
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for attaching GL object!\n");
+        DEBUG_CL_printf("Invalid device index for attaching GL object!\n");
         return false;
     } 
 
     int iError = clEnqueueReleaseGLObjects(m_akCommandQueues[uiDeviceIndex], 1, &kMemObj, 0, NULL, NULL);
     if(iError)
 	{
-        printf("Compute Engine: Error attaching GL buffer %s\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Error attaching GL buffer %s\n", acMemObjName);
 		ReportError(iError);
 		return false;
 	}
@@ -1338,14 +1341,14 @@ ComputeEngine::detachGLBuffer(
 {
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for detaching GL object!\n");
+        DEBUG_CL_printf("Invalid device index for detaching GL object!\n");
         return false;
     } 
     
     int iError = clEnqueueReleaseGLObjects(m_akCommandQueues[uiDeviceIndex], 1, &kMemObj, 0, NULL, NULL);
     if(iError)
 	{
-        printf("Compute Engine: Error attaching GL buffer %p\n", &kMemObj);
+        DEBUG_CL_printf("Compute Engine: Error attaching GL buffer %p\n", &kMemObj);
 		ReportError(iError);
 		return false;
 	}
@@ -1361,13 +1364,13 @@ ComputeEngine::createGLTextureReference(
     GLint iMipLevel,
     GLuint uiBufferId)
 {
-    printf("Compute Engine: Creating OpenGL buffer reference '%s' for buffer id '%d'...\n",
+    DEBUG_CL_printf("Compute Engine: Creating OpenGL buffer reference '%s' for buffer id '%d'...\n",
         acMemObjName, uiBufferId);
         
     MemObjectMapIter pkMemObjIter = m_akMemObjects.find(acMemObjName);
     if(pkMemObjIter != m_akMemObjects.end())
     {
-        printf("Compute Engine: Releasing existing memory object '%s'...\n", acMemObjName);
+        DEBUG_CL_printf("Compute Engine: Releasing existing memory object '%s'...\n", acMemObjName);
         clReleaseMemObject(pkMemObjIter->second);
         m_akMemObjects.erase(pkMemObjIter);
     }
@@ -1377,7 +1380,7 @@ ComputeEngine::createGLTextureReference(
     cl_mem kReference = clCreateFromGLTexture(m_kContext, kFlags, eTarget, iMipLevel, uiBufferId, &iError);
     if(kReference == 0 || iError != CL_SUCCESS)
     {
-        printf("Compute Engine: Error creating OpenGL buffer reference '%s' for buffer id '%d'\n", 
+        DEBUG_CL_printf("Compute Engine: Error creating OpenGL buffer reference '%s' for buffer id '%d'\n", 
             acMemObjName, uiBufferId);
         
         ReportError(iError);
@@ -1394,14 +1397,14 @@ ComputeEngine::barrier(
 {
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for barrier!\n");
+        DEBUG_CL_printf("Invalid device index for barrier!\n");
         return false;
     }   
     
     int iError = clEnqueueBarrierWithWaitList(m_akCommandQueues[uiDeviceIndex], 0, nullptr, nullptr);
     if(iError != CL_SUCCESS)
     {
-        printf("Failed to enqueue barrier for device: %d\n", uiDeviceIndex);
+        DEBUG_CL_printf("Failed to enqueue barrier for device: %d\n", uiDeviceIndex);
         ReportError(iError);
         return false;
     }   
@@ -1415,14 +1418,14 @@ ComputeEngine::flush(
 {
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for flush!\n");
+        DEBUG_CL_printf("Invalid device index for flush!\n");
         return false;
     }   
     
     int iError = clFlush(m_akCommandQueues[uiDeviceIndex]);
     if(iError != CL_SUCCESS)
     {
-        printf("Failed to flush commands for device: %d\n", uiDeviceIndex);
+        DEBUG_CL_printf("Failed to flush commands for device: %d\n", uiDeviceIndex);
         ReportError(iError);
         return false;
     }   
@@ -1437,14 +1440,14 @@ ComputeEngine::finish(
 {
     if(uiDeviceIndex > m_uiDeviceCount)
     {
-        printf("Invalid device index for finish!\n");
+        DEBUG_CL_printf("Invalid device index for finish!\n");
         return false;
     }   
     
     int iError = clFinish(m_akCommandQueues[uiDeviceIndex]);
     if(iError != CL_SUCCESS)
     {
-        printf("Failed to finish commands for device: %d\n", uiDeviceIndex);
+        DEBUG_CL_printf("Failed to finish commands for device: %d\n", uiDeviceIndex);
         ReportError(iError);
         return false;
     }   
@@ -1467,7 +1470,7 @@ ComputeEngine::getContextDeviceCount()
                                   &kReturnedSize);
     if (iError)
     {
-        printf("Compute Engine: Failed to retrieve device group info!\n");
+        DEBUG_CL_printf("Compute Engine: Failed to retrieve device group info!\n");
         ReportError(iError);
         return 0;
     }
@@ -1499,13 +1502,13 @@ ComputeEngine::getEstimatedWorkGroupSize(
     KernelMapIter pkKernelIter = m_akKernels.find(acKernelName);
     if(pkKernelIter == m_akKernels.end())
     {
-        printf("Compute Engine: Failed to retrieve kernel for work group size estimation!\n");
+        DEBUG_CL_printf("Compute Engine: Failed to retrieve kernel for work group size estimation!\n");
         assert(false);
     }
     
     if(uiDeviceIndex >= m_uiDeviceCount)
     {
-        printf("Compute Engine: Invalid device index specified for work group size estimation!\n");
+        DEBUG_CL_printf("Compute Engine: Invalid device index specified for work group size estimation!\n");
         assert(false);
     }
         
@@ -1517,7 +1520,7 @@ ComputeEngine::getEstimatedWorkGroupSize(
 
     if (iError)
     {
-        printf("Compute Engine: Failed to retrieve kernel work group info!\n");
+        DEBUG_CL_printf("Compute Engine: Failed to retrieve kernel work group info!\n");
         ReportError(iError);
         assert(false);
     }
@@ -1538,7 +1541,7 @@ ComputeEngine::dumpBuffer(
     if(!acBuffer)
         return;
         
-    printf("DumpBuffer\n");
+    DEBUG_CL_printf("DumpBuffer\n");
     memset(acBuffer, 0, kBytes);
     
     if(readBuffer(acMemObjName, uiDeviceIndex, uiStart, kBytes, acBuffer))
