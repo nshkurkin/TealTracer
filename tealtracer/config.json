@@ -1,13 +1,15 @@
 {
-    "povrayScene" : "spheres.pov",
+    "povrayScene" : "lab1_simple.pov",
     "outputWidth" : 640,
     "outputHeight" : 480,
     
     "CPURayTracer" : {
+        "enabled" : true,
         "initialTitle" : "CPU Ray Tracer"
     },
     
     "GPURayTracer" : {
+        "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": false
     }

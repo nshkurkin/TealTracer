@@ -80,6 +80,13 @@ TealTracer::run(const std::vector<std::string> & args) {
     cpuWindow()->setDrawingDelegate(cpuRayTracer_);
     cpuWindow()->setEventListener(cpuRayTracer_);
     
+    if (config["GPURayTracer"]["enabled"].get<bool>()) {
+        gpuRayTracer_->start();
+    }
+    if (config["CPURayTracer"]["enabled"].get<bool>()) {
+        cpuRayTracer_->start();
+    }
+    
     while (gpuWindow()->opened() && cpuWindow()->opened()) {
         glfwPollEvents();
         for (auto windowItr = windowsBegin(); windowItr != windowsEnd(); windowItr++) {

@@ -57,22 +57,21 @@ public:
     
     struct InstersectionResult {
         std::shared_ptr<PovraySceneElement> element;
-        Ray ray;
-        float timeOfIntersection;
+        RayIntersectionResult hit;
     };
     
     ///
     InstersectionResult closestIntersection(const Ray & ray) {
         InstersectionResult result;
         result.element = nullptr;
-        result.timeOfIntersection = std::numeric_limits<float>::infinity();
-        result.ray = ray;
+        result.hit.timeOfIntersection = std::numeric_limits<float>::infinity();
+        result.hit.ray = ray;
         
         for (auto itr = elements_.begin(); itr != elements_.end(); itr++) {
             auto hitTest = (*itr)->intersect(ray);
-            if (hitTest.intersected && hitTest.timeOfIntersection < result.timeOfIntersection) {
+            if (hitTest.intersected && hitTest.timeOfIntersection < result.hit.timeOfIntersection) {
                 result.element = *itr;
-                result.timeOfIntersection = hitTest.timeOfIntersection;
+                result.hit.timeOfIntersection = hitTest.timeOfIntersection;
             }
         }
         

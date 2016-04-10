@@ -46,7 +46,9 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
     
     jobPool = JobPool(1);
-    
+}
+
+void CPURayTracer::start() {
     lastRayTraceTime = glfwGetTime();
     rayTraceElapsedTime = 0.0;
     framesRendered = 0;
@@ -154,7 +156,14 @@ void CPURayTracer::raytraceScene() {
             Image::Vector4ub color = Image::Vector4ub(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
-                color = (255.0 * hitTest.element->pigment()->color).cast<uint8_t>();
+                /// TODO: Replace "Eigen::Vector3f(1.5,1.5,1.5)" with the accumulated
+                ///     photon energy from a photon map
+                Eigen::Vector3f result = 255.0 * hitTest.element->computeOutputEnergyForHit(hitTest.hit, Eigen::Vector3f(1.5,1.5,1.5), nullptr, nullptr);
+                for (int i = 0; i < 3; i++) {
+                    result(i) = std::min<float>(255.0, result(i));
+                }
+                
+                color.block<3,1>(0,0) = result.cast<uint8_t>();
             }
             
             outputImage.pixel(px, py) = color;

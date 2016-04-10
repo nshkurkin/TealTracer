@@ -90,6 +90,8 @@ public:
     virtual bool opened() = 0;
     virtual void close() = 0;
     
+    virtual bool keyDown(int key) const = 0;
+    
     void setDrawingDelegate(std::shared_ptr<TSWindowDrawingDelegate> delegate);
     std::shared_ptr<TSWindowDrawingDelegate> drawingDelegate() const;
     

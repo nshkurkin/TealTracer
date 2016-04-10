@@ -143,6 +143,11 @@ public:
     virtual void close() {
         glfwSetWindowShouldClose(window_, GL_TRUE);
     }
+    
+    ///
+    virtual bool keyDown(int key) const {
+        return glfwGetKey(window_, key) == GLFW_PRESS;
+    }
 
 private:
     

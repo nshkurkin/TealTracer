@@ -46,6 +46,10 @@ public:
     
     Image outputImage;
 
+    static const Eigen::Vector3f Up;
+    static const Eigen::Vector3f Forward;
+    static const Eigen::Vector3f Right;
+
     ///
     virtual void setupDrawingInWindow(TSWindow * window) {
         
@@ -65,9 +69,17 @@ public:
         ocl_raytraceSetup();
         ocl_pushSceneData();
         enqueRayTrace();
+        
+        ///
+        lastX = std::numeric_limits<float>::infinity();
+        lastY = std::numeric_limits<float>::infinity();
     }
 
     float FPSsaved;
+
+    void start() {
+        enqueRayTrace();
+    }
 
     ///
     virtual void drawInWindow(TSWindow * window) {
@@ -105,7 +117,23 @@ public:
     
     ///
     virtual void keyDown(TSWindow * window, int key, int scancode, int mods) {
-    
+        float transform = 1.0;
+        switch (key) {
+            case GLFW_KEY_A:
+                scene_->camera()->orientedTransform(-transform, 0, 0);
+                break;
+            case GLFW_KEY_S:
+                scene_->camera()->orientedTransform(0, -transform, 0);
+                break;
+            case GLFW_KEY_D:
+                scene_->camera()->orientedTransform(transform, 0, 0);
+                break;
+            case GLFW_KEY_W:
+                scene_->camera()->orientedTransform(0, transform, 0);
+                break;
+            default:
+                break;
+        }
     }
     
     ///
@@ -123,9 +151,23 @@ public:
     
     }
     
+    double lastX, lastY;
+    
     ///
     virtual void mouseMoved(TSWindow * window, double x, double y) {
-    
+        if (lastX != std::numeric_limits<float>::infinity()
+         && lastY != std::numeric_limits<float>::infinity()
+         && window->keyDown(GLFW_KEY_C)) {
+            
+            double transform = 0.1;
+            double dx = x - lastX;
+            double dy = y - lastY;
+            
+            scene_->camera()->rotate(Up, -transform * dy, -transform * dx);
+        }
+        
+        lastX = x;
+        lastY = y;
     }
     
     ///

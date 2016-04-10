@@ -198,6 +198,7 @@ RayIntersectionResult PovraySphere::intersect(const Ray & ray) {
         float t0 = (-B + sqrRadical)/(2.0 * A);
         float t1 = (-B - sqrRadical)/(2.0 * A);
         result.intersected = t0 >= 0 || t1 >= 0;
+        result.ray = ray;
         if (t0 >= 0 && t1 >= 0) {
             result.timeOfIntersection = std::min(t0, t1);
         }
@@ -266,6 +267,7 @@ RayIntersectionResult PovrayPlane::intersect(const Ray & ray) {
     float product = ray.direction.dot(normal_);
     if (product > 0.0001 || product < -0.0001) {
         result.timeOfIntersection = -(ray.origin.dot(normal_) - distance_) / product;
+        result.ray = ray;
     }
     
     result.intersected = result.timeOfIntersection >= 0.0;

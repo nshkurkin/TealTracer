@@ -88,6 +88,9 @@ public:
     ///
     void raytraceScene();
     
+    /// call this to begin the ray-tracing
+    void start();
+    
 protected:
 
     friend class TealTracer;

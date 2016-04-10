@@ -28,6 +28,7 @@ struct Ray {
 struct RayIntersectionResult {
     bool intersected;
     float timeOfIntersection;
+    Ray ray;
 };
 
 ///
@@ -57,6 +58,9 @@ public:
     
     ///
     virtual RayIntersectionResult intersect(const Ray & ray) = 0;
+    
+    ///
+    virtual Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) = 0;
     
     ///
     virtual PovrayPigment const * pigment() const = 0;
