@@ -131,6 +131,12 @@ public:
             case GLFW_KEY_W:
                 scene_->camera()->orientedTransform(0, transform, 0);
                 break;
+            case GLFW_KEY_Q:
+                scene_->camera()->orientedTransform(0, 0, -transform);
+                break;
+            case GLFW_KEY_E:
+                scene_->camera()->orientedTransform(0, 0, transform);
+                break;
             default:
                 break;
         }
