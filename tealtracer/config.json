@@ -1,7 +1,11 @@
 {
     "povrayScene" : "lab1_simple.pov",
-    "outputWidth" : 640,
-    "outputHeight" : 480,
+    
+    "outputWidth" : 100,
+    "outputHeight" : 100,
+    
+    "windowWidth" : 400,
+    "windowHeight" : 400,
     
     "CPURayTracer" : {
         "enabled" : true,
@@ -9,7 +13,7 @@
     },
     
     "GPURayTracer" : {
-        "enabled" : true,
+        "enabled" : false,
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": false
     }

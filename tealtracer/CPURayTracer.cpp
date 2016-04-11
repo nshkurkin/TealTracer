@@ -42,7 +42,7 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     glEnable(GLenum(GL_DEPTH_TEST));
     glDepthFunc(GLenum(GL_LESS));
     
-    outputImage.setDimensions(window->width(), window->height());
+    outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
     target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
     
     jobPool = JobPool(1);
@@ -52,6 +52,7 @@ void CPURayTracer::start() {
     lastRayTraceTime = glfwGetTime();
     rayTraceElapsedTime = 0.0;
     framesRendered = 0;
+    enqueuePhotonMapping();
     enqueRayTrace();
 }
 
@@ -156,9 +157,7 @@ void CPURayTracer::raytraceScene() {
             Image::Vector4ub color = Image::Vector4ub(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
-                /// TODO: Replace "Eigen::Vector3f(1.5,1.5,1.5)" with the accumulated
-                ///     photon energy from a photon map
-                Eigen::Vector3f result = 255.0 * hitTest.element->computeOutputEnergyForHit(hitTest.hit, Eigen::Vector3f(1.5,1.5,1.5), nullptr, nullptr);
+                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest);
                 for (int i = 0; i < 3; i++) {
                     result(i) = std::min<float>(255.0, result(i));
                 }
@@ -169,6 +168,24 @@ void CPURayTracer::raytraceScene() {
             outputImage.pixel(px, py) = color;
         }
     }
+}
+
+RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult) {    
+    RGBf output, sourceEnergy;
+    Eigen::Vector3f surfaceNormal = hitResult.hit.surfaceNormal;
+    const PovrayPigment & pigment = *hitResult.element->pigment();
+    const PovrayFinish & finish = *hitResult.element->finish();
+    
+    sourceEnergy = photonMap.gatherPhotons(100, (int) hitResult.element->id(), hitResult.hit.locationOfIntersection(), surfaceNormal, 15000.0 / (float) photonMap.photons.size());
+//    TSLoggerLog(std::cout, "sourceEnergy=", sourceEnergy.norm());
+    
+    output = (pigment.color * (finish.ambient + finish.diffuse * std::max<float>(0, surfaceNormal.dot(-hitResult.hit.ray.direction)))).block<3,1>(0,0);
+    
+    output.x() *= sourceEnergy.x();
+    output.y() *= sourceEnergy.y();
+    output.z() *= sourceEnergy.z();
+    
+    return output;
 }
 
 ///

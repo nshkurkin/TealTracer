@@ -14,6 +14,7 @@
 ///
 void
 PovrayScene::addElement(std::shared_ptr<PovraySceneElement> element) {
+    element->id_ = (uint16_t) elements_.size();
     elements_.push_back(element);
 }
 

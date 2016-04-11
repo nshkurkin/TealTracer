@@ -11,20 +11,9 @@
 ///
 PhotonMap::PhotonMap() : epsilon(0.0001)  {
     spacing = 1;
+    cellsize = 0.25;
     
-    xmin = 0;
-    ymin = 0;
-    zmin = 0;
-    
-    xmax = 0;
-    ymax = 0;
-    zmax = 0;
-    
-    xdim = 1;
-    ydim = 1;
-    zdim = 1;
-    
-    cellsize = 1;
+    setDimensions(Eigen::Vector3f(-0.5,-0.5,-0.5), Eigen::Vector3f(0.5,0.5,0.5));
 }
 
 ///
@@ -69,7 +58,7 @@ PhotonMap::MaxDistanceSearchResult PhotonMap::findMaxDistancePhotonIndex(const s
         
         if (distSqd > result.distanceSquared) {
             result.distanceSquared = distSqd;
-            result.index =  i;
+            result.index = i;
         }
     }
     
@@ -94,17 +83,12 @@ float PhotonMap::gaussianWeightJensen(float distSqrd, float radius) {
 
 ///
 void PhotonMap::buildSpatialHash() {
+    std::sort(photons.begin(), photons.end(), [&](const JensenPhoton & lhs, const JensenPhoton & rhs) {
+        return getCellIndexHash(lhs.position) < getCellIndexHash(rhs.position);
+    });
+    
     // calculate hash value for each photon.
     mapPhotonsToGrid();
-
-
-    // sort photons based on hash ID
-    std::sort(photons.begin(), photons.end(), [&](const JensenPhoton & lhs, const JensenPhoton & rhs) {
-        return gridIndices[getCellIndexHash(lhs.position)] < gridIndices[getCellIndexHash(rhs.position)];
-    });
-
-    gridFirstPhotonIndices.clear();
-    gridFirstPhotonIndices.resize(photons.size(), -1);
     
     // calculate starting photon index for each hashID
     computeGridFirstPhotons();
@@ -115,6 +99,7 @@ void PhotonMap::mapPhotonsToGrid() {
     gridIndices.clear();
     gridIndices.resize(photons.size(), -1);
     
+    ///
     for (int index = 0; index < photons.size(); index++) {
         const auto & photon = photons[index];
         
@@ -134,6 +119,10 @@ void PhotonMap::mapPhotonsToGrid() {
 
 ///
 void PhotonMap::computeGridFirstPhotons() {
+    gridFirstPhotonIndices.clear();
+    gridFirstPhotonIndices.resize(xdim * ydim * zdim, -1);
+
+    //
     for (int index = 0; index < photons.size(); index++) {
         // First one always has to be stored
         if (index == 0) {
@@ -149,6 +138,8 @@ void PhotonMap::computeGridFirstPhotons() {
         }
     }
 }
+
+#include "TSLogger.hpp"
 
 ///
 RGBf PhotonMap::gatherPhotons(
@@ -178,6 +169,7 @@ RGBf PhotonMap::gatherPhotons(
                     
                     int gridIndex = photonHash(i, j, k);
                     // find the index of the first photon in the cell
+                    assert(gridIndex <= gridFirstPhotonIndices.size());
                     int firstPhotonIndex = gridFirstPhotonIndices[gridIndex];
                     if (firstPhotonIndex != -1) {
                         int pi = firstPhotonIndex;
@@ -189,9 +181,7 @@ RGBf PhotonMap::gatherPhotons(
                                 if (neighborPhotons.size() < maxNumPhotonsToGather) {
                                     neighborPhotons.push_back(pi);
                                     float distSqd = (p.position - intersection).dot(p.position - intersection);
-                                    if (distSqd > maxRadiusSqd) {
-                                        maxRadiusSqd = distSqd;
-                                    }
+                                    maxRadiusSqd = std::max<float>(distSqd, maxRadiusSqd);
                                 }
                                 // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
                                 // to the intersection is smaller, replace the photon with the largest distance with the current photon
@@ -217,13 +207,16 @@ RGBf PhotonMap::gatherPhotons(
         
         
         // if there are more than 0 photons in the neighborhood, find sqr of maxDistanceSquared
-        float maxRadius = maxRadiusSqd> 0.0 ? sqrt(maxRadiusSqd) : -1.0f;
+        float maxRadius = (maxRadiusSqd > 0.0) ? sqrt(maxRadiusSqd) : -1.0f;
         // Accumulate radiance of the K nearest photons
-        for (int i=0; i < neighborPhotons.size(); ++i) {
+//        TSLoggerLog(std::cout, "maxRaduis=", maxRadius, " numPhotonsGathered=", neighborPhotons.size());
+        for (int i = 0; i < neighborPhotons.size(); ++i) {
             const auto & p = photons[neighborPhotons[i]];
+//            TSLoggerLog(std::cout, "photonEnergy=", rgbe2rgb(p.energy).norm());
             float photonDistanceSqd = (intersection - p.position).dot(intersection - p.position);
             accumColor += gaussianWeight(photonDistanceSqd, maxRadius) * std::max(0.0f, normal.dot(-p.incomingDirection.vector())) * rgbe2rgb(p.energy);
         }
     }
+//    TSLoggerLog(std::cout, "accumColor=", accumColor.norm(), " flux=", flux);
     return accumColor * flux;
 }

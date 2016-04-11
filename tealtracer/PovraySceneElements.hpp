@@ -96,11 +96,6 @@ public:
     }
     
     ///
-    Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) {
-        return Eigen::Vector3f::Zero();
-    }
-    
-    ///
     Eigen::Vector3f face() const {
         return -right_.cross(up_);
     }
@@ -206,11 +201,6 @@ public:
         
         return Eigen::Vector4f(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta, 2.0f*cosTheta*float(1.0/M_PI));
     }
-    
-    ///
-    Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) {
-        return Eigen::Vector3f::Zero();
-    }
 
 private:
 
@@ -256,31 +246,6 @@ public:
         dat.finish = finish_;
         
         return dat;
-    }
-    
-    ///
-    Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) {
-        
-        Eigen::Vector3f output;
-        Eigen::Vector3f surfacePoint = hit.ray.direction * hit.timeOfIntersection + hit.ray.origin;
-        Eigen::Vector3f surfaceNormal = (surfacePoint - position_).normalized();
-        /// http://www.cosinekitty.com/raytrace/chapter10_reflection.html
-//        Eigen::Vector3f outgoingDirection = hit.ray.direction - 2.0 * (hit.ray.direction.dot(surfaceNormal) * surfaceNormal);
-        
-        output = (pigment_.color * (finish_.ambient + finish_.diffuse * std::max<float>(0, surfaceNormal.dot(-hit.ray.direction)))).block<3,1>(0,0);
-        
-        output.x() *= sourceEnergy.x();
-        output.y() *= sourceEnergy.y();
-        output.z() *= sourceEnergy.z();
-        
-        if (hasDiffuse != nullptr) {
-            *hasDiffuse = true;
-        }
-        if (hasSpecular != nullptr) {
-            *hasSpecular = false;
-        }
-        
-        return output;
     }
 
 private:
@@ -332,30 +297,6 @@ public:
         dat.finish = finish_;
         
         return dat;
-    }
-    
-    ///
-    Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) {
-        
-        Eigen::Vector3f output;
-        Eigen::Vector3f surfaceNormal = normal_;
-        /// http://www.cosinekitty.com/raytrace/chapter10_reflection.html
-//        Eigen::Vector3f outgoingDirection = hit.ray.direction - 2.0 * (hit.ray.direction.dot(surfaceNormal) * surfaceNormal);
-        
-        output = (pigment_.color * (finish_.ambient + finish_.diffuse * std::max<float>(0, surfaceNormal.dot(-hit.ray.direction)))).block<3,1>(0,0);
-        
-        output.x() *= sourceEnergy.x();
-        output.y() *= sourceEnergy.y();
-        output.z() *= sourceEnergy.z();
-        
-        if (hasDiffuse != nullptr) {
-            *hasDiffuse = true;
-        }
-        if (hasSpecular != nullptr) {
-            *hasSpecular = false;
-        }
-        
-        return output;
     }
 
 private:

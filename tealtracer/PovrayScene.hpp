@@ -102,6 +102,11 @@ public:
         
         return results;
     }
+    
+    ///
+    std::shared_ptr<PovraySceneElement> elementForId(uint16_t id) {
+        return elements_[(int) id];
+    }
 
 private:
 

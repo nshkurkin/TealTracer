@@ -45,6 +45,8 @@ public:
     TextureRenderTarget target;
     
     Image outputImage;
+    int renderOutputWidth;
+    int renderOutputHeight;
 
     static const Eigen::Vector3f Up;
     static const Eigen::Vector3f Forward;
@@ -60,15 +62,10 @@ public:
         glEnable(GLenum(GL_DEPTH_TEST));
         glDepthFunc(GLenum(GL_LESS));
         
-        outputImage.setDimensions(window->width(), window->height());
+        outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
         target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
         
         FPSsaved = 0.0;
-        
-        /// OpenCL
-        ocl_raytraceSetup();
-        ocl_pushSceneData();
-        enqueRayTrace();
         
         ///
         lastX = std::numeric_limits<float>::infinity();
@@ -78,6 +75,8 @@ public:
     float FPSsaved;
 
     void start() {
+        ocl_raytraceSetup();
+        ocl_pushSceneData();
         enqueRayTrace();
     }
 

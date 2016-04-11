@@ -63,19 +63,23 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
     gpuRayTracer_->setScene(scene_);
+    gpuRayTracer_->renderOutputWidth = config["outputWidth"].get<int>();
+    gpuRayTracer_->renderOutputHeight = config["outputHeight"].get<int>();
     gpuRayTracer_->useGPU = config["GPURayTracer"]["useGPU"].get<bool>();
     gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
-    gpuWindow()->setWidth(config["outputWidth"].get<int>());
-    gpuWindow()->setHeight(config["outputHeight"].get<int>());
+    gpuWindow()->setWidth(config["windowWidth"].get<int>());
+    gpuWindow()->setHeight(config["windowHeight"].get<int>());
     gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
     gpuWindow()->setDrawingDelegate(gpuRayTracer_);
     gpuWindow()->setEventListener(gpuRayTracer_);
     
     cpuRayTracer_ = std::shared_ptr<CPURayTracer>(new CPURayTracer());
     cpuRayTracer_->setScene(scene_);
+    cpuRayTracer_->renderOutputWidth = config["outputWidth"].get<int>();
+    cpuRayTracer_->renderOutputHeight = config["outputHeight"].get<int>();
     cpuWindow()->setTitle(config["CPURayTracer"]["initialTitle"].get<std::string>());
-    cpuWindow()->setWidth(config["outputWidth"].get<int>());
-    cpuWindow()->setHeight(config["outputHeight"].get<int>());
+    cpuWindow()->setWidth(config["windowWidth"].get<int>());
+    cpuWindow()->setHeight(config["windowHeight"].get<int>());
     cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
     cpuWindow()->setDrawingDelegate(cpuRayTracer_);
     cpuWindow()->setEventListener(cpuRayTracer_);

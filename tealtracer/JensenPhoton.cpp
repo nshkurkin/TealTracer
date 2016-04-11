@@ -141,7 +141,7 @@ CompressedNormalVector3::setVector(const Eigen::Vector3f & vector) {
 }
 
 ///
-JensenPhoton::Flags::Flags() : shadow(false), reflected(false), materialIndex(0), geometryIndex(0) {
+JensenPhoton::Flags::Flags() : shadow(false), reflected(false), geometryIndex(0) {
 
 }
 
@@ -154,7 +154,7 @@ JensenPhoton::JensenPhoton() {
 }
 
 ///
-JensenPhoton::JensenPhoton(const Eigen::Vector3f & position, const Eigen::Vector3f & incomingDirection, const RGBf & energy, bool shadow, bool reflected, uint16_t materialIndex) {
+JensenPhoton::JensenPhoton(const Eigen::Vector3f & position, const Eigen::Vector3f & incomingDirection, const RGBf & energy, bool shadow, bool reflected, uint16_t geometryIndex) {
     this->position = position;
     this->incomingDirection = CompressedNormalVector3(incomingDirection.normalized());
     this->energy = rgb2rgbe(energy);
@@ -162,6 +162,6 @@ JensenPhoton::JensenPhoton(const Eigen::Vector3f & position, const Eigen::Vector
     this->flags = Flags();
     this->flags.shadow = shadow;
     this->flags.reflected = reflected;
-    this->flags.materialIndex = materialIndex;
+    this->flags.geometryIndex = geometryIndex;
 }
 

@@ -208,6 +208,10 @@ RayIntersectionResult PovraySphere::intersect(const Ray & ray) {
         else if (t1 >= 0) {
             result.timeOfIntersection = t1;
         }
+        
+        if (result.timeOfIntersection > 0) {
+            result.surfaceNormal = (result.locationOfIntersection() - position_).normalized();
+        }
     }
     
     return result;
@@ -268,6 +272,7 @@ RayIntersectionResult PovrayPlane::intersect(const Ray & ray) {
     if (product > 0.0001 || product < -0.0001) {
         result.timeOfIntersection = -(ray.origin.dot(normal_) - distance_) / product;
         result.ray = ray;
+        result.surfaceNormal = normal_;
     }
     
     result.intersected = result.timeOfIntersection >= 0.0;

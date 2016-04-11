@@ -29,6 +29,21 @@ struct RayIntersectionResult {
     bool intersected;
     float timeOfIntersection;
     Ray ray;
+    Eigen::Vector3f surfaceNormal;
+    
+    ///
+    RayIntersectionResult() : intersected(false), timeOfIntersection(0) {}
+    
+    ///
+    Eigen::Vector3f locationOfIntersection() const {
+        return ray.direction * timeOfIntersection + ray.origin;
+    }
+    
+    ///
+    Eigen::Vector3f outgoingDirection() const {
+        /// http://www.cosinekitty.com/raytrace/chapter10_reflection.html
+        return ray.direction - 2.0 * (ray.direction.dot(surfaceNormal) * surfaceNormal);
+    }
 };
 
 ///
@@ -60,14 +75,16 @@ public:
     virtual RayIntersectionResult intersect(const Ray & ray) = 0;
     
     ///
-    virtual Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) = 0;
-    
-    ///
     virtual PovrayPigment const * pigment() const = 0;
     ///
     virtual PovrayFinish const * finish() const = 0;
     
+    uint16_t id() const {return id_;}
+    
 protected:
+
+    friend class PovrayScene;
+    uint16_t id_;
 
     ///
     enum ValueType {

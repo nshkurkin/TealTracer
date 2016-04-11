@@ -21,6 +21,7 @@
 #include "Image.hpp"
 #include "JobPool.hpp"
 #include "TextureRenderTarget.hpp"
+#include "PhotonMap.hpp"
 
 /// From Lab 1:
 ///
@@ -48,6 +49,9 @@ public:
     Image outputImage;
     TextureRenderTarget target;
     JobPool jobPool;
+    
+    int renderOutputWidth;
+    int renderOutputHeight;
 
     ///
     virtual void setupDrawingInWindow(TSWindow * window);
@@ -89,13 +93,37 @@ public:
     void raytraceScene();
     
     ///
+    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult);
+    
+    ///
+    PhotonMap photonMap;
+    
+    ///
+    void enqueuePhotonMapping() {
+        jobPool.emplaceJob([=]() {
+            TSLoggerLog(std::cout, "[", glfwGetTime(), "] Started building photon map");
+            buildPhotonMap();
+        }, [=]() {
+            TSLoggerLog(std::cout, "[", glfwGetTime(), "] Finished building photon map");
+        });
+    }
+    
+    ///
+    void buildPhotonMap() {
+        photonMap.setDimensions(Eigen::Vector3f(-100,-100,-100), Eigen::Vector3f(100,100,100));
+        photonMap.photons.clear();
+        emitPhotons();
+        photonMap.buildSpatialHash();
+    }
+    
+    ///
     void emitPhotons() {
         /// for each light, emit photons into the scene.
         auto lights = scene_->findElements<PovrayLightSource>();
         for (auto itr = lights.begin(); itr != lights.end(); itr++) {
             auto light = *itr;
-//            auto color = light->color();
-            float increment = 0.001;
+            auto color = light->color();
+            float increment = 0.01;
             for (float u = 0.0; u < 1.0f; u += increment) {
                 for (float v = 0.0; v < 1.0f; v += increment) {
                     Ray ray;
@@ -103,11 +131,29 @@ public:
                     ray.origin = light->position();
                     ray.direction = light->getSampleDirection(u, v);
                     
-//                    auto hits = scene_->intersections(ray);
-                    
+                    auto hits = scene_->intersections(ray);
+                    /// Add in shadow photons
+                    for (int i = 1; i < hits.size(); i++) {
+                        const auto & hitResult = hits[i];
+                        photonMap.photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), true, false, hitResult.element->id()));
+                    }
+                    /// bounce around the other photon
+                    if (hits.size() > 0) {
+                        const auto & hitResult = hits[0];
+                        JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), false, false, hitResult.element->id());
+                        bouncePhoton(photon);
+                        photonMap.photons.push_back(photon);
+                    }
                 }
             }
         }
+        
+        TSLoggerLog(std::cout, "Photons=", photonMap.photons.size());
+    }
+    
+    ///
+    void bouncePhoton(JensenPhoton & photon) {
+        
     }
     
     /// call this to begin the ray-tracing

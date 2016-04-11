@@ -31,6 +31,22 @@ struct PhotonMap {
     PhotonMap();
     
     ///
+    void setDimensions(const Eigen::Vector3f & minExtent, const Eigen::Vector3f & maxExtent) {
+        xmin = minExtent.x();
+        ymin = minExtent.y();
+        zmin = minExtent.z();
+        
+        xmax = maxExtent.x();
+        ymax = maxExtent.y();
+        zmax = maxExtent.z();
+    
+        // Compute photon grid dimensions
+        xdim = std::ceil((xmax - xmin)/cellsize);
+        ydim = std::ceil((ymax - ymin)/cellsize);
+        zdim = std::ceil((zmax - zmin)/cellsize);
+    }
+    
+    ///
     Eigen::Vector3i getCellIndex(const Eigen::Vector3f & position) const;
     ///
     int photonHash(int i, int j, int k) const;
@@ -58,6 +74,8 @@ struct PhotonMap {
     /// Call this after filling "photons" with the relevant content.
     void buildSpatialHash();
     /// Call this after building the spatial hash.
+    ///
+    /// NOTE: flux = totalEnergy/(float)numPhotons;
     RGBf gatherPhotons(
         int maxNumPhotonsToGather,
         int intersectedGeomId,
