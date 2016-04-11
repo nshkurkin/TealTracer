@@ -175,6 +175,8 @@ public:
     }
 };
 
+#include "stl_extensions.hpp"
+
 /// A compact photon that stores various information about direction, positions,
 /// energy, and other potentially useful data (i.e. flags)
 ///
@@ -182,7 +184,7 @@ public:
 ///     Referenced from: https://sites.fas.harvard.edu/~cs278/papers/pmap.pdf
 struct JensenPhoton {
 
-    struct Flags {
+    packed_struct Flags {
         bool shadow: 1;
         bool reflected: 1;
         uint16_t materialIndex: 14;

@@ -11,6 +11,8 @@
 
 #include <map>
 
+#define packed_struct struct __attribute__((__packed__))
+
 ///
 template <typename First, typename Second>
 void set_map(std::map<First,Second> & map);
