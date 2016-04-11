@@ -12,21 +12,9 @@
 #include <Eigen/Eigen>
 
 /// A rename of `frexpf()`
-float frexp(float val, int32_t * ptr) {
-    return frexpf(val,ptr);
-}
-
+float frexp(float val, int32_t * ptr);
 ///
-float modulus(const float & lhs, const float & rhs) {
-    float value = lhs;
-    if (value < 0) {
-        value += rhs * float(std::floor(std::abs(lhs)/rhs) + 1);
-    }
-    else {
-        value = fmod(lhs, rhs);
-    }
-    return value;
-}
+float modulus(const float & lhs, const float & rhs);
 
 typedef Eigen::Vector3f RGBf;
 
@@ -40,24 +28,7 @@ typedef Eigen::Matrix<uint8_t, 4, 1> WardRGBE;
 /// Converts float pixels to rgbe pixels
 ///
 /// From http://www.graphics.cornell.edu/%7Ebjw/rgbe/rgbe.c
-WardRGBE rgb2rgbe(const RGBf & rgb) {
-    float v = 0.0;
-    int32_t e = 0;
-    WardRGBE rgbe = WardRGBE::Zero();
-    
-    v = rgb.x();
-    if (rgb.y() > v) {v = rgb.y();}
-    if (rgb.z() > v) {v = rgb.z();}
-    if (v > 1e-32) {
-        v = float(frexp(v,&e)) * 256.0/v;
-        rgbe(0) = uint8_t(rgb.x() * v);
-        rgbe(1) = uint8_t(rgb.y() * v);
-        rgbe(2) = uint8_t(rgb.z() * v);
-        rgbe(3) = uint8_t(e + 128);
-    }
-    
-    return rgbe;
-}
+WardRGBE rgb2rgbe(const RGBf & rgb);
 
 /// Converts from rgbe to float pixels
 ///
@@ -65,18 +36,7 @@ WardRGBE rgb2rgbe(const RGBf & rgb) {
 ///       in the range [0,1] to map back into the range [0,1].
 ///
 /// /// From http://www.graphics.cornell.edu/%7Ebjw/rgbe/rgbe.c
-RGBf rgbe2rgb(WardRGBE rgbe) {
-    float f = 0;
-    RGBf rgb = RGBf::Zero();
-    
-    if (rgbe(3) != 0) {
-        f = float(ldexp(1.0,int(rgbe(3))-int(128+8)));
-        rgb.x() = float(rgbe(0)) * f;
-        rgb.y() = float(rgbe(1)) * f;
-        rgb.z() = float(rgbe(2)) * f;
-    }
-    return rgb;
-}
+RGBf rgbe2rgb(WardRGBE rgbe);
 
 /// Represents a normalized 3-vector which has a data foot-print less than or
 /// equal to the foot-print of 3 high-precision floating point types. A CNV3 is
@@ -89,15 +49,11 @@ struct CompressedNormalVector3 {
 
     /// Returns the result of uncompressing a UInt8 into an angle that lies in the
     /// interval [0,2pi].
-    static float uncompressAngleValue(const DiscretizationType & compressedValue) {
-        return float(2.0 * M_PI) * float(compressedValue) / float(std::numeric_limits<DiscretizationType>::max());
-    }
+    static float uncompressAngleValue(const DiscretizationType & compressedValue);
 
     /// Returns the result of compressing some angle in the interval [0,2pi] as one 
     /// of UInt8.max discretized chunks.
-    static DiscretizationType compressAngleValue(const float & value) {
-        return DiscretizationType(float(std::numeric_limits<DiscretizationType>::max()) * modulus(value, float(2.0 * M_PI)) / float(2.0 * M_PI));
-    }
+    static DiscretizationType compressAngleValue(const float & value);
 
 
 private:
@@ -111,68 +67,36 @@ private:
 
 public:
     /// The raw compressed theta angle value (read-only)
-    const DiscretizationType & compressedTheta() const {
-        return theta_;
-    }
+    const DiscretizationType & compressedTheta() const;
     
     /// The raw compressed phi angle value (read-only)
-    const DiscretizationType &  compressedPhi() const {
-        return phi_;
-    }
+    const DiscretizationType &  compressedPhi() const;
     
     /// Creates a compressed version of [0,0,1]
-    CompressedNormalVector3() {
-        theta_ = 0;
-        phi_ = 0;
-    }
+    CompressedNormalVector3();
     
     /// Creates a compressed version of `vector`, assuming that vector is 
     /// normalized.
-    CompressedNormalVector3(const Eigen::Vector3f & vector) {
-        theta_ = 0;
-        phi_ = 0;
-        setVector(vector);
-    }
+    CompressedNormalVector3(const Eigen::Vector3f & vector);
     
     /// The computed, uncompressed version of `theta`, the angle of rotation 
     /// around the z-axis
-    float theta() const {
-        return uncompressAngleValue(theta_);
-    }
-    
-    void setTheta(float value) {
-        theta_ = compressAngleValue(value);
-    }
+    float theta() const;
+    void setTheta(float value);
     
     /// The computed, uncompressed version of `phi`, the rotation around the 
     /// y-axis, after applying `theta` of the vector.
-    float phi() {
-        return uncompressAngleValue(phi_);
-    }
-    
-    void setPhi(float value) {
-        phi_ = compressAngleValue(value);
-    }
+    float phi();
+    void setPhi(float value);
     
     /// The computed incoming direction vector for this photon.
     ///
     /// Formulae for converting Cartesian <-> Spherical taken from
     /// http://mathworld.wolfram.com/SphericalCoordinates.html
-    Eigen::Vector3f vector() const {
-        
-        float sintheta = float(sin(theta_));
-        float costheta = float(cos(theta_));
-        float sinphi = float(sin(phi_));
-        float cosphi = float(cos(phi_));
-        
-        return Eigen::Vector3f(costheta * sinphi, sintheta * sinphi, cosphi);
-    }
+    Eigen::Vector3f vector() const;
     
     ///
-    void setVector(const Eigen::Vector3f & vector) {
-        setTheta(float(atan2(double(vector.y()), double(vector.x()))));
-        setPhi(float(acos(double(vector.z()))));
-    }
+    void setVector(const Eigen::Vector3f & vector);
 };
 
 #include "stl_extensions.hpp"
@@ -188,8 +112,9 @@ struct JensenPhoton {
         bool shadow: 1;
         bool reflected: 1;
         uint16_t materialIndex: 14;
+        uint16_t geometryIndex; // Maybe add this?
         
-        Flags() : shadow(false), reflected(false), materialIndex(0) {}
+        Flags();
     };
 
 
@@ -203,24 +128,10 @@ struct JensenPhoton {
     Flags flags;
     
     /// Creates an unclassified photon of no energy positioned at (0,0,0), with a normal along the z-axis
-    JensenPhoton() {
-        position = Eigen::Vector3f::Zero();
-        energy = WardRGBE::Zero();
-        incomingDirection = CompressedNormalVector3();
-        flags = Flags();
-    }
+    JensenPhoton();
     
     /// Creates a photon given non-sparse format.
-    JensenPhoton(const Eigen::Vector3f & position, const Eigen::Vector3f & incomingDirection, const RGBf & energy, bool shadow, bool reflected, uint16_t materialIndex) {
-        this->position = position;
-        this->incomingDirection = CompressedNormalVector3(incomingDirection.normalized());
-        this->energy = rgb2rgbe(energy);
-        
-        this->flags = Flags();
-        this->flags.shadow = shadow;
-        this->flags.reflected = reflected;
-        this->flags.materialIndex = materialIndex;
-    }
+    JensenPhoton(const Eigen::Vector3f & position, const Eigen::Vector3f & incomingDirection, const RGBf & energy, bool shadow, bool reflected, uint16_t materialIndex);
 };
 
 #endif /* JensenPhoton_hpp */

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		C01416E61CB83A2C0040D4C6 /* raytrace.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9781CB70DC0003A3D8B /* raytrace.cl */; };
 		C01416ED1CBB3F500040D4C6 /* JensenPhoton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C01416EB1CBB3F500040D4C6 /* JensenPhoton.cpp */; };
+		C01416F01CBB4FFB0040D4C6 /* PhotonMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C01416EE1CBB4FFB0040D4C6 /* PhotonMap.cpp */; };
 		C064A9381CADD94B003A3D8B /* OpenGLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */; };
 		C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */; };
 		C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9441CB05E1F003A3D8B /* compute_engine.cpp */; };
@@ -68,6 +69,8 @@
 		C01416E81CB904DF0040D4C6 /* CLPovrayElementData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CLPovrayElementData.hpp; sourceTree = "<group>"; };
 		C01416EB1CBB3F500040D4C6 /* JensenPhoton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JensenPhoton.cpp; sourceTree = "<group>"; };
 		C01416EC1CBB3F500040D4C6 /* JensenPhoton.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = JensenPhoton.hpp; sourceTree = "<group>"; };
+		C01416EE1CBB4FFB0040D4C6 /* PhotonMap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonMap.cpp; sourceTree = "<group>"; };
+		C01416EF1CBB4FFB0040D4C6 /* PhotonMap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PhotonMap.hpp; sourceTree = "<group>"; };
 		C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLShaders.cpp; sourceTree = "<group>"; };
 		C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLShaders.hpp; sourceTree = "<group>"; };
 		C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLDataBuffer.cpp; sourceTree = "<group>"; };
@@ -503,6 +506,8 @@
 				C064A9671CB5BE9A003A3D8B /* JobPool.hpp */,
 				C01416EB1CBB3F500040D4C6 /* JensenPhoton.cpp */,
 				C01416EC1CBB3F500040D4C6 /* JensenPhoton.hpp */,
+				C01416EE1CBB4FFB0040D4C6 /* PhotonMap.cpp */,
+				C01416EF1CBB4FFB0040D4C6 /* PhotonMap.hpp */,
 			);
 			name = "cpu raytracer";
 			sourceTree = "<group>";
@@ -1328,6 +1333,7 @@
 				C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */,
 				C064A94D1CB05E2D003A3D8B /* data_loader.c in Sources */,
 				C0C1252F1CAB5B930024DA91 /* GPURayTracer.cpp in Sources */,
+				C01416F01CBB4FFB0040D4C6 /* PhotonMap.cpp in Sources */,
 				C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */,
 				C0C125491CAC743E0024DA91 /* opengl_errors.cpp in Sources */,
 				C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */,
