@@ -173,6 +173,41 @@ public:
     }
     
     ///
+    const Eigen::Vector4f & color() const {
+        return color_;
+    }
+    
+    ///
+    const Eigen::Vector3f & position() const {
+        return position_;
+    }
+    
+    ///
+    Eigen::Vector3f getSampleDirection(const float & u, const float & v) {
+        return cosineSampleSphere(u, v).block<3,1>(0,0);
+    }
+    
+    /// Sampling functions taken from:
+    /// https://github.com/embree/embree-renderer/blob/master/devices/device_singleray/samplers/shapesampler.h
+    
+    /// Uniform sphere sampling.
+    static Eigen::Vector4f uniformSampleSphere(const float & u, const float & v) {
+        const float phi = float(2.0 * M_PI) * u;
+        const float cosTheta = 1.0f - 2.0f * v, sinTheta = 2.0f * sqrt(v * (1.0f - v));
+        return Eigen::Vector4f(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta, float(1.0 / (4.0 * M_PI)));
+    }
+    
+    /// Cosine weighted sphere sampling. Up direction is the z direction.
+    static Eigen::Vector4f cosineSampleSphere(const float & u, const float & v) {
+        const float phi = float(2.0*M_PI) * u;
+        const float vv = 2.0f*(v-0.5f);
+        const float cosTheta = (vv > 0? 1.0 : -1.0)*sqrt(std::abs(vv));
+        const float sinTheta = sqrt(std::max<float>(0,1.0 - cosTheta*cosTheta));
+        
+        return Eigen::Vector4f(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta, 2.0f*cosTheta*float(1.0/M_PI));
+    }
+    
+    ///
     Eigen::Vector3f computeOutputEnergyForHit(const RayIntersectionResult & hit, const Eigen::Vector3f & sourceEnergy, bool * hasDiffuse, bool * hasSpecular) {
         return Eigen::Vector3f::Zero();
     }

@@ -88,6 +88,28 @@ public:
     ///
     void raytraceScene();
     
+    ///
+    void emitPhotons() {
+        /// for each light, emit photons into the scene.
+        auto lights = scene_->findElements<PovrayLightSource>();
+        for (auto itr = lights.begin(); itr != lights.end(); itr++) {
+            auto light = *itr;
+//            auto color = light->color();
+            float increment = 0.001;
+            for (float u = 0.0; u < 1.0f; u += increment) {
+                for (float v = 0.0; v < 1.0f; v += increment) {
+                    Ray ray;
+                    
+                    ray.origin = light->position();
+                    ray.direction = light->getSampleDirection(u, v);
+                    
+//                    auto hits = scene_->intersections(ray);
+                    
+                }
+            }
+        }
+    }
+    
     /// call this to begin the ray-tracing
     void start();
     

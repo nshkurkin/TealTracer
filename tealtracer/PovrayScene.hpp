@@ -77,6 +77,31 @@ public:
         
         return result;
     }
+    
+    ///
+    std::vector<InstersectionResult> intersections(const Ray & ray) {
+        std::vector<InstersectionResult> results;
+        
+        for (auto itr = elements_.begin(); itr != elements_.end(); itr++) {
+            auto hitTest = (*itr)->intersect(ray);
+            if (hitTest.intersected) {
+                InstersectionResult result;
+            
+                result.element = *itr;
+                result.hit.timeOfIntersection = hitTest.timeOfIntersection;
+                result.hit.ray = ray;
+                
+                int newIndex = (int) results.size();
+                results.push_back(result);
+                if (results[newIndex].hit.timeOfIntersection < results[0].hit.timeOfIntersection) {
+                    results[newIndex] = results[0];
+                    results[0] = result;
+                }
+            }
+        }
+        
+        return results;
+    }
 
 private:
 
