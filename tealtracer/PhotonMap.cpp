@@ -11,7 +11,7 @@
 ///
 PhotonMap::PhotonMap() : epsilon(0.0001)  {
     spacing = 1;
-    cellsize = 0.25;
+    cellsize = 2.0;
     
     setDimensions(Eigen::Vector3f(-0.5,-0.5,-0.5), Eigen::Vector3f(0.5,0.5,0.5));
 }
@@ -209,14 +209,13 @@ RGBf PhotonMap::gatherPhotons(
         // if there are more than 0 photons in the neighborhood, find sqr of maxDistanceSquared
         float maxRadius = (maxRadiusSqd > 0.0) ? sqrt(maxRadiusSqd) : -1.0f;
         // Accumulate radiance of the K nearest photons
-//        TSLoggerLog(std::cout, "maxRaduis=", maxRadius, " numPhotonsGathered=", neighborPhotons.size());
         for (int i = 0; i < neighborPhotons.size(); ++i) {
             const auto & p = photons[neighborPhotons[i]];
-//            TSLoggerLog(std::cout, "photonEnergy=", rgbe2rgb(p.energy).norm());
             float photonDistanceSqd = (intersection - p.position).dot(intersection - p.position);
-            accumColor += gaussianWeight(photonDistanceSqd, maxRadius) * std::max(0.0f, normal.dot(-p.incomingDirection.vector())) * rgbe2rgb(p.energy);
+            auto weight = gaussianWeight(photonDistanceSqd, maxRadius);
+            float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
+            accumColor += weight * diffuse * rgbe2rgb(p.energy);
         }
     }
-//    TSLoggerLog(std::cout, "accumColor=", accumColor.norm(), " flux=", flux);
     return accumColor * flux;
 }

@@ -86,7 +86,7 @@ public:
     
     /// The computed, uncompressed version of `phi`, the rotation around the 
     /// y-axis, after applying `theta` of the vector.
-    float phi();
+    float phi() const;
     void setPhi(float value);
     
     /// The computed incoming direction vector for this photon.

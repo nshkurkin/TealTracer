@@ -23,6 +23,8 @@
 #include "TextureRenderTarget.hpp"
 #include "PhotonMap.hpp"
 
+#include <random>
+
 /// From Lab 1:
 ///
 ///     *) Parse the scne description file
@@ -110,7 +112,7 @@ public:
     
     ///
     void buildPhotonMap() {
-        photonMap.setDimensions(Eigen::Vector3f(-100,-100,-100), Eigen::Vector3f(100,100,100));
+        photonMap.setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
         photonMap.photons.clear();
         emitPhotons();
         photonMap.buildSpatialHash();
@@ -123,27 +125,31 @@ public:
         for (auto itr = lights.begin(); itr != lights.end(); itr++) {
             auto light = *itr;
             auto color = light->color();
-            float increment = 0.01;
-            for (float u = 0.0; u < 1.0f; u += increment) {
-                for (float v = 0.0; v < 1.0f; v += increment) {
-                    Ray ray;
-                    
-                    ray.origin = light->position();
-                    ray.direction = light->getSampleDirection(u, v);
-                    
-                    auto hits = scene_->intersections(ray);
-                    /// Add in shadow photons
-                    for (int i = 1; i < hits.size(); i++) {
-                        const auto & hitResult = hits[i];
-                        photonMap.photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), true, false, hitResult.element->id()));
-                    }
-                    /// bounce around the other photon
-                    if (hits.size() > 0) {
-                        const auto & hitResult = hits[0];
-                        JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), false, false, hitResult.element->id());
-                        bouncePhoton(photon);
-                        photonMap.photons.push_back(photon);
-                    }
+            
+            std::default_random_engine generator;
+            std::uniform_real_distribution<float> distribution(0.0,1.0);
+  
+            for (int i = 0; i < 100000; i++) {
+                float u = distribution(generator);
+                float v = distribution(generator);
+                
+                Ray ray;
+                
+                ray.origin = light->position();
+                ray.direction = light->getSampleDirection(u, v);
+                
+                auto hits = scene_->intersections(ray);
+                /// Add in shadow photons
+                for (int i = 1; i < hits.size(); i++) {
+                    const auto & hitResult = hits[i];
+                    photonMap.photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+                }
+                /// bounce around the other photon
+                if (hits.size() > 0) {
+                    const auto & hitResult = hits[0];
+                    JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), false, false, hitResult.element->id());
+                    bouncePhoton(photon);
+                    photonMap.photons.push_back(photon);
                 }
             }
         }

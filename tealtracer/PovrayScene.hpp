@@ -71,7 +71,8 @@ public:
             auto hitTest = (*itr)->intersect(ray);
             if (hitTest.intersected && hitTest.timeOfIntersection < result.hit.timeOfIntersection) {
                 result.element = *itr;
-                result.hit.timeOfIntersection = hitTest.timeOfIntersection;
+                result.hit = hitTest;
+//                result.hit.timeOfIntersection = hitTest.timeOfIntersection;
             }
         }
         
@@ -88,8 +89,7 @@ public:
                 InstersectionResult result;
             
                 result.element = *itr;
-                result.hit.timeOfIntersection = hitTest.timeOfIntersection;
-                result.hit.ray = ray;
+                result.hit = hitTest;
                 
                 int newIndex = (int) results.size();
                 results.push_back(result);

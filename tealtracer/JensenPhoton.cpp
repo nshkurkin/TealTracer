@@ -111,7 +111,7 @@ CompressedNormalVector3::setTheta(float value) {
 
 ///
 float
-CompressedNormalVector3::phi() {
+CompressedNormalVector3::phi() const {
     return uncompressAngleValue(phi_);
 }
 
@@ -125,10 +125,10 @@ CompressedNormalVector3::setPhi(float value) {
 Eigen::Vector3f
 CompressedNormalVector3::vector() const {
     
-    float sintheta = float(sin(theta_));
-    float costheta = float(cos(theta_));
-    float sinphi = float(sin(phi_));
-    float cosphi = float(cos(phi_));
+    float sintheta = float(sin(theta()));
+    float costheta = float(cos(theta()));
+    float sinphi = float(sin(phi()));
+    float cosphi = float(cos(phi()));
     
     return Eigen::Vector3f(costheta * sinphi, sintheta * sinphi, cosphi);
 }

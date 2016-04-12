@@ -13,7 +13,7 @@
     },
     
     "GPURayTracer" : {
-        "enabled" : false,
+        "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": false
     }

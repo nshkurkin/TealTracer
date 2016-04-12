@@ -66,13 +66,14 @@ public:
         target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
         
         FPSsaved = 0.0;
+        realtimeSaved = 0.0;
         
         ///
         lastX = std::numeric_limits<float>::infinity();
         lastY = std::numeric_limits<float>::infinity();
     }
 
-    float FPSsaved;
+    float FPSsaved, realtimeSaved;
 
     void start() {
         ocl_raytraceSetup();
@@ -93,10 +94,11 @@ public:
         }
         
         if (framesRendered % 10 == 0) {
-            FPSsaved = FPS;
+            FPSsaved = std::floor(FPS * 100.0) / 100.0;
+            realtimeSaved = std::floor(rayTraceElapsedTime * 10000.0) / 10000.0;
         }
         
-        window->setTitle(make_string("GPU Ray Tracer (FPS: ", FPSsaved, ", frames: ", framesRendered, ")"));
+        window->setTitle(make_string("GPU Ray Tracer (FPS: ", FPSsaved, ", t: ", realtimeSaved, " frames: ", framesRendered, ")"));
     }
     
     ///
