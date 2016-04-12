@@ -21,7 +21,9 @@
 #include "Image.hpp"
 #include "JobPool.hpp"
 #include "TextureRenderTarget.hpp"
+
 #include "PhotonMap.hpp"
+#include "PhotonHashmap.hpp"
 
 #include <random>
 
@@ -98,7 +100,7 @@ public:
     RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult);
     
     ///
-    PhotonMap photonMap;
+    std::shared_ptr<PhotonMap> photonMap;
     
     ///
     void enqueuePhotonMapping() {
@@ -112,10 +114,10 @@ public:
     
     ///
     void buildPhotonMap() {
-        photonMap.setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
-        photonMap.photons.clear();
+        assert(photonMap != nullptr);
+        photonMap->photons.clear();
         emitPhotons();
-        photonMap.buildSpatialHash();
+        photonMap->buildMap();
     }
     
     ///
@@ -142,19 +144,19 @@ public:
                 /// Add in shadow photons
                 for (int i = 1; i < hits.size(); i++) {
                     const auto & hitResult = hits[i];
-                    photonMap.photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+                    photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
                 }
                 /// bounce around the other photon
                 if (hits.size() > 0) {
                     const auto & hitResult = hits[0];
                     JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), false, false, hitResult.element->id());
                     bouncePhoton(photon);
-                    photonMap.photons.push_back(photon);
+                    photonMap->photons.push_back(photon);
                 }
             }
         }
         
-        TSLoggerLog(std::cout, "Photons=", photonMap.photons.size());
+        TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
     }
     
     ///

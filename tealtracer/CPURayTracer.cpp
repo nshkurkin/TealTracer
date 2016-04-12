@@ -45,6 +45,10 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
     target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
     
+    PhotonHashmap * map = new PhotonHashmap();
+    map->setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
+    photonMap = std::shared_ptr<PhotonMap>(map);
+    
     jobPool = JobPool(1);
 }
 
@@ -176,7 +180,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
     const PovrayPigment & pigment = *hitResult.element->pigment();
     const PovrayFinish & finish = *hitResult.element->finish();
     
-    sourceEnergy = photonMap.gatherPhotons(100, (int) hitResult.element->id(), hitResult.hit.locationOfIntersection(), surfaceNormal, 150000.0 / (float) photonMap.photons.size());
+    sourceEnergy = photonMap->gatherPhotons(100, (int) hitResult.element->id(), hitResult.hit.locationOfIntersection(), surfaceNormal, 150000.0 / (float) photonMap->photons.size());
 //    TSLoggerLog(std::cout, "sourceEnergy=", sourceEnergy.norm());
     
     output = (pigment.color * (finish.ambient + finish.diffuse * std::max<float>(0, surfaceNormal.dot(-hitResult.hit.ray.direction)))).block<3,1>(0,0);
