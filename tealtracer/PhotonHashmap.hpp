@@ -67,11 +67,6 @@ public:
     // Find the index of the photon with the largest distance to the intersection
     MaxDistanceSearchResult findMaxDistancePhotonIndex(const std::vector<int> & photonIndices, const Eigen::Vector3f & intersection);
     
-    ///
-    float gaussianWeight(float distSqrd, float radius);
-    ///
-    float gaussianWeightJensen(float distSqrd, float radius);
-    
     /// Call this after filling "photons" with the relevant content.
     virtual void buildMap();
     /// Call this after building the spatial hash.

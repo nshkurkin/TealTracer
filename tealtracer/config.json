@@ -1,15 +1,25 @@
 {
     "povrayScene" : "lab1_simple.pov",
     
-    "outputWidth" : 100,
-    "outputHeight" : 100,
+    "outputWidth" : 50,
+    "outputHeight" : 50,
     
     "windowWidth" : 400,
     "windowHeight" : 400,
     
     "CPURayTracer" : {
         "enabled" : true,
-        "initialTitle" : "CPU Ray Tracer"
+        "initialTitle" : "CPU Ray Tracer",
+        
+        "numberOfPhotonsToGather" : 30,
+        "raysPerLight" : 50000,
+        "lumensPerLight" : 3000,
+        
+        "__enum_photonMapType" : {
+            "KDTree" : 0,
+            "Hashmap" : 1
+        },
+        "photonMapType" : 0
     },
     
     "GPURayTracer" : {

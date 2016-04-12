@@ -57,6 +57,17 @@ public:
     int renderOutputWidth;
     int renderOutputHeight;
 
+    enum SupportedPhotonMap {
+        KDTree = 0,
+        Hashmap = 1
+    };
+
+    int numberOfPhotonsToGather;
+    int raysPerLight;
+    int lumensPerLight;
+    SupportedPhotonMap photonMapType;
+
+
     ///
     virtual void setupDrawingInWindow(TSWindow * window);
 
@@ -131,7 +142,11 @@ public:
             std::default_random_engine generator;
             std::uniform_real_distribution<float> distribution(0.0,1.0);
   
-            for (int i = 0; i < 100000; i++) {
+            float lumens = lumensPerLight;
+            int numRays = raysPerLight;
+            float luminosityPerPhoton = lumens/(float)numRays;
+  
+            for (int i = 0; i < numRays; i++) {
                 float u = distribution(generator);
                 float v = distribution(generator);
                 
@@ -149,7 +164,7 @@ public:
                 /// bounce around the other photon
                 if (hits.size() > 0) {
                     const auto & hitResult = hits[0];
-                    JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0), false, false, hitResult.element->id());
+                    JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0) * luminosityPerPhoton, false, false, hitResult.element->id());
                     bouncePhoton(photon);
                     photonMap->photons.push_back(photon);
                 }

@@ -8,6 +8,8 @@
 
 #include "CPURayTracer.hpp"
 
+#include "PhotonKDTree.hpp"
+
 const Eigen::Vector3f CPURayTracer::Up = Eigen::Vector3f(0.0, 1.0, 0.0);
 const Eigen::Vector3f CPURayTracer::Forward = Eigen::Vector3f(0.0, 0.0, -1.0);
 const Eigen::Vector3f CPURayTracer::Right = Eigen::Vector3f(1.0, 0.0, 0.0);
@@ -45,14 +47,30 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
     target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
     
-    PhotonHashmap * map = new PhotonHashmap();
-    map->setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
-    photonMap = std::shared_ptr<PhotonMap>(map);
+    photonMapType = KDTree;
     
     jobPool = JobPool(1);
 }
 
 void CPURayTracer::start() {
+
+    switch(photonMapType) {
+    case KDTree: {
+        auto * map = new PhotonKDTree();
+        photonMap = std::shared_ptr<PhotonMap>(map);
+        break;
+    }
+    case Hashmap: {
+        auto * map = new PhotonHashmap();
+        map->setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
+        photonMap = std::shared_ptr<PhotonMap>(map);
+        break;
+    }
+    default:
+        assert(false);
+        break;
+    }
+
     lastRayTraceTime = glfwGetTime();
     rayTraceElapsedTime = 0.0;
     framesRendered = 0;
@@ -180,7 +198,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
     const PovrayPigment & pigment = *hitResult.element->pigment();
     const PovrayFinish & finish = *hitResult.element->finish();
     
-    sourceEnergy = photonMap->gatherPhotons(100, (int) hitResult.element->id(), hitResult.hit.locationOfIntersection(), surfaceNormal, 150000.0 / (float) photonMap->photons.size());
+    sourceEnergy = photonMap->gatherPhotons(numberOfPhotonsToGather, (int) hitResult.element->id(), hitResult.hit.locationOfIntersection(), surfaceNormal, 1.0);
 //    TSLoggerLog(std::cout, "sourceEnergy=", sourceEnergy.norm());
     
     output = (pigment.color * (finish.ambient + finish.diffuse * std::max<float>(0, surfaceNormal.dot(-hitResult.hit.ray.direction)))).block<3,1>(0,0);

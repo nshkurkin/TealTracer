@@ -34,6 +34,11 @@ public:
         const Eigen::Vector3f & normal,
         float flux) = 0;
     
+    
+    ///
+    float gaussianWeight(float distSqrd, float radius);
+    ///
+    float gaussianWeightJensen(float distSqrd, float radius);
 };
 
 

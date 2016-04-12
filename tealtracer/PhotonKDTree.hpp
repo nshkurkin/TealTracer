@@ -29,7 +29,7 @@ public:
     
     /// Call this after filling "photons" with the relevant content.
     virtual void buildMap() {
-    
+        transformIntoKDTree();
     }
     
     /// Call this after building the spatial hash.
@@ -42,7 +42,21 @@ public:
         const Eigen::Vector3f & normal,
         float flux) {
     
-        return RGBf::Zero();
+        auto searchResults = findClosestNPhotonIndices(intersection, maxNumPhotonsToGather, std::numeric_limits<float>::infinity());
+        RGBf accumColor = RGBf::Zero();
+        
+        // Accumulate radiance of the K nearest photons
+        if (searchResults.size() > 0) {
+//            float maxRadiusSqd = searchResults[searchResults.size() - 1].squareDistance;
+            for (int i = 0; i < searchResults.size(); ++i) {
+                const auto & p = photons[searchResults[i].index];
+                float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
+                accumColor += diffuse * rgbe2rgb(p.energy);
+            }
+            accumColor = accumColor * flux;// / (M_PI * maxRadiusSqd);
+        }
+
+        return accumColor;
     }
 
     int rootIdx() const {
@@ -78,8 +92,8 @@ public:
 
 
     /// Curries function that returns the compartor function that compares the
-/// elements of two vectors at row `axis` and returns whether the left is strictly
-/// less than the right.
+    /// elements of two vectors at row `axis` and returns whether the left is strictly
+    /// less than the right.
     static std::function<bool(const Eigen::Vector3f &, const Eigen::Vector3f &)> sparseless(int axis) {
         return [=](const Eigen::Vector3f & lhs, const Eigen::Vector3f & rhs){
             return lhs(axis) < rhs(axis);
@@ -110,15 +124,15 @@ private:
     /// Private function used to sort only a portion of the array between `startIdx` 
     /// and `endIdx` about `axis`
     template <typename T>
-    static void _transformIntoKDTree(std::vector<T> & values, std::function<bool(int, const T&, const T&)> lessAxis, std::function<int(int)> nextAxis, int startIdx, int endIdx, int axis) {
-        if (startIdx < endIdx) {
+    static void _transformIntoKDTree(std::vector<T> & values, std::function<bool(int, const T&, const T&)> lessAxis, std::function<int(int)> nextAxis, int startIdx, int lastIdx, int axis) {
+        if (startIdx < lastIdx) {
             /// Sort this portion of the array by position along the axis
-            std::sort(values.begin() + startIdx, values.begin() + endIdx + 1, [=](const T & lhs, const T & rhs) {
+            std::sort(values.begin() + startIdx, values.begin() + lastIdx + 1, [=](const T & lhs, const T & rhs) {
                 return lessAxis(axis, lhs, rhs);
             });
 
             /// From Jensen: the "root node among the data-set as the median element in the direction which represents the largest interval"
-            int middleIdx = startIdx + (endIdx - startIdx) / 2;
+            int middleIdx = startIdx + (lastIdx - startIdx) / 2;
             
             _transformIntoKDTree(
                 values, lessAxis, nextAxis,
@@ -126,7 +140,7 @@ private:
                 nextAxis(axis));
             _transformIntoKDTree(
                 values, lessAxis, nextAxis,
-                middleIdx + 1, endIdx,
+                middleIdx + 1, lastIdx,
                 nextAxis(axis));
         }
     }
@@ -160,6 +174,7 @@ public:
     
 private:
 
+    ///
     class CompareSearchResult {
     public:
         bool cmp(const SearchResult & a, const SearchResult & b) {
@@ -174,10 +189,10 @@ private:
     /// Recursive definition for `findClosestNPhotonIndices`
     ///
     /// Gleaned From: http://web.stanford.edu/class/cs106l/handouts/assignment-3-kdtree.pdf
-    void _knnOnPhtonKDTree(const Eigen::Vector3f & position, int N, std::vector<SearchResult> & candidates, int startIdx, int endIdx, int axis) {
+    void _knnOnPhtonKDTree(const Eigen::Vector3f & position, int N, std::vector<SearchResult> & candidates, int startIdx, int lastIdx, int axis) {
     
-        if (startIdx <= endIdx) {
-            auto currIdx = middleIdx(Range(startIdx, endIdx + 1));
+        if (startIdx <= lastIdx) {
+            auto currIdx = middleIdx(Range(startIdx, lastIdx + 1));
             auto photonPos = photons[currIdx].position;
             Eigen::Vector3f dp = photonPos - position;
             float sqrdist = dp.dot(dp);
@@ -186,11 +201,11 @@ private:
             candidates.insert(insertionIndex, SearchResult(currIdx, sqrdist));
             
             auto searchLeft = [&](){
-                auto newRange = lowerRange(Range(startIdx, endIdx + 1));
+                auto newRange = lowerRange(Range(startIdx, lastIdx + 1));
                 this->_knnOnPhtonKDTree(position, N, candidates, newRange.begin, newRange.end - 1,nextAxis(axis));
             };
             auto searchRight = [&](){
-                auto newRange = upperRange(Range(startIdx, endIdx + 1));
+                auto newRange = upperRange(Range(startIdx, lastIdx + 1));
                 this->_knnOnPhtonKDTree(position, N, candidates, newRange.begin, newRange.end - 1, nextAxis(axis));
             };
             

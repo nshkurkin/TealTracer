@@ -88,6 +88,10 @@ TealTracer::run(const std::vector<std::string> & args) {
         gpuRayTracer_->start();
     }
     if (config["CPURayTracer"]["enabled"].get<bool>()) {
+        cpuRayTracer_->numberOfPhotonsToGather = config["CPURayTracer"]["numberOfPhotonsToGather"].get<int>();
+        cpuRayTracer_->raysPerLight = config["CPURayTracer"]["raysPerLight"].get<int>();
+        cpuRayTracer_->lumensPerLight = config["CPURayTracer"]["lumensPerLight"].get<int>();
+        cpuRayTracer_->photonMapType = (CPURayTracer::SupportedPhotonMap) config["CPURayTracer"]["photonMapType"].get<int>();
         cpuRayTracer_->start();
     }
     

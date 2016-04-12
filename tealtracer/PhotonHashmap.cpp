@@ -10,7 +10,7 @@
 
 ///
 PhotonHashmap::PhotonHashmap() : epsilon(0.0001)  {
-    spacing = 1;
+    spacing = 2;
     cellsize = 2.0;
     
     setDimensions(Eigen::Vector3f(-0.5,-0.5,-0.5), Eigen::Vector3f(0.5,0.5,0.5));
@@ -63,22 +63,6 @@ PhotonHashmap::MaxDistanceSearchResult PhotonHashmap::findMaxDistancePhotonIndex
     }
     
     return result;
-}
-
-///
-float PhotonHashmap::gaussianWeight(float distSqrd, float radius) {
-    static const float oneOverSqrtTwoPi = 0.3989422804f;
-    
-    float sigma = radius/3.0;
-    return (oneOverSqrtTwoPi / sigma) * exp( - (distSqrd) / (2.0 * sigma * sigma) );
-}
-
-///
-float PhotonHashmap::gaussianWeightJensen(float distSqrd, float radius) {
-    static const float alpha = 0.918f;
-    static const float beta  = 1.953f;
-
-    return alpha * (1.0f - (1.0f - exp(-beta * distSqrd / (2.0f * radius * radius))) / (1.0f - std::exp(-beta))) ;
 }
 
 ///
@@ -207,15 +191,17 @@ RGBf PhotonHashmap::gatherPhotons(
         
         
         // if there are more than 0 photons in the neighborhood, find sqr of maxDistanceSquared
-        float maxRadius = (maxRadiusSqd > 0.0) ? sqrt(maxRadiusSqd) : -1.0f;
+//        float maxRadius = (maxRadiusSqd > 0.0) ? sqrt(maxRadiusSqd) : -1.0f;
         // Accumulate radiance of the K nearest photons
-        for (int i = 0; i < neighborPhotons.size(); ++i) {
-            const auto & p = photons[neighborPhotons[i]];
-            float photonDistanceSqd = (intersection - p.position).dot(intersection - p.position);
-            auto weight = gaussianWeight(photonDistanceSqd, maxRadius);
-            float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
-            accumColor += weight * diffuse * rgbe2rgb(p.energy);
+        if (neighborPhotons.size() > 0) {
+            for (int i = 0; i < neighborPhotons.size(); ++i) {
+                const auto & p = photons[neighborPhotons[i]];
+                float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
+                accumColor += diffuse * rgbe2rgb(p.energy);
+            }
+            
+            accumColor = accumColor * flux;// / (M_PI * maxRadiusSqd);
         }
     }
-    return accumColor * flux;
+    return accumColor;
 }
