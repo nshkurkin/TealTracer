@@ -35,28 +35,27 @@ public:
     /// Call this after building the spatial hash.
     ///
     /// NOTE: flux = totalEnergy/(float)numPhotons;
-    virtual RGBf gatherPhotons(
+    virtual std::vector<PhotonIndexInfo> gatherPhotonsIndices(
         int maxNumPhotonsToGather,
-        int intersectedGeomId,
-        const Eigen::Vector3f & intersection,
-        const Eigen::Vector3f & normal,
-        float flux) {
+        float maxPhotonDistance,
+        const Eigen::Vector3f & intersection) {
     
-        auto searchResults = findClosestNPhotonIndices(intersection, maxNumPhotonsToGather, std::numeric_limits<float>::infinity());
-        RGBf accumColor = RGBf::Zero();
-        
-        // Accumulate radiance of the K nearest photons
-        if (searchResults.size() > 0) {
-//            float maxRadiusSqd = searchResults[searchResults.size() - 1].squareDistance;
-            for (int i = 0; i < searchResults.size(); ++i) {
-                const auto & p = photons[searchResults[i].index];
-                float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
-                accumColor += diffuse * rgbe2rgb(p.energy);
-            }
-            accumColor = accumColor * flux;// / (M_PI * maxRadiusSqd);
-        }
-
-        return accumColor;
+        return findClosestNPhotonIndices(intersection, maxNumPhotonsToGather, maxPhotonDistance);
+//        auto searchResults = findClosestNPhotonIndices(intersection, maxNumPhotonsToGather, std::numeric_limits<float>::infinity());
+//        RGBf accumColor = RGBf::Zero();
+//        
+//        // Accumulate radiance of the K nearest photons
+//        if (searchResults.size() > 0) {
+////            float maxRadiusSqd = searchResults[searchResults.size() - 1].squareDistance;
+//            for (int i = 0; i < searchResults.size(); ++i) {
+//                const auto & p = photons[searchResults[i].index];
+//                float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
+//                accumColor += diffuse * rgbe2rgb(p.energy);
+//            }
+//            accumColor = accumColor * flux;// / (M_PI * maxRadiusSqd);
+//        }
+//
+//        return accumColor;
     }
 
     int rootIdx() const {
@@ -147,13 +146,7 @@ private:
 
 public:
     ///
-    struct SearchResult {
-        int index;
-        float squareDistance;
-        
-        SearchResult() : index(0), squareDistance(0) {}
-        SearchResult(int index, float sqrDist) : index(index), squareDistance(sqrDist) {}
-    };
+    typedef PhotonIndexInfo SearchResult;
 
     /// Consider a point x at which we are interested in the irradiance. Around x we create a sphere. The radius of this sphere is extendeded unitl the sphere contains n photons and has radius r.
     std::vector<SearchResult> findClosestNPhotonIndices(const Eigen::Vector3f & position, int N, float maxSquareDistance) {

@@ -22,10 +22,13 @@
 #include "JobPool.hpp"
 #include "TextureRenderTarget.hpp"
 
+#include "BRDF.hpp"
+
 #include "PhotonMap.hpp"
 #include "PhotonHashmap.hpp"
 
 #include <random>
+#include <memory>
 
 /// From Lab 1:
 ///
@@ -61,6 +64,14 @@ public:
         KDTree = 0,
         Hashmap = 1
     };
+    
+    enum SupportedBRDF {
+        BlinnPhong = 0, // https://en.wikipedia.org/wiki/Blinn–Phong_shading_model
+        OrenNayar = 1 // https://en.wikipedia.org/wiki/Oren–Nayar_reflectance_model
+    };
+    
+    SupportedBRDF brdfType;
+    std::shared_ptr<BRDF> brdf;
 
     int numberOfPhotonsToGather;
     int raysPerLight;
@@ -110,7 +121,7 @@ public:
     void raytraceScene();
     
     ///
-    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, bool usePhotonMap);
+    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, bool usePhotonMap);
     
     ///
     std::shared_ptr<PhotonMap> photonMap;
@@ -186,7 +197,7 @@ public:
                 reflectedRay.direction = hitResult.hit.outgoingDirection();
                 reflectedRay.origin = hitResult.hit.locationOfIntersection() + photonBounceEnergyMultipler * reflectedRay.direction;
                 
-                auto hitEnergy = computeOutputEnergyForHit(hitResult, false) * 0.2;
+                auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), false) * 0.2;
                 auto newHits = scene_->intersections(reflectedRay);
                 
                 processHits(hitEnergy, reflectedRay, newHits);

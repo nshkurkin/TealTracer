@@ -33,9 +33,11 @@ __constant const unsigned int kPovrayPigmentStride = 4;
 struct PovrayFinish {
     float ambient;
     float diffuse;
+    float specular;
+    float roughness;
 };
 
-__constant const unsigned int kPovrayFinishStride = 2;
+__constant const unsigned int kPovrayFinishStride = 4;
 
 ///
 struct PovraySphereData {
@@ -76,6 +78,8 @@ struct PovraySphereData PovraySphereData_fromData(__global float * data) {
     result.pigment.color = (float4) { data[4], data[5], data[6], data[7] };
     result.finish.ambient = data[8];
     result.finish.diffuse = data[9];
+    result.finish.specular = data[10];
+    result.finish.roughness= data[11];
     
     return result;
 }
@@ -89,6 +93,8 @@ struct PovrayPlaneData PovrayPlaneData_fromData(__global float * data) {
     result.pigment.color = (float4) { data[4], data[5], data[6], data[7] };
     result.finish.ambient = data[8];
     result.finish.diffuse = data[9];
+    result.finish.specular = data[10];
+    result.finish.roughness= data[11];
     
     return result;
 }

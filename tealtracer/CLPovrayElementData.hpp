@@ -33,12 +33,16 @@ struct CLPovrayPigment {
 struct CLPovrayFinish {
     cl_float ambient;
     cl_float diffuse;
+    cl_float specular;
+    cl_float roughness;
     
-    CLPovrayFinish() : ambient(0.0), diffuse(0.0) {}
-    CLPovrayFinish(const PovrayFinish & data) : ambient(data.ambient), diffuse(data.diffuse) {}
+    CLPovrayFinish() : ambient(0.0), diffuse(0.0), specular(0.0), roughness(0.0) {}
+    CLPovrayFinish(const PovrayFinish & data) : ambient(data.ambient), diffuse(data.diffuse), specular(data.specular), roughness(data.roughness) {}
     
     void writeOutData(std::vector<cl_float> & data) {
         data.push_back(ambient);
+        data.push_back(diffuse);
+        data.push_back(specular);
         data.push_back(diffuse);
     }
 };

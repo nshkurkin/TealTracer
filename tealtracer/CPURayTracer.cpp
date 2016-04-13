@@ -57,7 +57,7 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
 
 void CPURayTracer::start() {
 
-    switch(photonMapType) {
+    switch (photonMapType) {
     case KDTree: {
         auto * map = new PhotonKDTree();
         photonMap = std::shared_ptr<PhotonMap>(map);
@@ -67,6 +67,20 @@ void CPURayTracer::start() {
         auto * map = new PhotonHashmap();
         map->setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
         photonMap = std::shared_ptr<PhotonMap>(map);
+        break;
+    }
+    default:
+        assert(false);
+        break;
+    }
+    
+    switch (brdfType) {
+    case BlinnPhong: {
+        brdf = std::shared_ptr<BRDF>(new BlinnPhongBRDF());
+        break;
+    }
+    case OrenNayar: {
+        brdf = std::shared_ptr<BRDF>(new OrenNayarBRDF());
         break;
     }
     default:
@@ -182,7 +196,7 @@ void CPURayTracer::raytraceScene() {
             Image::Vector4ub color = Image::Vector4ub(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
-                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, true);
+                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, true);
                 for (int i = 0; i < 3; i++) {
                     result(i) = std::min<float>(255.0, result(i));
                 }
@@ -195,25 +209,34 @@ void CPURayTracer::raytraceScene() {
     }
 }
 
-RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, bool usePhotonMap) {
-    RGBf output, sourceEnergy;
-    Eigen::Vector3f surfaceNormal = hitResult.hit.surfaceNormal;
-    const PovrayPigment & pigment = *hitResult.element->pigment();
-    const PovrayFinish & finish = *hitResult.element->finish();
+RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, bool usePhotonMap) {
+    
+    RGBf output = RGBf::Zero();
+    brdf->pigment = *hitResult.element->pigment();
+    brdf->finish = *hitResult.element->finish();
     
     if (usePhotonMap) {
-        sourceEnergy = photonMap->gatherPhotons(numberOfPhotonsToGather, (int) hitResult.element->id(),     hitResult.hit.locationOfIntersection(), surfaceNormal, 1.0);
+        auto photonInfo = photonMap->gatherPhotonsIndices(numberOfPhotonsToGather, std::numeric_limits<float>::infinity(), hitResult.hit.locationOfIntersection());
+        
+        //  Accumulate radiance of the K nearest photons
+        for (int i = 0; i < photonInfo.size(); ++i) {
+            
+            const auto & p = photonMap->photons[photonInfo[i].index];
+            RGBf photonEnergy = RGBf::Zero(), surfaceEnergy = RGBf::Zero();
+            
+            photonEnergy = brdf->computeColor(rgbe2rgb(p.energy), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
+            surfaceEnergy = brdf->computeColor(RGBf(1,1,1), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
+            
+            output.x() += photonEnergy.x() * surfaceEnergy.x();
+            output.y() += photonEnergy.y() * surfaceEnergy.y();
+            output.z() += photonEnergy.z() * surfaceEnergy.z();
+        }
+        
+//        output = output * flux / (M_PI * maxRadiusSqd);
     }
     else {
-       sourceEnergy = RGBf(1,1,1);
+       output = brdf->computeColor(RGBf(1,1,1), toLight, toViewer, hitResult.hit.surfaceNormal);
     }
-//    TSLoggerLog(std::cout, "sourceEnergy=", sourceEnergy.norm());
-    
-    output = (pigment.color * (finish.ambient + finish.diffuse * std::max<float>(0, surfaceNormal.dot(-hitResult.hit.ray.direction)))).block<3,1>(0,0);
-    
-    output.x() *= sourceEnergy.x();
-    output.y() *= sourceEnergy.y();
-    output.z() *= sourceEnergy.z();
     
     return output;
 }

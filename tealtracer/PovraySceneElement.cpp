@@ -190,6 +190,8 @@ PovraySceneElement::parseFinish(std::string & body, PovrayFinish & finish) {
     std::map<std::string, std::pair<ValueType, void *>> content;
     content["ambient"] = std::make_pair(Float, &finish.ambient);
     content["diffuse"] = std::make_pair(Float, &finish.diffuse);
+    content["specular"] = std::make_pair(Float, &finish.specular);
+    content["roughness"] = std::make_pair(Float, &finish.roughness);
     auto firstCurlyLoc = body.find("{");
     auto secondCurlyLoc = body.find("}");
     auto finishBody = body.substr(firstCurlyLoc + 1, secondCurlyLoc - firstCurlyLoc - 1);

@@ -10,8 +10,8 @@
 #define PhotonMap_hpp
 
 #include <vector>
-
 #include <Eigen/Dense>
+
 #include "JensenPhoton.hpp"
 
 ///
@@ -24,15 +24,21 @@ public:
     
     /// Call this after filling "photons" with the relevant content.
     virtual void buildMap() = 0;
-    /// Call this after building the spatial hash.
+    
     ///
-    /// NOTE: flux = totalEnergy/(float)numPhotons;
-    virtual RGBf gatherPhotons(
+    struct PhotonIndexInfo {
+        int index;
+        float squareDistance;
+        
+        PhotonIndexInfo() : index(0), squareDistance(0) {}
+        PhotonIndexInfo(int index, float sqrDist) : index(index), squareDistance(sqrDist) {}
+    };
+    
+    /// Call this after building the spatial hash.
+    virtual std::vector<PhotonIndexInfo> gatherPhotonsIndices(
         int maxNumPhotonsToGather,
-        int intersectedGeomId,
-        const Eigen::Vector3f & intersection,
-        const Eigen::Vector3f & normal,
-        float flux) = 0;
+        float maxPhotonDistance,
+        const Eigen::Vector3f & intersection) = 0;
     
     
     ///

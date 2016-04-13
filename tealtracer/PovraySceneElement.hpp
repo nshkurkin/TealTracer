@@ -49,12 +49,20 @@ struct RayIntersectionResult {
 ///
 struct PovrayPigment {
     Eigen::Vector4f color;
+    
+    ///
+    PovrayPigment() : color(0, 0, 0, 1) {}
 };
 
 ///
 struct PovrayFinish {
     float ambient;
     float diffuse;
+    float specular;
+    float roughness;
+    
+    ///
+    PovrayFinish() : ambient(0), diffuse(0), specular(0), roughness(0) {}
 };
 
 ///
@@ -130,7 +138,7 @@ protected:
     }
     ///
     static inline char writeOut(std::ostream & out, const PovrayFinish & finish) {
-        out << "finish { ambient " << writeOut(out, finish.ambient) << " diffuse " << writeOut(out, finish.diffuse) << "} ";
+        out << "finish { ambient " << writeOut(out, finish.ambient) << " diffuse " << writeOut(out, finish.diffuse) << " specular " << writeOut(out, finish.specular) << " roughness " << writeOut(out, finish.roughness) << "} ";
         return ' ';
     }
 };

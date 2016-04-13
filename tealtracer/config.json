@@ -1,9 +1,6 @@
 {
     "povrayScene" : "simple_cam.pov",
     
-    "outputWidth" : 50,
-    "outputHeight" : 50,
-    
     "windowWidth" : 400,
     "windowHeight" : 400,
     
@@ -11,22 +8,34 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
+        "outputWidth" : 50,
+        "outputHeight" : 50,
+        
         "numberOfPhotonsToGather" : 30,
-        "raysPerLight" : 5000,
+        "raysPerLight" : 10000,
         "lumensPerLight" : 300,
-        "photonBounceProbability" : 0.25,
+        "photonBounceProbability" : 0.75,
         "photonBounceEnergyMultipler" : 0.1,
         
         "__enum_photonMapType" : {
             "KDTree" : 0,
             "Hashmap" : 1
         },
-        "photonMapType" : 0
+        "photonMapType" : 0,
+        
+        "__enum_brdfType" : {
+            "BlinnPhong" : 0,
+            "OrenNayar" : 1
+        },
+        "brdfType" : 0
     },
     
     "GPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
-        "useGPU": false
+        "useGPU": false,
+        
+        "outputWidth" : 200,
+        "outputHeight" : 200
     }
 }

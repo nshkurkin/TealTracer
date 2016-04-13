@@ -33,7 +33,7 @@ look_at   <0, 0, 0>
 //}
 
 
-light_source {<-10, 0, 10> color rgb <1.5, 1.5, 1.5>}
+light_source {<-6.5, 0, 3> color rgb <1.5, 1.5, 1.5>}
 
 sphere { <-3.5, 0, 0>, 1
   pigment { color rgb <1.0, 0.0, 1.0>}

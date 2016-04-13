@@ -65,8 +65,8 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
     gpuRayTracer_->setScene(scene_);
-    gpuRayTracer_->renderOutputWidth = config["outputWidth"].get<int>();
-    gpuRayTracer_->renderOutputHeight = config["outputHeight"].get<int>();
+    gpuRayTracer_->renderOutputWidth = config["GPURayTracer"]["outputWidth"].get<int>();
+    gpuRayTracer_->renderOutputHeight = config["GPURayTracer"]["outputHeight"].get<int>();
     gpuRayTracer_->useGPU = config["GPURayTracer"]["useGPU"].get<bool>();
     gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
     gpuWindow()->setWidth(config["windowWidth"].get<int>());
@@ -77,8 +77,8 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     cpuRayTracer_ = std::shared_ptr<CPURayTracer>(new CPURayTracer());
     cpuRayTracer_->setScene(scene_);
-    cpuRayTracer_->renderOutputWidth = config["outputWidth"].get<int>();
-    cpuRayTracer_->renderOutputHeight = config["outputHeight"].get<int>();
+    cpuRayTracer_->renderOutputWidth = config["CPURayTracer"]["outputWidth"].get<int>();
+    cpuRayTracer_->renderOutputHeight = config["CPURayTracer"]["outputHeight"].get<int>();
     cpuWindow()->setTitle(config["CPURayTracer"]["initialTitle"].get<std::string>());
     cpuWindow()->setWidth(config["windowWidth"].get<int>());
     cpuWindow()->setHeight(config["windowHeight"].get<int>());
@@ -94,6 +94,7 @@ TealTracer::run(const std::vector<std::string> & args) {
         cpuRayTracer_->raysPerLight = config["CPURayTracer"]["raysPerLight"].get<int>();
         cpuRayTracer_->lumensPerLight = config["CPURayTracer"]["lumensPerLight"].get<int>();
         cpuRayTracer_->photonMapType = (CPURayTracer::SupportedPhotonMap) config["CPURayTracer"]["photonMapType"].get<int>();
+        cpuRayTracer_->brdfType = (CPURayTracer::SupportedBRDF) config["CPURayTracer"]["brdfType"].get<int>();
         
         cpuRayTracer_->photonBounceProbability = config["CPURayTracer"]["photonBounceProbability"].get<double>();
         cpuRayTracer_->photonBounceEnergyMultipler = config["CPURayTracer"]["photonBounceEnergyMultipler"].get<double>();

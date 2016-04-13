@@ -57,27 +57,20 @@ public:
     int getCellIndexHash(const Eigen::Vector3f & position) const;
     
     ///
-    struct MaxDistanceSearchResult {
-        int index;
-        float distanceSquared;
-        
-        MaxDistanceSearchResult();
-    };
+    typedef PhotonIndexInfo MaxDistanceSearchResult;
     
     // Find the index of the photon with the largest distance to the intersection
-    MaxDistanceSearchResult findMaxDistancePhotonIndex(const std::vector<int> & photonIndices, const Eigen::Vector3f & intersection);
+    MaxDistanceSearchResult findMaxDistancePhotonIndex(const std::vector<PhotonMap::PhotonIndexInfo> & photonIndices, const Eigen::Vector3f & intersection);
     
     /// Call this after filling "photons" with the relevant content.
     virtual void buildMap();
     /// Call this after building the spatial hash.
     ///
     /// NOTE: flux = totalEnergy/(float)numPhotons;
-    virtual RGBf gatherPhotons(
+    virtual std::vector<PhotonIndexInfo> gatherPhotonsIndices(
         int maxNumPhotonsToGather,
-        int intersectedGeomId,
-        const Eigen::Vector3f & intersection,
-        const Eigen::Vector3f & normal,
-        float flux);
+        float maxPhotonDistance,
+        const Eigen::Vector3f & intersection);
     
 private:
     ///
