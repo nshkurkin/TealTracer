@@ -61,6 +61,8 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     scene_ = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
     
+    scene_->writeOut(std::cout);
+    
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
     gpuRayTracer_->setScene(scene_);
     gpuRayTracer_->renderOutputWidth = config["outputWidth"].get<int>();
@@ -92,6 +94,10 @@ TealTracer::run(const std::vector<std::string> & args) {
         cpuRayTracer_->raysPerLight = config["CPURayTracer"]["raysPerLight"].get<int>();
         cpuRayTracer_->lumensPerLight = config["CPURayTracer"]["lumensPerLight"].get<int>();
         cpuRayTracer_->photonMapType = (CPURayTracer::SupportedPhotonMap) config["CPURayTracer"]["photonMapType"].get<int>();
+        
+        cpuRayTracer_->photonBounceProbability = config["CPURayTracer"]["photonBounceProbability"].get<double>();
+        cpuRayTracer_->photonBounceEnergyMultipler = config["CPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
+        
         cpuRayTracer_->start();
     }
     

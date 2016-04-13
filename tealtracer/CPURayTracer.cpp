@@ -48,6 +48,8 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
     
     photonMapType = KDTree;
+    photonBounceProbability = 0.5;
+    photonBounceEnergyMultipler = 0.5;
     
     jobPool = JobPool(1);
     distribution = std::uniform_real_distribution<float>(0.0,1.0);

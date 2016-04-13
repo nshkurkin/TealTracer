@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "lab1_simple.pov",
+    "povrayScene" : "simple_cam.pov",
     
     "outputWidth" : 50,
     "outputHeight" : 50,
@@ -14,6 +14,8 @@
         "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 5000,
         "lumensPerLight" : 300,
+        "photonBounceProbability" : 0.25,
+        "photonBounceEnergyMultipler" : 0.1,
         
         "__enum_photonMapType" : {
             "KDTree" : 0,
