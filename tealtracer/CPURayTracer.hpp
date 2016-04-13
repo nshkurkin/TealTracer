@@ -108,7 +108,7 @@ public:
     void raytraceScene();
     
     ///
-    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult);
+    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, bool usePhotonMap);
     
     ///
     std::shared_ptr<PhotonMap> photonMap;
@@ -131,6 +131,9 @@ public:
         photonMap->buildMap();
     }
     
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> distribution;
+    
     ///
     void emitPhotons() {
         /// for each light, emit photons into the scene.
@@ -138,9 +141,6 @@ public:
         for (auto itr = lights.begin(); itr != lights.end(); itr++) {
             auto light = *itr;
             auto color = light->color();
-            
-            std::default_random_engine generator;
-            std::uniform_real_distribution<float> distribution(0.0,1.0);
   
             float lumens = lumensPerLight;
             int numRays = raysPerLight;
@@ -156,27 +156,40 @@ public:
                 ray.direction = light->getSampleDirection(u, v);
                 
                 auto hits = scene_->intersections(ray);
-                /// Add in shadow photons
-                for (int i = 1; i < hits.size(); i++) {
-                    const auto & hitResult = hits[i];
-                    photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
-                }
-                /// bounce around the other photon
-                if (hits.size() > 0) {
-                    const auto & hitResult = hits[0];
-                    JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, color.block<3,1>(0,0) * luminosityPerPhoton, false, false, hitResult.element->id());
-                    bouncePhoton(photon);
-                    photonMap->photons.push_back(photon);
-                }
+                processHits(color.block<3,1>(0,0) * luminosityPerPhoton, ray, hits);
             }
         }
         
         TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
     }
     
+    
+    
     ///
-    void bouncePhoton(JensenPhoton & photon) {
-        
+    void processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits) {
+        /// Add in shadow photons
+        for (int i = 1; i < hits.size(); i++) {
+            const auto & hitResult = hits[i];
+            photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+        }
+        /// bounce around the other photon
+        if (hits.size() > 0) {
+            const auto & hitResult = hits[0];
+            JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, energy, false, false, hitResult.element->id());
+            photonMap->photons.push_back(photon);
+            
+            if (distribution(generator) > 0.5) {
+                Ray reflectedRay;
+                
+                reflectedRay.direction = hitResult.hit.outgoingDirection();
+                reflectedRay.origin = hitResult.hit.locationOfIntersection() + 0.001 * reflectedRay.direction;
+                
+                auto hitEnergy = computeOutputEnergyForHit(hitResult, false) * 0.1;
+                auto newHits = scene_->intersections(reflectedRay);
+                
+                processHits(hitEnergy, reflectedRay, newHits);
+            }
+        }
     }
     
     /// call this to begin the ray-tracing

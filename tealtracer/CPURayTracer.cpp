@@ -50,6 +50,7 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     photonMapType = KDTree;
     
     jobPool = JobPool(1);
+    distribution = std::uniform_real_distribution<float>(0.0,1.0);
 }
 
 void CPURayTracer::start() {
@@ -179,7 +180,7 @@ void CPURayTracer::raytraceScene() {
             Image::Vector4ub color = Image::Vector4ub(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
-                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest);
+                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, true);
                 for (int i = 0; i < 3; i++) {
                     result(i) = std::min<float>(255.0, result(i));
                 }
@@ -192,13 +193,18 @@ void CPURayTracer::raytraceScene() {
     }
 }
 
-RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult) {    
+RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, bool usePhotonMap) {
     RGBf output, sourceEnergy;
     Eigen::Vector3f surfaceNormal = hitResult.hit.surfaceNormal;
     const PovrayPigment & pigment = *hitResult.element->pigment();
     const PovrayFinish & finish = *hitResult.element->finish();
     
-    sourceEnergy = photonMap->gatherPhotons(numberOfPhotonsToGather, (int) hitResult.element->id(), hitResult.hit.locationOfIntersection(), surfaceNormal, 1.0);
+    if (usePhotonMap) {
+        sourceEnergy = photonMap->gatherPhotons(numberOfPhotonsToGather, (int) hitResult.element->id(),     hitResult.hit.locationOfIntersection(), surfaceNormal, 1.0);
+    }
+    else {
+       sourceEnergy = RGBf(1,1,1);
+    }
 //    TSLoggerLog(std::cout, "sourceEnergy=", sourceEnergy.norm());
     
     output = (pigment.color * (finish.ambient + finish.diffuse * std::max<float>(0, surfaceNormal.dot(-hitResult.hit.ray.direction)))).block<3,1>(0,0);

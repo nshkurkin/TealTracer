@@ -12,8 +12,8 @@
         "initialTitle" : "CPU Ray Tracer",
         
         "numberOfPhotonsToGather" : 30,
-        "raysPerLight" : 50000,
-        "lumensPerLight" : 3000,
+        "raysPerLight" : 5000,
+        "lumensPerLight" : 300,
         
         "__enum_photonMapType" : {
             "KDTree" : 0,
