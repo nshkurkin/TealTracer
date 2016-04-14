@@ -189,18 +189,20 @@ public:
         if (hits.size() > 0) {
             const auto & hitResult = hits[0];
             JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, energy, false, false, hitResult.element->id());
-            photonMap->photons.push_back(photon);
             
             if (distribution(generator) < photonBounceProbability) {
                 Ray reflectedRay;
                 
                 reflectedRay.direction = hitResult.hit.outgoingDirection();
-                reflectedRay.origin = hitResult.hit.locationOfIntersection() + photonBounceEnergyMultipler * reflectedRay.direction;
+                reflectedRay.origin = hitResult.hit.locationOfIntersection() + 0.001 * reflectedRay.direction;
                 
-                auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), false) * 0.2;
+                auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), false) * photonBounceEnergyMultipler;
                 auto newHits = scene_->intersections(reflectedRay);
                 
                 processHits(hitEnergy, reflectedRay, newHits);
+            }
+            else {
+                photonMap->photons.push_back(photon);
             }
         }
     }
