@@ -43,20 +43,21 @@ int PhotonHashmap::getCellIndexHash(const Eigen::Vector3f & position) const {
 }
 
 ///
-PhotonHashmap::MaxDistanceSearchResult
+int
 PhotonHashmap::findMaxDistancePhotonIndex(const std::vector<PhotonMap::PhotonIndexInfo> & photonIndices, const Eigen::Vector3f & intersection) {
     MaxDistanceSearchResult result;
 
-    result.index = -1;
-    result.squareDistance = -std::numeric_limits<float>::infinity();
+    int index = -1;
+    double squareDistance = -std::numeric_limits<float>::infinity();
     
     for (int i = 0; i < (int) photonIndices.size(); ++i) {
-        if (photonIndices[i].squareDistance > result.squareDistance) {
-            result = photonIndices[i];
+        if (photonIndices[i].squareDistance > squareDistance) {
+            index = i;
+            squareDistance = photonIndices[i].squareDistance;
         }
     }
     
-    return result;
+    return index;
 }
 
 ///
@@ -95,22 +96,31 @@ void PhotonHashmap::mapPhotonsToGrid() {
     }
 }
 
+#include "TSLogger.hpp"
+
 ///
 void PhotonHashmap::computeGridFirstPhotons() {
     gridFirstPhotonIndices.clear();
     gridFirstPhotonIndices.resize(xdim * ydim * zdim, -1);
 
+    bool placedFirstGridItem = false;
+
     //
     for (int index = 0; index < photons.size(); index++) {
+        
         // First one always has to be stored
-        if (index == 0) {
+        if (!placedFirstGridItem && gridIndices[index] != -1) {
+            TSLoggerLog(std::cout, "girdIndices[", index, "]=", gridIndices[index], " gridFirstPhotonIndices.size()=", gridFirstPhotonIndices.size());
+            assert(gridIndices[index] < gridFirstPhotonIndices.size());
             gridFirstPhotonIndices[gridIndices[index]] = index;
+            placedFirstGridItem = true;
         }
         else {
             int currGrid = gridIndices[index];
             int prevGrid = gridIndices[index-1];
 
-            if (currGrid != prevGrid) {
+            if (currGrid != prevGrid && currGrid != -1) {
+                assert(currGrid < gridFirstPhotonIndices.size());
                 gridFirstPhotonIndices[currGrid] = index;
             }
         }
@@ -126,7 +136,6 @@ PhotonHashmap::gatherPhotonsIndices(
     float maxPhotonDistance,
     const Eigen::Vector3f & intersection) {
 
-//    RGBf accumColor = RGBf::Zero();
     auto gridIndex = getCellIndex(intersection);
     int px = gridIndex.x(), py = gridIndex.y(), pz = gridIndex.z();
     // Find photons in neighboring cells
@@ -135,7 +144,8 @@ PhotonHashmap::gatherPhotonsIndices(
     /// Only consider intersections within the grid
     if (px >= 0 && px < xdim
      && py >= 0 && py < ydim
-     && pz >= 0 && pz < zdim) {
+     && pz >= 0 && pz < zdim
+     && gridFirstPhotonIndices.size() > 0) {
         
         float maxRadiusSqd = -1.0f;
         
@@ -146,56 +156,39 @@ PhotonHashmap::gatherPhotonsIndices(
                     int gridIndex = photonHash(i, j, k);
                     // find the index of the first photon in the cell
                     assert(gridIndex <= gridFirstPhotonIndices.size());
-                    int firstPhotonIndex = gridFirstPhotonIndices[gridIndex];
-                    if (firstPhotonIndex != -1) {
-                        int pi = firstPhotonIndex;
+                    if (gridFirstPhotonIndices[gridIndex] != -1) {
+                        int pi = gridFirstPhotonIndices[gridIndex];
                         while (pi < photons.size() && gridIndices[pi] == gridIndex) {
                             const auto & p = photons[pi];
                             // Check if the photon is on the same geometry as the intersection
-//                            if (p.flags.geometryIndex == (uint16_t) intersectedGeomId) {
-                                // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
-                                float distSqd = (p.position - intersection).dot(p.position - intersection);
-                                if (neighborPhotons.size() < maxNumPhotonsToGather) {
-                                    if (distSqd < maxPhotonDistance * maxPhotonDistance) {
-                                        neighborPhotons.push_back(PhotonIndexInfo(pi, distSqd));
-                                        maxRadiusSqd = std::max<float>(distSqd, maxRadiusSqd);
+                            // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
+                            float distSqd = (p.position - intersection).dot(p.position - intersection);
+                            if (neighborPhotons.size() < maxNumPhotonsToGather) {
+                                if (distSqd < maxPhotonDistance * maxPhotonDistance) {
+                                    neighborPhotons.push_back(PhotonIndexInfo(pi, distSqd));
+                                    maxRadiusSqd = std::max<float>(distSqd, maxRadiusSqd);
+                                }
+                            }
+                            // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
+                            // to the intersection is smaller, replace the photon with the largest distance with the current photon
+                            else {
+                                auto index = findMaxDistancePhotonIndex(neighborPhotons, intersection);
+                                auto searchResult = neighborPhotons[index];
+                                if (distSqd < searchResult.squareDistance) {
+                                    neighborPhotons[index].index = pi;
+                                    neighborPhotons[index].squareDistance = distSqd;
+                                    if (distSqd > maxRadiusSqd
+                                     || fabs(maxRadiusSqd - searchResult.squareDistance) < epsilon) {
+                                        maxRadiusSqd = distSqd;
                                     }
                                 }
-                                // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
-                                // to the intersection is smaller, replace the photon with the largest distance with the current photon
-                                else {
-                                    auto searchResult = findMaxDistancePhotonIndex(neighborPhotons, intersection);
-                                    if (distSqd < searchResult.squareDistance) {
-                                        neighborPhotons[searchResult.index].index = pi;
-                                        neighborPhotons[searchResult.index].squareDistance = distSqd;
-                                        if (distSqd > maxRadiusSqd
-                                         || fabs(maxRadiusSqd - searchResult.squareDistance) < epsilon) {
-                                            maxRadiusSqd = distSqd;
-                                        }
-                                    }
-                                }
-//                            }
+                            }
                             pi++;
                         }
                     }
                 }
             }
         }
-        
-        
-        
-        // if there are more than 0 photons in the neighborhood, find sqr of maxDistanceSquared
-//        float maxRadius = (maxRadiusSqd > 0.0) ? sqrt(maxRadiusSqd) : -1.0f;
-        // Accumulate radiance of the K nearest photons
-//        if (neighborPhotons.size() > 0) {
-//            for (int i = 0; i < neighborPhotons.size(); ++i) {
-//                const auto & p = photons[neighborPhotons[i]];
-//                float diffuse = std::max(0.0f, normal.dot(-p.incomingDirection.vector()));
-//                accumColor += diffuse * rgbe2rgb(p.energy);
-//            }
-//            
-//            accumColor = accumColor * flux;// / (M_PI * maxRadiusSqd);
-//        }
     }
     return neighborPhotons;
 //    return accumColor;

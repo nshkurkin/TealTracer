@@ -21,7 +21,7 @@
             "KDTree" : 0,
             "Hashmap" : 1
         },
-        "photonMapType" : 0,
+        "photonMapType" : 1,
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,

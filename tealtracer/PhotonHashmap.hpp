@@ -60,7 +60,7 @@ public:
     typedef PhotonIndexInfo MaxDistanceSearchResult;
     
     // Find the index of the photon with the largest distance to the intersection
-    MaxDistanceSearchResult findMaxDistancePhotonIndex(const std::vector<PhotonMap::PhotonIndexInfo> & photonIndices, const Eigen::Vector3f & intersection);
+    int findMaxDistancePhotonIndex(const std::vector<PhotonMap::PhotonIndexInfo> & photonIndices, const Eigen::Vector3f & intersection);
     
     /// Call this after filling "photons" with the relevant content.
     virtual void buildMap();
