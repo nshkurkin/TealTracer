@@ -103,17 +103,13 @@ void PhotonHashmap::computeGridFirstPhotons() {
     gridFirstPhotonIndices.clear();
     gridFirstPhotonIndices.resize(xdim * ydim * zdim, -1);
 
-    bool placedFirstGridItem = false;
-
     //
     for (int index = 0; index < photons.size(); index++) {
         
         // First one always has to be stored
-        if (!placedFirstGridItem && gridIndices[index] != -1) {
-            TSLoggerLog(std::cout, "girdIndices[", index, "]=", gridIndices[index], " gridFirstPhotonIndices.size()=", gridFirstPhotonIndices.size());
+        if (index == 0 && gridIndices[index] != -1) {
             assert(gridIndices[index] < gridFirstPhotonIndices.size());
             gridFirstPhotonIndices[gridIndices[index]] = index;
-            placedFirstGridItem = true;
         }
         else {
             int currGrid = gridIndices[index];

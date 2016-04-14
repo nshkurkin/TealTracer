@@ -357,6 +357,10 @@ GetErrorString(int iError, char** acString, size_t *kStringLength)
     case(CL_INVALID_BUFFER_SIZE):
         acErrorString = "Invalid buffer size!";
         break;
+    case (CL_BUILD_PROGRAM_FAILURE) : {
+        
+        break;
+    }
     default:
         acErrorString = "Unknown error!";
         break;
@@ -680,12 +684,12 @@ ComputeEngine::createProgramFromSourceString(
     if (iError != CL_SUCCESS)
     {
         DEBUG_CL_printf("Error: Failed to build program executable!\n");
-        ReportError(iError);
         for(uint i = 0; i < m_uiDeviceCount; i++)
         {
             DEBUG_CL_printf("Build log for device '%d':\n", i);
             ReportBuildLog(kProgram, m_akDeviceIds[i]);
         }
+        ReportError(iError);
         clReleaseProgram(kProgram);
         return false;
     }
