@@ -218,15 +218,11 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
     if (usePhotonMap) {
         auto photonInfo = photonMap->gatherPhotonsIndices(numberOfPhotonsToGather, std::numeric_limits<float>::infinity(), hitResult.hit.locationOfIntersection());
         
-//        TSLoggerLog(std::cout, "location=", hitResult.hit.locationOfIntersection());
-        
         float maxSqrDist = 0.001;
         //  Accumulate radiance of the K nearest photons
         for (int i = 0; i < photonInfo.size(); ++i) {
             
             const auto & p = photonMap->photons[photonInfo[i].index];
-//            TSLoggerLog(std::cout, "photonInfo[", i, "].squareDistance=", photonInfo[i].squareDistance);
-//            TSLoggerLog(std::cout, "photonPosition=", p.position);
             
             RGBf photonEnergy = RGBf::Zero(), surfaceEnergy = RGBf::Zero();
             if (photonInfo[i].squareDistance > maxSqrDist) {
@@ -241,7 +237,6 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
             output.z() += photonEnergy.z() * surfaceEnergy.z();
         }
         
-//        TSLoggerLog(std::cout, "maxDistance=", maxSqrDist);
         output = output / (M_PI * maxSqrDist);
         
     }

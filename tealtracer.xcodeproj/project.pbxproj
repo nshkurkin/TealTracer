@@ -15,6 +15,11 @@
 		C01416F81CBEE60F0040D4C6 /* planes.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01416F71CBEE5F40040D4C6 /* planes.pov */; };
 		C01416FA1CBEE82D0040D4C6 /* simple_cam.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01416F91CBEE81F0040D4C6 /* simple_cam.pov */; };
 		C01416FD1CBEFD6B0040D4C6 /* BRDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C01416FB1CBEFD6B0040D4C6 /* BRDF.cpp */; };
+		C01EB03B1CC183EB0080FC65 /* scene_objects.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB03A1CC182DE0080FC65 /* scene_objects.cl */; };
+		C01EB03D1CC184E90080FC65 /* matrix_math.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB03C1CC184920080FC65 /* matrix_math.cl */; };
+		C01EB03F1CC185AE0080FC65 /* intersection.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB03E1CC185410080FC65 /* intersection.cl */; };
+		C01EB0411CC186660080FC65 /* photon_hashmap.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */; };
+		C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0431CC188690080FC65 /* coloring.cl */; };
 		C064A9381CADD94B003A3D8B /* OpenGLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */; };
 		C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */; };
 		C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9441CB05E1F003A3D8B /* compute_engine.cpp */; };
@@ -56,6 +61,11 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */,
+				C01EB0411CC186660080FC65 /* photon_hashmap.cl in CopyFiles */,
+				C01EB03F1CC185AE0080FC65 /* intersection.cl in CopyFiles */,
+				C01EB03D1CC184E90080FC65 /* matrix_math.cl in CopyFiles */,
+				C01EB03B1CC183EB0080FC65 /* scene_objects.cl in CopyFiles */,
 				C01416FA1CBEE82D0040D4C6 /* simple_cam.pov in CopyFiles */,
 				C01416F81CBEE60F0040D4C6 /* planes.pov in CopyFiles */,
 				C01416E61CB83A2C0040D4C6 /* raytrace.cl in CopyFiles */,
@@ -86,6 +96,11 @@
 		C01416F91CBEE81F0040D4C6 /* simple_cam.pov */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = simple_cam.pov; sourceTree = "<group>"; };
 		C01416FB1CBEFD6B0040D4C6 /* BRDF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BRDF.cpp; sourceTree = "<group>"; };
 		C01416FC1CBEFD6B0040D4C6 /* BRDF.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BRDF.hpp; sourceTree = "<group>"; };
+		C01EB03A1CC182DE0080FC65 /* scene_objects.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = scene_objects.cl; sourceTree = "<group>"; };
+		C01EB03C1CC184920080FC65 /* matrix_math.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = matrix_math.cl; sourceTree = "<group>"; };
+		C01EB03E1CC185410080FC65 /* intersection.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = intersection.cl; sourceTree = "<group>"; };
+		C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = photon_hashmap.cl; sourceTree = "<group>"; };
+		C01EB0431CC188690080FC65 /* coloring.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = coloring.cl; sourceTree = "<group>"; };
 		C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLShaders.cpp; sourceTree = "<group>"; };
 		C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLShaders.hpp; sourceTree = "<group>"; };
 		C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLDataBuffer.cpp; sourceTree = "<group>"; };
@@ -556,6 +571,11 @@
 			isa = PBXGroup;
 			children = (
 				C064A9751CB6FF8A003A3D8B /* sample_square.cl */,
+				C01EB03C1CC184920080FC65 /* matrix_math.cl */,
+				C01EB03A1CC182DE0080FC65 /* scene_objects.cl */,
+				C01EB03E1CC185410080FC65 /* intersection.cl */,
+				C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */,
+				C01EB0431CC188690080FC65 /* coloring.cl */,
 				C064A9781CB70DC0003A3D8B /* raytrace.cl */,
 			);
 			name = kernels;

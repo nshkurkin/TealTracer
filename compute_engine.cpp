@@ -211,20 +211,38 @@ LoadProgramSourceFromFile(
 static void
 ReportBuildLog(cl_program kProgram, cl_device_id kDeviceId)
 {
-	static uint s_uiBufferSize = 4096;
-	size_t kLogLength = 0;
-	
-	char * acBuildLog = new char[s_uiBufferSize];
-	memset(acBuildLog, 0, s_uiBufferSize * sizeof(char));
-	
-    clGetProgramBuildInfo(kProgram, kDeviceId, CL_PROGRAM_BUILD_LOG, sizeof(acBuildLog), acBuildLog, &kLogLength);
-    if(strlen(acBuildLog) < 1)
-        DEBUG_CL_printf("Compute Engine: Empty Build Log! Unkown Error!\n");
+
+    ///
+    size_t len = 0;
+    clGetProgramBuildInfo(kProgram, kDeviceId, CL_PROGRAM_BUILD_LOG, NULL, NULL, &len);
     
-    else
-        DEBUG_CL_printf("%s\n", acBuildLog);
+    char * log = new char[len + 1];
+    clGetProgramBuildInfo(kProgram, kDeviceId, CL_PROGRAM_BUILD_LOG, len, log, NULL);
     
-    delete[] acBuildLog;
+    if(len < 1) {
+        DEBUG_CL_printf("Compute Engine: Empty Build Log!\n");
+    }
+    else {
+        printf("%s\n", log);
+    }
+    
+    delete[] log;
+    
+    ///
+//	static uint s_uiBufferSize = 4096;
+//	size_t kLogLength = 0;
+//	
+//	char * acBuildLog = new char[s_uiBufferSize];
+//	memset(acBuildLog, 0, s_uiBufferSize * sizeof(char));
+//	
+//    clGetProgramBuildInfo(kProgram, kDeviceId, CL_PROGRAM_BUILD_LOG, sizeof(acBuildLog), acBuildLog, &kLogLength);
+//    if(strlen(acBuildLog) < 1)
+//        DEBUG_CL_printf("Compute Engine: Empty Build Log! Unkown Error!\n");
+//    
+//    else
+//        DEBUG_CL_printf("%s\n", acBuildLog);
+//    
+//    delete[] acBuildLog;
 
     DEBUG_CL_printf(SEPARATOR);
 }
@@ -681,14 +699,20 @@ ComputeEngine::createProgramFromSourceString(
     DEBUG_CL_printf(SEPARATOR);
     DEBUG_CL_printf("Building compute program '%s'...\n", acProgramName);
     iError = clBuildProgram(kProgram, m_uiDeviceCount, m_akDeviceIds, NULL, NULL, NULL);
+    
+    for(uint i = 0; i < m_uiDeviceCount; i++) {
+//        DEBUG_CL_printf("Build log for device '%d':\n", i);
+        ReportBuildLog(kProgram, m_akDeviceIds[i]);
+    }
+    
     if (iError != CL_SUCCESS)
     {
         DEBUG_CL_printf("Error: Failed to build program executable!\n");
-        for(uint i = 0; i < m_uiDeviceCount; i++)
-        {
-            DEBUG_CL_printf("Build log for device '%d':\n", i);
-            ReportBuildLog(kProgram, m_akDeviceIds[i]);
-        }
+//        for(uint i = 0; i < m_uiDeviceCount; i++)
+//        {
+//            DEBUG_CL_printf("Build log for device '%d':\n", i);
+//            ReportBuildLog(kProgram, m_akDeviceIds[i]);
+//        }
         ReportError(iError);
         clReleaseProgram(kProgram);
         return false;
