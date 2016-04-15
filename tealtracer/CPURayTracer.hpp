@@ -185,6 +185,7 @@ public:
             const auto & hitResult = hits[i];
             photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
         }
+
         /// bounce around the other photon
         if (hits.size() > 0) {
             const auto & hitResult = hits[0];

@@ -27,6 +27,11 @@ struct PovrayLightSourceData {
     float4 color;
 };
 
+__constant const unsigned int kPovrayLightSourceStride = 7;
+
+///
+struct PovrayLightSourceData PovrayLightSourceData_fromData(__global float * data);
+
 ///
 struct PovrayPigment {
     float4 color;
@@ -80,6 +85,16 @@ __constant unsigned int kPovrayPlaneStride = 3 + 1 + kPovrayPigmentStride + kPov
 struct PovrayPlaneData PovrayPlaneData_fromData(__global float * data);
 
 ////////////////////////////////////////////////////////////////////////////
+
+///
+struct PovrayLightSourceData PovrayLightSourceData_fromData(__global float * data) {
+    struct PovrayLightSourceData result;
+    
+    result.position = (float3) { data[0], data[1], data[2] };
+    result.color = (float4) { data[3], data[4], data[5], data[6] };
+    
+    return result;
+}
 
 ///
 struct PovraySphereData PovraySphereData_fromData(__global float * data) {

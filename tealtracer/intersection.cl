@@ -54,6 +54,153 @@ void sphere_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDire
 ///
 void plane_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirection, struct RayIntersectionResult * result);
 
+///
+void next_intersection(
+    ///
+    int whichDataElement,
+    __global float * data,
+    unsigned int numDataElements,
+    unsigned int dataStride,
+    float3 rayOrigin, float3 rayDirection,
+    enum ObjectType type,
+    /// Output
+    struct RayIntersectionResult * result);
+
+///
+struct IntersectionQuery {
+    __global float * sphereData;
+    unsigned int numSphereDataElements;
+    unsigned int sphereDataStride;
+    
+    __global float * planeData;
+    unsigned int numPlaneDataElements;
+    unsigned int planeDataStride;
+    
+    float3 rayOrigin;
+    float3 rayDirection;
+    
+    ///
+    bool done;
+    unsigned int currentDataElement;
+    __global float * currentData;
+    unsigned int currentNumDataElements;
+    unsigned int currentDataStride;
+    enum ObjectType currentType;
+    struct RayIntersectionResult currentIntersection;
+};
+
+///
+void IntersectionQuery_reset(struct IntersectionQuery * query);
+bool IntersectionQuery_findNextIntersection(struct IntersectionQuery * query);
+struct RayIntersectionResult IntersectionQuery_findClosestIntersection(struct IntersectionQuery * query);
+
+///
+void IntersectionQuery_reset(struct IntersectionQuery * query) {
+    query->done = false;
+    query->currentDataElement = 0;
+    query->currentData = query->sphereData;
+    query->currentNumDataElements = query->numSphereDataElements;
+    query->currentDataStride = query->sphereDataStride;
+    query->currentType = SphereObjectType;
+    query->currentIntersection.intersected = false;
+}
+
+///
+bool IntersectionQuery_findNextIntersection(struct IntersectionQuery * query) {
+    query->currentIntersection.intersected = false;
+
+    while (!query->done && query->currentIntersection.intersected == false) {
+        
+        if (query->currentType == SphereObjectType
+         && query->currentDataElement == query->numSphereDataElements) {
+            
+            query->currentType = PlaneObjectType;
+            query->currentDataElement = 0;
+            query->currentNumDataElements = query->numPlaneDataElements;
+            query->currentDataStride = query->planeDataStride;
+            query->currentData = query->planeData;
+        }
+        if (query->currentType == PlaneObjectType
+         && query->currentDataElement == query->numPlaneDataElements) {
+            
+            query->done = true;
+        }
+        
+        if (!query->done) {
+            query->currentIntersection.intersected = false;
+            query->currentIntersection.timeOfIntersection = INFINITY;
+            
+            __global float * dataStart = &(query->currentData[query->currentDataElement*query->currentDataStride]);
+            query->currentIntersection.dataPtr = dataStart;
+            
+            switch (query->currentType) {
+                case SphereObjectType:
+                    sphere_intersect(dataStart, query->rayOrigin, query->rayDirection, &query->currentIntersection);
+                    break;
+                case PlaneObjectType:
+                    plane_intersect(dataStart, query->rayOrigin, query->rayDirection, &query->currentIntersection);
+                    break;
+                default:
+                    break;
+            }
+            
+            query->currentIntersection.type = query->currentType;
+            query->currentDataElement++;
+        }
+    }
+    
+    return query->currentIntersection.intersected;
+}
+
+///
+struct RayIntersectionResult IntersectionQuery_findClosestIntersection(struct IntersectionQuery * query) {
+    IntersectionQuery_reset(query);
+    
+    struct RayIntersectionResult result;
+    result.intersected = false;
+    result.timeOfIntersection = INFINITY;
+    
+    while (IntersectionQuery_findNextIntersection(query)) {
+        if (query->currentIntersection.intersected
+         && query->currentIntersection.timeOfIntersection < result.timeOfIntersection) {
+            result = query->currentIntersection;
+        }
+    }
+    
+    return result;
+}
+
+///
+void next_intersection(
+    ///
+    int whichDataElement,
+    __global float * data,
+    unsigned int numDataElements,
+    unsigned int dataStride,
+    float3 rayOrigin, float3 rayDirection,
+    enum ObjectType type,
+    /// Output
+    struct RayIntersectionResult * result) {
+    
+    result->intersected = false;
+    result->timeOfIntersection = INFINITY;
+    
+    __global float * dataStart = &data[whichDataElement*dataStride];
+    result->dataPtr = dataStart;
+    
+    switch (type) {
+        case SphereObjectType:
+            sphere_intersect(dataStart, rayOrigin, rayDirection, result);
+            break;
+        case PlaneObjectType:
+            plane_intersect(dataStart, rayOrigin, rayDirection, result);
+            break;
+        default:
+            break;
+    }
+    
+    result->type = type;
+}
 
 ///
 ///
@@ -70,22 +217,8 @@ struct RayIntersectionResult closest_intersection(
     
     for (unsigned int i = 0; i < numDataElements; i++) {
         struct RayIntersectionResult currentResult;
-        currentResult.intersected = false;
-        currentResult.timeOfIntersection = INFINITY;
-    
-        __global float * dataStart = &data[i*dataStride];
-        currentResult.dataPtr = dataStart;
         
-        switch (type) {
-            case SphereObjectType:
-                sphere_intersect(dataStart, rayOrigin, rayDirection, &currentResult);
-                break;
-            case PlaneObjectType:
-                plane_intersect(dataStart, rayOrigin, rayDirection, &currentResult);
-                break;
-            default:
-                break;
-        }
+        next_intersection(i, data, numDataElements, dataStride, rayOrigin, rayDirection, type, &currentResult);
         
         if (currentResult.intersected
          && currentResult.timeOfIntersection < result.timeOfIntersection) {

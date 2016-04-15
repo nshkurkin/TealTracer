@@ -115,7 +115,8 @@ void JensenPhoton_setData(
     photon_geomptrs[whichPhoton] = photon->geometryDataPtr;
 }
     
-
+//////////////////////////////////////////////////////////////////////////////
+///
 ///
 struct PhotonHashmap {
     int spacing;
@@ -139,6 +140,52 @@ int PhotonHashmap_photonHashIJK(struct PhotonHashmap * map, int i, int j, int k)
 int PhotonHashmap_photonHash3i(struct PhotonHashmap * map, int3 index);
 int PhotonHashmap_cellIndexHash(struct PhotonHashmap * map, float3 position);
 int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position);
+
+#define PHOTON_HASHMAP_BASIC_PARAMS \
+    const int map_spacing, \
+    const float map_xmin, \
+    const float map_ymin, \
+    const float map_zmin, \
+    const float map_xmax, \
+    const float map_ymax, \
+    const float map_zmax, \
+    const int map_xdim, \
+    const int map_ydim, \
+    const int map_zdim, \
+    const float map_cellsize, \
+    const int map_numPhotons
+
+#define PHOTON_HASHMAP_PHOTON_PARAMS \
+    __global float * map_photon_floats, \
+    __global float * __global * map_photon_geomptrs, \
+    __global int * map_photon_objTypes
+
+#define PHOTON_HASHMAP_META_PARAMS \
+    __global int * map_gridIndices, \
+    __global int * map_gridFirstPhotonIndices
+
+#define PHOTON_HASHMAP_SET_BASIC_PARAMS() \
+    map.spacing = map_spacing; \
+    map.xmin = map_xmin; \
+    map.ymin = map_ymin; \
+    map.zmin = map_zmin; \
+    map.xmax = map_xmax; \
+    map.ymax = map_ymax; \
+    map.zmax = map_zmax; \
+    map.xdim = map_xdim; \
+    map.ydim = map_ydim; \
+    map.zdim = map_zdim; \
+    map.cellsize = map_cellsize; \
+    map.numPhotons =  map_numPhotons
+
+#define PHOTON_HASHMAP_SET_PHOTON_PARAMS() \
+    map.photon_floats = map_photon_floats; \
+    map.photon_geomptrs = map_photon_geomptrs; \
+    map.photon_objTypes = map_photon_objTypes
+
+#define PHOTON_HASHMAP_SET_META_PARAMS() \
+    map.gridIndices = map_gridIndices; \
+    map.gridFirstPhotonIndices = map_gridFirstPhotonIndices
 
 ///
 int PhotonHashmap_photonHashIJK(struct PhotonHashmap * map, int i, int j, int k) {
