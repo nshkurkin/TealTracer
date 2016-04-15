@@ -127,6 +127,8 @@ global kernel void raytrace_one_ray(
     const float3 camera_right,
     const float3 camera_lookAt,
     
+    const unsigned int brdf, // one of (enum BRDFType)
+    
     __global float * sphereData,
     const unsigned int numSpheres,
 
@@ -186,7 +188,7 @@ global kernel void raytrace_one_ray(
     
     /// Calculate color
     if (bestIntersection.intersected) {
-        RGBf energy = computeOutputEnergyHit(BlinnPhong, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
+        RGBf energy = computeOutputEnergyHit((enum BRDFType) brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
         color = ubyte4_make(energy.x * 255, energy.y * 255, energy.z * 255, 255);
     
 //        switch (bestIntersection.type) {

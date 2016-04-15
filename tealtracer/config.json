@@ -36,6 +36,12 @@
         "useGPU": false,
         
         "outputWidth" : 640,
-        "outputHeight" : 480
+        "outputHeight" : 480,
+        
+        "__enum_brdfType" : {
+            "BlinnPhong" : 0,
+            "OrenNayar" : 1
+        },
+        "brdfType" : 0
     }
 }

@@ -48,6 +48,13 @@ public:
     int renderOutputWidth;
     int renderOutputHeight;
 
+    enum SupportedBRDF {
+        BlinnPhong = 0, // https://en.wikipedia.org/wiki/Blinn–Phong_shading_model
+        OrenNayar = 1 // https://en.wikipedia.org/wiki/Oren–Nayar_reflectance_model
+    };
+    
+    SupportedBRDF brdfType;
+
     static const Eigen::Vector3f Up;
     static const Eigen::Vector3f Forward;
     static const Eigen::Vector3f Right;
@@ -67,6 +74,7 @@ public:
         
         FPSsaved = 0.0;
         realtimeSaved = 0.0;
+        brdfType = BlinnPhong;
         
         ///
         lastX = std::numeric_limits<float>::infinity();
@@ -290,6 +298,8 @@ public:
            cameraData.up,
            cameraData.right,
            cameraData.lookAt,
+           
+           (cl_uint) brdfType,
            
            computeEngine.getBuffer("spheres"),
            (cl_uint) numSpheres,

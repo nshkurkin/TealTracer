@@ -87,6 +87,8 @@ TealTracer::run(const std::vector<std::string> & args) {
     cpuWindow()->setEventListener(cpuRayTracer_);
     
     if (config["GPURayTracer"]["enabled"].get<bool>()) {
+        gpuRayTracer_->brdfType = (GPURayTracer::SupportedBRDF) config["GPURayTracer"]["brdfType"].get<int>();
+    
         gpuRayTracer_->start();
     }
     if (config["CPURayTracer"]["enabled"].get<bool>()) {
