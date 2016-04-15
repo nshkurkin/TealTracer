@@ -190,21 +190,6 @@ global kernel void raytrace_one_ray(
     if (bestIntersection.intersected) {
         RGBf energy = computeOutputEnergyHit((enum BRDFType) brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
         color = ubyte4_make(energy.x * 255, energy.y * 255, energy.z * 255, 255);
-    
-//        switch (bestIntersection.type) {
-//            case SphereObjectType: {
-//                struct PovraySphereData data = PovraySphereData_fromData(bestIntersection.dataPtr);
-//                color = ubyte4_make(data.pigment.color.x * 255, data.pigment.color.y * 255, data.pigment.color.z * 255, data.pigment.color.w * 255);
-//                break;
-//            }
-//            case PlaneObjectType: {
-//                struct PovrayPlaneData data = PovrayPlaneData_fromData(bestIntersection.dataPtr);
-//                color = ubyte4_make(data.pigment.color.x * 255, data.pigment.color.y * 255, data.pigment.color.z * 255, data.pigment.color.w * 255);
-//            }
-//                break;
-//            default:
-//                break;
-//        }
     }
     
     /// Update the output
