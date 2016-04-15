@@ -87,6 +87,8 @@ global kernel void photonmap_mapPhotonToGrid(
     PHOTON_HASHMAP_SET_META_PARAMS();
     
     int index = (int) get_global_id(0);
+    
+    PhotonHashmap_mapPhotonToGrid(&map, index);
 }
 
 ///////////////////////////////////////////////////////////////////////////

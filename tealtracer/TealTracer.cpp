@@ -61,7 +61,7 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     scene_ = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
     
-    scene_->writeOut(std::cout);
+//    scene_->writeOut(std::cout);
     
     gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
     gpuRayTracer_->setScene(scene_);

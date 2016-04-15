@@ -18,10 +18,15 @@ enum BRDFType {
 };
 
 ///
-RGBf computeOutputEnergyForHit(
+RGBf computeOutputEnergyHit(
     enum BRDFType brdf,
     struct RayIntersectionResult hitResult,
     float3 toLight, float3 toViewer);
+///
+RGBf computeOutputEnergyForBRDF(
+    enum BRDFType brdf,
+    struct PovrayPigment pigment, struct PovrayFinish finish,
+    RGBf source, float3 toLight, float3 toViewer, float3 surfaceNormal);
 ///
 RGBf computeBlinnPhongOutputEnergy(
     struct PovrayPigment pigment, struct PovrayFinish finish,
