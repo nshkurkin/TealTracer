@@ -71,22 +71,22 @@ kernel void photonmap_sortPhotons(void) {
 /// NOTE: Called over "photons.size()" photons
 ///
 
-kernel void photonmap_mapPhotonToGrid(
-    // Grid specification
-    PHOTON_HASHMAP_BASIC_PARAMS,
-    PHOTON_HASHMAP_PHOTON_PARAMS,
-    PHOTON_HASHMAP_META_PARAMS
-    ) {
-
-    struct PhotonHashmap map;
-    PHOTON_HASHMAP_SET_BASIC_PARAMS();
-    PHOTON_HASHMAP_SET_PHOTON_PARAMS();
-    PHOTON_HASHMAP_SET_META_PARAMS();
-    
-    int index = (int) get_global_id(0);
-    
-    PhotonHashmap_mapPhotonToGrid(&map, index);
-}
+//kernel void photonmap_mapPhotonToGrid(
+//    // Grid specification
+//    PHOTON_HASHMAP_BASIC_PARAMS,
+//    PHOTON_HASHMAP_PHOTON_PARAMS,
+//    PHOTON_HASHMAP_META_PARAMS
+//    ) {
+//
+//    struct PhotonHashmap map;
+//    PHOTON_HASHMAP_SET_BASIC_PARAMS();
+//    PHOTON_HASHMAP_SET_PHOTON_PARAMS();
+//    PHOTON_HASHMAP_SET_META_PARAMS();
+//    
+//    int index = (int) get_global_id(0);
+//    
+//    PhotonHashmap_mapPhotonToGrid(&map, index);
+//}
 
 ///////////////////////////////////////////////////////////////////////////
 ///
@@ -97,17 +97,17 @@ kernel void photonmap_mapPhotonToGrid(
 /// NOTE: Called over "photons.size()" photons
 ///
 
-kernel void photonmap_computeGridFirstPhoton(
-    // Grid specification
-    PHOTON_HASHMAP_META_PARAMS) {
-
-    struct PhotonHashmap map;
-    PHOTON_HASHMAP_SET_META_PARAMS();
-    
-    int index = (int) get_global_id(0);
-    
-    PhotonHashmap_computeGridFirstPhoton(&map, index);
-}
+//kernel void photonmap_computeGridFirstPhoton(
+//    // Grid specification
+//    PHOTON_HASHMAP_META_PARAMS) {
+//
+//    struct PhotonHashmap map;
+//    PHOTON_HASHMAP_SET_META_PARAMS();
+//    
+//    int index = (int) get_global_id(0);
+//    
+//    PhotonHashmap_computeGridFirstPhoton(&map, index);
+//}
 
 ////////////////////////////////////////////////////////////////////////////
 ///

@@ -855,7 +855,7 @@ ComputeEngine::executeKernel(
 
     if(iError != CL_SUCCESS)
 	{
-        DEBUG_CL_printf("Compute Engine: Error executing kernel '%s'\n", acKernelName);
+        DEBUG_CL_printf("Compute Engine: Error aexecuting kernel '%s'\n", acKernelName);
 		ReportError(iError);
 		assert(false);
 	}  
