@@ -19,7 +19,7 @@
 ///
 ///
 /// NOTE:  N threads, WG is workgroup size. Sort WG input blocks in each workgroup.
-global kernel void photonmap_sortPhotons(void) {
+kernel void photonmap_sortPhotons(void) {
 //    __global const data_t * in,
 //    __global data_t * out,
 //    __local data_t * aux) {
@@ -71,7 +71,7 @@ global kernel void photonmap_sortPhotons(void) {
 /// NOTE: Called over "photons.size()" photons
 ///
 
-global kernel void photonmap_mapPhotonToGrid(
+kernel void photonmap_mapPhotonToGrid(
     // Grid specification
     PHOTON_HASHMAP_BASIC_PARAMS,
     PHOTON_HASHMAP_PHOTON_PARAMS,
@@ -97,7 +97,7 @@ global kernel void photonmap_mapPhotonToGrid(
 /// NOTE: Called over "photons.size()" photons
 ///
 
-global kernel void photonmap_computeGridFirstPhoton(
+kernel void photonmap_computeGridFirstPhoton(
     // Grid specification
     PHOTON_HASHMAP_META_PARAMS) {
 
@@ -119,7 +119,7 @@ global kernel void photonmap_computeGridFirstPhoton(
 ///     sample source. The resulting color is placed in the output texture buffer.
 ///
 
-global kernel void raytrace_one_ray(
+kernel void raytrace_one_ray(
     /// input
     const float3 camera_location,
     const float3 camera_up,

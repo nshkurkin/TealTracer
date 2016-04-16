@@ -216,6 +216,27 @@ int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position) {
 ///
 void PhotonHashmap_mapPhotonToGrid(struct PhotonHashmap * map, int index);
 void PhotonHashmap_computeGridFirstPhoton(struct PhotonHashmap * map, int index);
+struct JensenPhoton PhotonHashmap_getPhoton(struct PhotonHashmap * map, int index);
+void PhotonHashmap_setPhoton(struct PhotonHashmap * map, struct JensenPhoton * photon, int index);
+
+///
+struct JensenPhoton PhotonHashmap_getPhoton(struct PhotonHashmap * map, int index) {
+    return JensenPhoton_fromData(
+        map->photon_floats,
+        map->photon_objTypes,
+        map->photon_geomptrs,
+        index);
+};
+
+///
+void PhotonHashmap_setPhoton(struct PhotonHashmap * map, struct JensenPhoton * photon, int index) {
+    JensenPhoton_setData(
+        photon,
+        map->photon_floats,
+        map->photon_objTypes,
+        map->photon_geomptrs,
+        index);
+}
 
 ///
 void PhotonHashmap_gatherPhotonIndices(

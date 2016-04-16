@@ -698,7 +698,7 @@ ComputeEngine::createProgramFromSourceString(
 
     DEBUG_CL_printf(SEPARATOR);
     DEBUG_CL_printf("Building compute program '%s'...\n", acProgramName);
-    iError = clBuildProgram(kProgram, m_uiDeviceCount, m_akDeviceIds, NULL, NULL, NULL);
+    iError = clBuildProgram(kProgram, m_uiDeviceCount, m_akDeviceIds, "-I./", NULL, NULL);
     
     for(uint i = 0; i < m_uiDeviceCount; i++) {
 //        DEBUG_CL_printf("Build log for device '%d':\n", i);
