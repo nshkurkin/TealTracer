@@ -9,6 +9,24 @@
 #ifndef random_h
 #define random_h
 
+ulong MWC_AddMod64(ulong a, ulong b, ulong M);
+ulong MWC_MulMod64(ulong a, ulong b, ulong M);
+ulong MWC_PowMod64(ulong a, ulong e, ulong M);
+uint2 MWC_SkipImpl_Mod64(uint2 curr, ulong A, ulong M, ulong distance);
+uint2 MWC_SeedImpl_Mod64(ulong A, ulong M, uint vecSize, uint vecOffset, ulong streamBase, ulong streamGap);
+
+//! Represents the state of a particular generator
+typedef struct mwc64x_state_t { uint x; uint c; } mwc64x_state_t;
+
+enum{ MWC64X_A = 4294883355U };
+enum{ MWC64X_M = 18446383549859758079UL };
+
+void MWC64X_Step(mwc64x_state_t *s);
+void MWC64X_Skip(mwc64x_state_t *s, ulong distance);
+void MWC64X_SeedStreams(mwc64x_state_t *s, ulong baseOffset, ulong perStreamOffset);
+uint MWC64X_NextUint(mwc64x_state_t *s);
+
+
 /*
 Part of MWC64X by David Thomas, dt10@imperial.ac.uk
 This is provided under BSD, full license is with the main package.
@@ -83,12 +101,6 @@ uint2 MWC_SeedImpl_Mod64(ulong A, ulong M, uint vecSize, uint vecOffset, ulong s
 	ulong x=MWC_MulMod64(MWC_BASEID, m, M);
 	return (uint2)((uint)(x/A), (uint)(x%A));
 }
-
-//! Represents the state of a particular generator
-typedef struct{ uint x; uint c; } mwc64x_state_t;
-
-enum{ MWC64X_A = 4294883355U };
-enum{ MWC64X_M = 18446383549859758079UL };
 
 void MWC64X_Step(mwc64x_state_t *s)
 {

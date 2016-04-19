@@ -11,6 +11,217 @@
 #include "intersection.cl"
 #include "photon_hashmap.cl"
 #include "coloring.cl"
+#include "random.cl"
+
+///
+float4 uniformSampleSphere(float u, float v);
+float4 cosineSampleSphere(float u, float v);
+
+/// Uniform sphere sampling.
+float4 uniformSampleSphere(float u, float v) {
+    float phi = float(2.0f * M_PI) * u;
+    float cosTheta = 1.0f - 2.0f * v, sinTheta = 2.0f * sqrt(v * (1.0f - v));
+    return (float4) {cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta, (1.0f / (4.0f * M_PI))};
+}
+
+/// Cosine weighted sphere sampling. Up direction is the z direction.
+float4 cosineSampleSphere(float u, float v) {
+    const float phi = float(2.0f * M_PI) * u;
+    const float vv = 2.0f * (v - 0.5f);
+    const float absvv = (vv > 0? vv : -vv);
+    const float cosTheta = (vv > 0? 1.0f : -1.0f) * sqrt(absvv);
+    const float sinTheta = sqrt(max(0.0f,1.0f - cosTheta*cosTheta));
+    
+    return (float4) {cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta, 2.0f * cosTheta * (1.0f/M_PI)};
+}
+
+///
+struct SceneConfig {
+    
+    ///
+    enum BRDFType brdf;
+    
+    /// scene elements
+    __global float * sphereData;
+    unsigned int numSpheres;
+    
+    __global float * planeData;
+    unsigned int numPlanes;
+    
+    // light data
+    __global float * lightData;
+    unsigned int numLights;
+    float luminosityPerPhoton;
+    float photonBounceProbability;
+    float photonBounceEnergyMultipler;
+    
+    // photon map data
+    struct PhotonHashmap map;
+    
+    /// miscellaneous
+    struct mwc64x_state_t generator;
+};
+
+///
+struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneConfig * config, float3 rayOrigin, float3 rayDirection);
+void SceneConfig_initGenerator(struct SceneConfig * config);
+float SceneConfig_randomNormalizedFloat(struct SceneConfig * config);
+int SceneConfig_randomInt(struct SceneConfig * config);
+
+///
+struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneConfig * config, float3 rayOrigin, float3 rayDirection) {
+    /// Calculate intersections
+    struct RayIntersectionResult bestIntersection;
+    bestIntersection.intersected = false;
+    bestIntersection.timeOfIntersection = INFINITY;
+    
+    __global float * dataPtrs[2] = { config->sphereData, config->planeData };
+    unsigned int dataCounts[2] = { config->numSpheres, config->numPlanes };
+    unsigned int dataStrides[2] = { kPovraySphereStride, kPovrayPlaneStride };
+    
+    for (unsigned int i = 0; i < (unsigned int) NumObjectTypes; i++) {
+        struct RayIntersectionResult intersection = closest_intersection(
+            dataPtrs[i], dataCounts[i], dataStrides[i],
+            rayOrigin, rayDirection,
+            (enum ObjectType) i);
+        
+        if (intersection.intersected
+         && intersection.timeOfIntersection < bestIntersection.timeOfIntersection) {
+            bestIntersection = intersection;
+        }
+    }
+    
+    return bestIntersection;
+}
+
+///
+void SceneConfig_initGenerator(struct SceneConfig * config) {
+    MWC64X_SeedStreams(&(config->generator), (ulong) get_global_id(0), (ulong) get_global_size(0));
+}
+
+///
+float SceneConfig_randomNormalizedFloat(struct SceneConfig * config) {
+    return ((float) (((int) MWC64X_NextUint(&(config->generator))) % 100000)) / 100000.0f;
+}
+
+///
+int SceneConfig_randomInt(struct SceneConfig * config) {
+    return (int) MWC64X_NextUint(&(config->generator));
+}
+
+///
+void processEmittedPhoton(
+    struct SceneConfig * config,
+
+    ///
+    RGBf sourceLightEnergy,
+    float3 initialRayOrigin,
+    float3 initialRayDirection);
+
+///
+kernel void emit_photon(
+    ///
+    const unsigned int brdf, // one of (enum BRDFType)
+    
+    /// scene elements
+    __global float * sphereData,
+    const unsigned int numSpheres,
+
+    __global float * planeData,
+    const unsigned int numPlanes,
+
+    // light data
+    __global float * lightData,
+    const unsigned int numLights,
+    
+    const int numDirectPhotons,
+    const float luminosityPerPhoton, // lumens/(float)numRays
+    const float photonBounceProbability,
+    const float photonBounceEnergyMultipler
+    //
+    ) {
+    
+    int whichPhoton = (int) get_global_id(0);
+    if (whichPhoton >= numDirectPhotons) {
+        return;
+    }
+    
+    struct SceneConfig config;
+    
+    config.brdf = (enum BRDFType) brdf;
+    config.sphereData = sphereData;
+    config.numSpheres = numSpheres;
+    config.planeData = planeData;
+    config.numPlanes = numPlanes;
+    
+    config.lightData = lightData;
+    config.numLights = numLights;
+    config.luminosityPerPhoton = luminosityPerPhoton;
+    config.photonBounceProbability = photonBounceProbability;
+    config.photonBounceEnergyMultipler = photonBounceEnergyMultipler;
+    
+    SceneConfig_initGenerator(&config);
+    
+    /// choose a random light and direction
+    int whichLight = SceneConfig_randomInt(&config) % numLights;
+    struct PovrayLightSourceData light = PovrayLightSourceData_fromData(&lightData[kPovrayLightSourceStride * whichLight]);
+    
+    float u = SceneConfig_randomNormalizedFloat(&config);
+    float v = SceneConfig_randomNormalizedFloat(&config);
+    
+    float3 rayOrigin = light.position;
+    float3 rayDirection = cosineSampleSphere(u, v).xyz;
+    
+    processEmittedPhoton(&config, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection);
+}
+
+void processEmittedPhoton(
+    struct SceneConfig * config,
+    
+    ///
+    RGBf sourceLightEnergy,
+    float3 initialRayOrigin,
+    float3 initialRayDirection) {
+
+    bool photonStored = false;
+    
+    float3 rayOrigin = initialRayOrigin;
+    float3 rayDirection = initialRayDirection;
+    RGBf energy = sourceLightEnergy;
+    
+    struct RayIntersectionResult hit = SceneConfig_findClosestIntersection(config, initialRayOrigin, initialRayDirection);
+
+    while (!photonStored && hit.intersected) {
+        struct JensenPhoton photon;
+        
+        photon.position = RayIntersectionResult_locationOfIntersection(&hit);
+        photon.incomingDirection = rayDirection;
+        photon.energy = energy;
+        
+        float value = SceneConfig_randomNormalizedFloat(config);
+
+        if (value < config->photonBounceProbability) {
+
+            float3 reflectedRay_direction = RayIntersectionResult_outgoingDirection(&hit);
+            float3 reflectedRay_origin = RayIntersectionResult_locationOfIntersection(&hit) + 0.001f * reflectedRay_direction;
+            
+            RGBf hitEnergy = computeOutputEnergyForHit(0, hit, -rayDirection, reflectedRay_direction) * config->photonBounceEnergyMultipler;
+            /// NOTE: Super frustrating on the GPU; the following line crashes
+            ///         clBuildProgram for whatever reason not explained!
+//            RGBf hitEnergy = computeOutputEnergyForHit(config->brdf, hit, -rayDirection, reflectedRay_direction) * config->photonBounceEnergyMultipler;
+            
+            /// Calculate intersection
+            hit = SceneConfig_findClosestIntersection(config, reflectedRay_origin, reflectedRay_direction);
+            rayOrigin = reflectedRay_origin;
+            rayDirection = reflectedRay_direction;
+            energy = hitEnergy;
+        }
+        else {
+            PhotonHashmap_setPhoton(&config->map, &photon, (int) get_global_id(0));
+            photonStored = true;
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////
 ///
@@ -71,22 +282,22 @@ kernel void photonmap_sortPhotons(void) {
 /// NOTE: Called over "photons.size()" photons
 ///
 
-//kernel void photonmap_mapPhotonToGrid(
-//    // Grid specification
-//    PHOTON_HASHMAP_BASIC_PARAMS,
-//    PHOTON_HASHMAP_PHOTON_PARAMS,
-//    PHOTON_HASHMAP_META_PARAMS
-//    ) {
-//
-//    struct PhotonHashmap map;
-//    PHOTON_HASHMAP_SET_BASIC_PARAMS();
-//    PHOTON_HASHMAP_SET_PHOTON_PARAMS();
-//    PHOTON_HASHMAP_SET_META_PARAMS();
-//    
-//    int index = (int) get_global_id(0);
-//    
-//    PhotonHashmap_mapPhotonToGrid(&map, index);
-//}
+kernel void photonmap_mapPhotonToGrid(
+    // Grid specification
+    PHOTON_HASHMAP_BASIC_PARAMS,
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS
+    ) {
+
+    struct PhotonHashmap map;
+    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    int index = (int) get_global_id(0);
+    
+    PhotonHashmap_mapPhotonToGrid(&map, index);
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ///
@@ -97,17 +308,17 @@ kernel void photonmap_sortPhotons(void) {
 /// NOTE: Called over "photons.size()" photons
 ///
 
-//kernel void photonmap_computeGridFirstPhoton(
-//    // Grid specification
-//    PHOTON_HASHMAP_META_PARAMS) {
-//
-//    struct PhotonHashmap map;
-//    PHOTON_HASHMAP_SET_META_PARAMS();
-//    
-//    int index = (int) get_global_id(0);
-//    
-//    PhotonHashmap_computeGridFirstPhoton(&map, index);
-//}
+kernel void photonmap_computeGridFirstPhoton(
+    // Grid specification
+    PHOTON_HASHMAP_META_PARAMS) {
+
+    struct PhotonHashmap map;
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    int index = (int) get_global_id(0);
+    
+    PhotonHashmap_computeGridFirstPhoton(&map, index);
+}
 
 ////////////////////////////////////////////////////////////////////////////
 ///
@@ -146,9 +357,9 @@ kernel void raytrace_one_ray(
 
     mat4x4_loadLookAt(&viewTransform, camera_location, camera_lookAt, camera_up);
 
-    float3 forward = mat4x4_mult4x1(&viewTransform, (float4){Forward.x, Forward.y, Forward.z, 0.0}).xyz;
-    float3 up = mat4x4_mult4x1(&viewTransform, (float4){Up.x, Up.y, Up.z, 0.0}).xyz * length(camera_up);
-    float3 right = mat4x4_mult4x1(&viewTransform, (float4){Right.x, Right.y, Right.z, 0.0}).xyz * length(camera_right);
+    float3 forward = mat4x4_mult4x1(&viewTransform, (float4){Forward.x, Forward.y, Forward.z, 0.0f}).xyz;
+    float3 up = mat4x4_mult4x1(&viewTransform, (float4){Up.x, Up.y, Up.z, 0.0f}).xyz * length(camera_up);
+    float3 right = mat4x4_mult4x1(&viewTransform, (float4){Right.x, Right.y, Right.z, 0.0f}).xyz * length(camera_right);
     
     unsigned int threadId = (unsigned int) get_global_id(0);
     
@@ -185,25 +396,9 @@ kernel void raytrace_one_ray(
         }
     }
     
-    /// This code is about a bit slower than the above, but is more generic and allows for
-    /// incremental intersection search
-//    struct IntersectionQuery query;
-//    query.sphereData = sphereData;
-//    query.numSphereDataElements = numSpheres;
-//    query.sphereDataStride = kPovraySphereStride;
-//    
-//    query.planeData = planeData;
-//    query.numPlaneDataElements = numPlanes;
-//    query.planeDataStride = kPovrayPlaneStride;
-//    
-//    query.rayOrigin = rayOrigin;
-//    query.rayDirection = rayDirection;
-//    
-//    struct RayIntersectionResult bestIntersection = IntersectionQuery_findClosestIntersection(&query);
-    
     /// Calculate color
     if (bestIntersection.intersected) {
-        RGBf energy = computeOutputEnergyHit((enum BRDFType) brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
+        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
         color = ubyte4_make(energy.x * 255, energy.y * 255, energy.z * 255, 255);
     }
     

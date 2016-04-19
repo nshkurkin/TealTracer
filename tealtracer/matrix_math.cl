@@ -11,6 +11,10 @@
 
 ////////////////////////////////////////////////////////////////////////////
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif // define(M_PI)
+
 ///
 struct mat4x4 {
     float4 col[4];
@@ -72,10 +76,10 @@ void mat4x4_loadIdentity(struct mat4x4 * mat) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if (i == j) {
-                mat4x4_set(mat,i,j, 1.0);
+                mat4x4_set(mat,i,j, 1.0f);
             }
             else {
-                mat4x4_set(mat,i,j, 0.0);
+                mat4x4_set(mat,i,j, 0.0f);
             }
         }
     }

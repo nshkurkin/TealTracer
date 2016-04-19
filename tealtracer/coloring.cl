@@ -18,7 +18,7 @@ enum BRDFType {
 };
 
 ///
-RGBf computeOutputEnergyHit(
+RGBf computeOutputEnergyForHit(
     enum BRDFType brdf,
     struct RayIntersectionResult hitResult,
     float3 toLight, float3 toViewer);
@@ -42,12 +42,12 @@ RGBf computeBlinnPhongOutputEnergy(
     
     RGBf output;
         
-    float multiplier = 0.0;
+    float multiplier = 0.0f;
     
     multiplier += finish.ambient;
     multiplier += finish.diffuse * max(0.0f, dot(surfaceNormal, toLight));
     
-    if (finish.roughness > 0.001) {
+    if (finish.roughness > 0.001f) {
         float3 halfwayVector = normalize(toLight + toViewer);
         multiplier += finish.specular * pow(max(0.0f, dot(surfaceNormal, halfwayVector)), 1.0f / finish.roughness);
     }
@@ -80,8 +80,8 @@ RGBf computeOrenNayarOutputEnergy(
     float roughnessSquared = finish.roughness * finish.roughness;
 
     // calculate A and B
-    float A = 1.0 - 0.5 * (roughnessSquared / (roughnessSquared + 0.57));
-    float B = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
+    float A = 1.0f - 0.5f * (roughnessSquared / (roughnessSquared + 0.57f));
+    float B = 0.45f * (roughnessSquared / (roughnessSquared + 0.09f));
     float C = sin(alpha) * tan(beta);
     
     // put it all together
@@ -103,7 +103,7 @@ RGBf computeOutputEnergyForBRDF(
     struct PovrayPigment pigment, struct PovrayFinish finish,
     RGBf source, float3 toLight, float3 toViewer, float3 surfaceNormal) {
 
-    RGBf output = (float3) {0, 0, 0};
+    RGBf output = (float3) {0.0f, 0.0f, 0.0f};
     switch (brdf) {
         case BlinnPhong : {
             output = computeBlinnPhongOutputEnergy(pigment, finish, source, toLight, toViewer, surfaceNormal);
@@ -120,12 +120,12 @@ RGBf computeOutputEnergyForBRDF(
 }
 
 ///
-RGBf computeOutputEnergyHit(
+RGBf computeOutputEnergyForHit(
     enum BRDFType brdf,
     struct RayIntersectionResult hitResult,
     float3 toLight, float3 toViewer) {
     
-    RGBf output = (float3) {0, 0, 0};
+    RGBf output = (float3) {0.0f, 0.0f, 0.0f};
     struct PovrayPigment pigment;
     struct PovrayFinish finish;
     
@@ -147,7 +147,7 @@ RGBf computeOutputEnergyHit(
         }
     }
     
-    output = computeOutputEnergyForBRDF(brdf, pigment, finish, (RGBf) {1,1,1}, toLight, toViewer, hitResult.surfaceNormal);
+    output = computeOutputEnergyForBRDF(brdf, pigment, finish, (RGBf) {1.0f,1.0f,1.0f}, toLight, toViewer, hitResult.surfaceNormal);
     
     return output;
 }
