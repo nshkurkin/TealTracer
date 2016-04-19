@@ -65,6 +65,16 @@ struct CLPovrayLightSourceData {
     
     CLPovrayLightSourceData() : position(0,0,0), color(0,0,0,1) {}
     CLPovrayLightSourceData(const PovrayLightSourceData & data) : position(data.position.x(), data.position.y(), data.position.z()), color(data.color.x(), data.color.y(), data.color.z(), data.color.w()) {}
+    
+    void writeOutData(std::vector<cl_float> & data) {
+        data.push_back(position.x);
+        data.push_back(position.y);
+        data.push_back(position.z);
+        data.push_back(color.x);
+        data.push_back(color.y);
+        data.push_back(color.z);
+        data.push_back(color.w);
+    }
 };
 
 ///

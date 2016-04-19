@@ -134,15 +134,16 @@ kernel void emit_photon(
     __global float * lightData,
     const unsigned int numLights,
     
-    const int numDirectPhotons,
     const float luminosityPerPhoton, // lumens/(float)numRays
     const float photonBounceProbability,
-    const float photonBounceEnergyMultipler
-    //
+    const float photonBounceEnergyMultipler,
+    
+    ///
+    PHOTON_HASHMAP_PHOTON_PARAMS
     ) {
     
     int whichPhoton = (int) get_global_id(0);
-    if (whichPhoton >= numDirectPhotons) {
+    if (whichPhoton >= map_numPhotons) {
         return;
     }
     
@@ -159,6 +160,8 @@ kernel void emit_photon(
     config.luminosityPerPhoton = luminosityPerPhoton;
     config.photonBounceProbability = photonBounceProbability;
     config.photonBounceEnergyMultipler = photonBounceEnergyMultipler;
+    
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&config.map));
     
     SceneConfig_initGenerator(&config);
     
@@ -205,10 +208,37 @@ void processEmittedPhoton(
             float3 reflectedRay_direction = RayIntersectionResult_outgoingDirection(&hit);
             float3 reflectedRay_origin = RayIntersectionResult_locationOfIntersection(&hit) + 0.001f * reflectedRay_direction;
             
-            RGBf hitEnergy = computeOutputEnergyForHit(0, hit, -rayDirection, reflectedRay_direction) * config->photonBounceEnergyMultipler;
+            
             /// NOTE: Super frustrating on the GPU; the following line crashes
-            ///         clBuildProgram for whatever reason not explained!
+            ///         clBuildProgram for whatever reason not explained! It has
+            ///         instead been expanded below and it works?
+            
 //            RGBf hitEnergy = computeOutputEnergyForHit(config->brdf, hit, -rayDirection, reflectedRay_direction) * config->photonBounceEnergyMultipler;
+            
+            //////
+            struct PovrayPigment pigment;
+            struct PovrayFinish finish;
+    
+            switch (hit.type) {
+                case SphereObjectType: {
+                    struct PovraySphereData data = PovraySphereData_fromData(hit.dataPtr);
+                    pigment = data.pigment;
+                    finish = data.finish;
+                    break;
+                }
+                case PlaneObjectType: {
+                    struct PovrayPlaneData data = PovrayPlaneData_fromData(hit.dataPtr);
+                    pigment = data.pigment;
+                    finish = data.finish;
+                    break;
+                };
+                default: {
+                    break;
+                }
+            }
+    
+            RGBf hitEnergy = computeOutputEnergyForBRDF(config->brdf, pigment, finish, (RGBf) {1.0f,1.0f,1.0f}, -rayDirection, reflectedRay_direction, hit.surfaceNormal) * config->photonBounceEnergyMultipler;
+            //////
             
             /// Calculate intersection
             hit = SceneConfig_findClosestIntersection(config, reflectedRay_origin, reflectedRay_direction);
@@ -221,56 +251,6 @@ void processEmittedPhoton(
             photonStored = true;
         }
     }
-}
-
-////////////////////////////////////////////////////////////////////////////
-///
-/// KERNEL: photonmap_sortPhotons
-///
-///
-///
-/// NOTE:  N threads, WG is workgroup size. Sort WG input blocks in each workgroup.
-kernel void photonmap_sortPhotons(void) {
-//    __global const data_t * in,
-//    __global data_t * out,
-//    __local data_t * aux) {
-  
-//    int i = get_local_id(0); // index in workgroup
-//    int wg = get_local_size(0); // workgroup size = block size, power of 2
-//    
-//    // Move IN, OUT to block start
-//    int offset = get_group_id(0) * wg;
-//    in += offset; out += offset;
-//    
-//    // Load block in AUX[WG]
-//    aux[i] = in[i];
-//    barrier(CLK_LOCAL_MEM_FENCE); // make sure AUX is entirely up to date
-//    
-//    // Now we will merge sub-sequences of length 1,2,...,WG/2
-//    for (int length=1;length<wg;length<<=1)
-//    {
-//        data_t iData = aux[i];
-//        uint iKey = getKey(iData);
-//        int ii = i & (length-1);  // index in our sequence in 0..length-1
-//        int sibling = (i - ii) ^ length; // beginning of the sibling sequence
-//        int pos = 0;
-//        for (int inc=length;inc>0;inc>>=1) // increment for dichotomic search
-//        {
-//            int j = sibling+pos+inc-1;
-//            uint jKey = getKey(aux[j]);
-//            bool smaller = (jKey < iKey) || ( jKey == iKey && j < i );
-//            pos += (smaller)?inc:0;
-//            pos = min(pos,length);
-//        }
-//        int bits = 2*length-1; // mask for destination
-//        int dest = ((ii + pos) & bits) | (i & ~bits); // destination index in merged sequence
-//        barrier(CLK_LOCAL_MEM_FENCE);
-//        aux[dest] = iData;
-//        barrier(CLK_LOCAL_MEM_FENCE);
-//    }
-//    
-//    // Write output
-//    out[i] = aux[i];
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -298,6 +278,61 @@ kernel void photonmap_mapPhotonToGrid(
     
     PhotonHashmap_mapPhotonToGrid(&map, index);
 }
+
+////////////////////////////////////////////////////////////////////////////
+///
+/// KERNEL: photonmap_sortPhotonHash
+///
+/// SYNOPSIS: called after photons have been emitted and "photonmap_mapPhotonToGrid"
+///             has completed.
+///
+/// NOTE:  N threads, WG is workgroup size. Sort WG input blocks in each workgroup.
+///         Taken from: http://www.bealto.com/gpu-sorting_parallel-merge-local.html
+
+kernel void photonmap_sortPhotonHash(
+    __global const int * photon_hash_in,
+    __global int * photon_hash_out,
+    __local int * aux) {
+  
+    int i = get_local_id(0); // index in workgroup
+    int wg = get_local_size(0); // workgroup size = block size, power of 2
+    
+    // Move IN, OUT to block start
+    int offset = get_group_id(0) * wg;
+    photon_hash_in += offset;
+    photon_hash_out += offset;
+    
+    // Load block in AUX[WG]
+    aux[i] = photon_hash_in[i];
+    barrier(CLK_LOCAL_MEM_FENCE); // make sure AUX is entirely up to date
+    
+    // Now we will merge sub-sequences of length 1,2,...,WG/2
+    for (int length = 1; length < wg; length <<= 1) {
+        int iData = aux[i];
+        uint iKey = iData;// getKey(iData);
+        int ii = i & (length-1);  // index in our sequence in 0..length-1
+        int sibling = (i - ii) ^ length; // beginning of the sibling sequence
+        int pos = 0;
+        // increment for dichotomic search
+        for (int inc = length; inc > 0; inc >>= 1) {
+            int j = sibling + pos + inc - 1;
+            uint jKey = aux[j]; //getKey(aux[j]);
+            bool smaller = (jKey < iKey) || ( jKey == iKey && j < i );
+            pos += (smaller)? inc : 0;
+            pos = min(pos,length);
+        }
+        
+        int bits = 2*length - 1; // mask for destination
+        int dest = ((ii + pos) & bits) | (i & ~bits); // destination index in merged sequence
+        barrier(CLK_LOCAL_MEM_FENCE);
+        aux[dest] = iData;
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    
+    // Write output
+    photon_hash_out[i] = aux[i];
+}
+
 
 ///////////////////////////////////////////////////////////////////////////
 ///

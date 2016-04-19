@@ -33,10 +33,16 @@
     "GPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
-        "useGPU": true,
+        "useGPU": false,
         
         "outputWidth" : 640,
         "outputHeight" : 480,
+        
+        "numberOfPhotonsToGather" : 100,
+        "raysPerLight" : 5000,
+        "lumensPerLight" : 3000,
+        "photonBounceProbability" : 0.1,
+        "photonBounceEnergyMultipler" : 0.75,
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,

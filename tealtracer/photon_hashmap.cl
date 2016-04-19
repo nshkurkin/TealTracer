@@ -133,11 +133,11 @@ int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position);
     const int map_xdim, \
     const int map_ydim, \
     const int map_zdim, \
-    const float map_cellsize, \
-    const int map_numPhotons
+    const float map_cellsize
 
 #define PHOTON_HASHMAP_PHOTON_PARAMS \
-    __global float * map_photon_data
+    __global float * map_photon_data, \
+    const int map_numPhotons
 
 #define PHOTON_HASHMAP_META_PARAMS \
     __global int * map_gridIndices, \
@@ -154,11 +154,11 @@ int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position);
     map->xdim = map_xdim; \
     map->ydim = map_ydim; \
     map->zdim = map_zdim; \
-    map->cellsize = map_cellsize; \
-    map->numPhotons =  map_numPhotons
+    map->cellsize = map_cellsize
 
 #define PHOTON_HASHMAP_SET_PHOTON_PARAMS(map) \
-    map->photon_data = map_photon_data
+    map->photon_data = map_photon_data; \
+    map->numPhotons =  map_numPhotons
 
 #define PHOTON_HASHMAP_SET_META_PARAMS(map) \
     map->gridIndices = map_gridIndices; \

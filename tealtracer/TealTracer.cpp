@@ -88,7 +88,13 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     if (config["GPURayTracer"]["enabled"].get<bool>()) {
         gpuRayTracer_->brdfType = (GPURayTracer::SupportedBRDF) config["GPURayTracer"]["brdfType"].get<int>();
+        gpuRayTracer_->numberOfPhotonsToGather = config["GPURayTracer"]["numberOfPhotonsToGather"].get<int>();
+        gpuRayTracer_->raysPerLight = config["GPURayTracer"]["raysPerLight"].get<int>();
+        gpuRayTracer_->lumensPerLight = config["GPURayTracer"]["lumensPerLight"].get<int>();
     
+        gpuRayTracer_->photonBounceProbability = config["GPURayTracer"]["photonBounceProbability"].get<double>();
+        gpuRayTracer_->photonBounceEnergyMultipler = config["GPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
+        
         gpuRayTracer_->start();
     }
     if (config["CPURayTracer"]["enabled"].get<bool>()) {
