@@ -11,6 +11,7 @@
 
 #include "scene_objects.cl"
 #include "intersection.cl"
+#include "photon_hashmap.cl"
 
 enum BRDFType {
     BlinnPhong = 0,
@@ -34,6 +35,15 @@ RGBf computeBlinnPhongOutputEnergy(
 RGBf computeOrenNayarOutputEnergy(
     struct PovrayPigment pigment, struct PovrayFinish finish,
     RGBf source, float3 toLight, float3 toViewer, float3 surfaceNormal);
+///
+RGBf computeOutputEnergyForHitWithPhotonMap(
+    enum BRDFType brdf,
+    struct RayIntersectionResult hitResult,
+    struct PhotonHashmap * map,
+    int maxNumPhotonsToGather,
+    float3 toViewer,
+    __global int * photon_indices,
+    __global float * photon_distances);
 
 ///
 RGBf computeBlinnPhongOutputEnergy(
@@ -152,44 +162,67 @@ RGBf computeOutputEnergyForHit(
     return output;
 }
 
-
-//RGBf computeOutputEnergyForHitWithPhotonMap(struct RayIntersectionResult hitResult, struct PhotonHashmap * map, float3 toViewer) {
-//    
-//    RGBf output = RGBf::Zero();
-//    brdf->pigment = *hitResult.element->pigment();
-//    brdf->finish = *hitResult.element->finish();
-//    
-//    if (usePhotonMap) {
-//        auto photonInfo = photonMap->gatherPhotonsIndices(numberOfPhotonsToGather, std::numeric_limits<float>::infinity(), hitResult.hit.locationOfIntersection());
-//        
-//        float maxSqrDist = 0.001;
-//        //  Accumulate radiance of the K nearest photons
-//        for (int i = 0; i < photonInfo.size(); ++i) {
-//            
-//            const auto & p = photonMap->photons[photonInfo[i].index];
-//            
-//            RGBf photonEnergy = RGBf::Zero(), surfaceEnergy = RGBf::Zero();
-//            if (photonInfo[i].squareDistance > maxSqrDist) {
-//                maxSqrDist = photonInfo[i].squareDistance;
-//            }
-//            
-//            photonEnergy = brdf->computeColor(rgbe2rgb(p.energy), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
-//            surfaceEnergy = brdf->computeColor(RGBf(1,1,1), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
-//            
-//            output.x() += photonEnergy.x() * surfaceEnergy.x();
-//            output.y() += photonEnergy.y() * surfaceEnergy.y();
-//            output.z() += photonEnergy.z() * surfaceEnergy.z();
-//        }
-//        
-//        output = output / (M_PI * maxSqrDist);
-//        
-//    }
-//    else {
-//       output = brdf->computeColor(RGBf(1,1,1), toLight, toViewer, hitResult.hit.surfaceNormal);
-//    }
-//    
-//    return output;
-//}
+RGBf computeOutputEnergyForHitWithPhotonMap(
+    enum BRDFType brdf,
+    struct RayIntersectionResult hitResult,
+    struct PhotonHashmap * map,
+    int maxNumPhotonsToGather,
+    float3 toViewer,
+    __global int * photon_indices,
+    __global float * photon_distances
+) {
+    
+    RGBf output = (RGBf) {0,0,0};
+    struct PovrayPigment pigment;
+    struct PovrayFinish finish;
+    
+    switch (hitResult.type) {
+        case SphereObjectType: {
+            struct PovraySphereData data = PovraySphereData_fromData(hitResult.dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        }
+        case PlaneObjectType: {
+            struct PovrayPlaneData data = PovrayPlaneData_fromData(hitResult.dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        };
+        default: {
+            break;
+        }
+    }
+    
+    int numPhotonsFound;
+    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, INFINITY, RayIntersectionResult_locationOfIntersection(&hitResult), photon_indices, photon_distances, &numPhotonsFound);
+    
+    float maxSqrDist = 0.001f;
+    //  Accumulate radiance of the K nearest photons
+    for (int i = 0; i < numPhotonsFound; ++i) {
+        
+        struct JensenPhoton p = PhotonHashmap_getPhoton(map, photon_indices[i]);
+        
+        RGBf photonEnergy = (RGBf) {0,0,0};
+        RGBf surfaceEnergy = (RGBf) {0,0,0};
+        
+        if (photon_distances[i] > maxSqrDist) {
+            maxSqrDist = photon_distances[i];
+        }
+        
+        photonEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, p.energy, -p.incomingDirection, toViewer, hitResult.surfaceNormal);
+        surfaceEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, (RGBf){1,1,1}, -p.incomingDirection, toViewer, hitResult.surfaceNormal);
+        
+        output.x += photonEnergy.x * surfaceEnergy.x;
+        output.y += photonEnergy.y * surfaceEnergy.y;
+        output.z += photonEnergy.z * surfaceEnergy.z;
+    }
+    
+    output = output / (float) (M_PI * maxSqrDist);
+    
+    
+    return output;
+}
 
 
 #endif /* coloring_h */

@@ -340,6 +340,61 @@ kernel void photonmap_sortPhotons(
 }
 
 
+///
+
+//kernel void photonmap_sortPhotons_parallelMerge(
+//    PHOTON_HASHMAP_BASIC_PARAMS,
+//    __global const float * photon_data,
+//    __global float * photon_data_out,
+//    __local float * aux_pool,
+//    
+//    const int numPhotons,
+//    const int parity) {
+//  
+//    struct PhotonHashmap map;
+//    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+//    
+//    int index = (int) get_local_id(0); // index in workgroup
+//    int workGroupSize = (int) get_local_size(0); // workgroup size = block size, power of 2
+//    
+//    // Move IN, OUT to block start
+//    int offset = ((int) get_group_id(0)) * workGroupSize;
+//    
+//    photon_data += offset;
+//    photon_data_out += offset;
+//    
+//    // Load block in AUX[WG]
+//    aux[index] = photon_data[index];
+//    barrier(CLK_LOCAL_MEM_FENCE); // make sure AUX is entirely up to date
+//    
+//    // Now we will merge sub-sequences of length 1,2,...,WG/2
+//    for (int length = 1; length < workGroupSize; length <<= 1) {
+//        data_t iData = aux_pool[index];
+//        uint iKey = getKey(iData);
+//        int ii = index & (length-1);  // index in our sequence in 0..length-1
+//        int sibling = (index - ii) ^ length; // beginning of the sibling sequence
+//        int pos = 0;
+//        
+//        // increment for dichotomic search
+//        for (int inc = length; inc > 0; inc >>= 1) {
+//            int j = sibling + pos + inc - 1;
+//            uint jKey = getKey(aux_pool[j]);
+//            bool smaller = (jKey < iKey) || ( jKey == iKey && j < index );
+//            pos += (smaller) ? inc : 0;
+//            pos = min(pos,length);
+//        }
+//        int bits = 2*length - 1; // mask for destination
+//        int dest = ((ii + pos) & bits) | (index & ~bits); // destination index in merged sequence
+//        barrier(CLK_LOCAL_MEM_FENCE);
+//        aux_pool[dest] = iData;
+//        barrier(CLK_LOCAL_MEM_FENCE);
+//    }
+//    
+//    // Write output
+//    photon_data_out[index] = aux_pool[index];
+//}
+
+
 ///////////////////////////////////////////////////////////////////////////
 ///
 /// KERNEL: photonmap_computeGridFirstPhoton
