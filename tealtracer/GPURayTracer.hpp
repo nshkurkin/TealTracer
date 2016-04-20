@@ -247,8 +247,8 @@ public:
         
         /// Photon mapping kernels
         computeEngine.createKernel("raytrace_prog", "emit_photon");
+        computeEngine.createKernel("raytrace_prog", "photonmap_sortPhotons");
         computeEngine.createKernel("raytrace_prog", "photonmap_mapPhotonToGrid");
-        computeEngine.createKernel("raytrace_prog", "photonmap_sortPhotonHash");
         computeEngine.createKernel("raytrace_prog", "photonmap_computeGridFirstPhoton");
         
         auto camera = scene_->camera();
@@ -303,13 +303,15 @@ public:
     ///
     void ocl_buildPhotonMap() {
         ocl_emitPhotons();
+        ocl_sortPhotons();
         ocl_mapPhotonsToGrid();
-        ocl_sortPhotonGrid();
         ocl_computeGridFirstIndices();
     }
     
     ///
     void ocl_emitPhotons() {
+        double startTime = glfwGetTime();
+    
         computeEngine.setKernelArgs("emit_photon",
             (cl_uint) brdfType,
             
@@ -329,20 +331,66 @@ public:
         );
 
         size_t globalCount = raysPerLight;
-        size_t localCount = raysPerLight / 100;
-        if (localCount > 1000) {
-            localCount = 1000;
-        }
-        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
-            localCount = 20;
-        }
+        size_t localCount = localCountForGlobalCount("emit_photon", globalCount);
 
         computeEngine.executeKernel("emit_photon", 0, &globalCount, &localCount, 1);
         computeEngine.finish(0);
+        
+        double endTime = glfwGetTime();
+        TSLoggerLog(std::cout, "elapsed emit time: ", endTime - startTime);
+    }
+    
+    ///
+    size_t localCountForGlobalCount(const std::string & kernel, size_t count) {
+        size_t local = computeEngine.getEstimatedWorkGroupSize(kernel.c_str());
+        while (count % local != 0) {
+            local--;
+        }
+        return local;
+    }
+    
+    ///
+    void ocl_sortPhotons() {
+        int numPhotons = raysPerLight;
+        size_t globalCount = raysPerLight / 2;
+        size_t localCount = localCountForGlobalCount("photonmap_sortPhotons", globalCount);
+        
+        double startTime = glfwGetTime();
+        
+        for (int itr = 0; itr < numPhotons; itr++) {
+            int parity = itr % 2;
+        
+            computeEngine.setKernelArgs("photonmap_sortPhotons",
+                (cl_int) photonHashmap->spacing,
+                (cl_float) photonHashmap->xmin,
+                (cl_float) photonHashmap->ymin,
+                (cl_float) photonHashmap->zmin,
+                (cl_float) photonHashmap->xmax,
+                (cl_float) photonHashmap->ymax,
+                (cl_float) photonHashmap->zmax,
+                (cl_int) photonHashmap->xdim,
+                (cl_int) photonHashmap->ydim,
+                (cl_int) photonHashmap->zdim,
+                (cl_float) photonHashmap->cellsize,
+            
+                computeEngine.getBuffer("map_photon_data"),
+                (cl_int) numPhotons,
+                
+                (cl_int) parity
+            );
+            
+            computeEngine.executeKernel("photonmap_sortPhotons", 0, &globalCount, &localCount, 1);
+            computeEngine.finish(0);
+        }
+        
+        double endTime = glfwGetTime();
+        TSLoggerLog(std::cout, "elapsed sort time: ", endTime - startTime);
     }
     
     ///
     void ocl_mapPhotonsToGrid() {
+    
+        double startTime = glfwGetTime();
     
         computeEngine.setKernelArgs("photonmap_mapPhotonToGrid",
             (cl_int) photonHashmap->spacing,
@@ -365,27 +413,37 @@ public:
         );
     
         size_t globalCount = raysPerLight;
-        size_t localCount = raysPerLight / 100;
-        if (localCount > 1000) {
-            localCount = 1000;
-        }
-        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
-            localCount = 20;
-        }
+        size_t localCount = localCountForGlobalCount("photonmap_mapPhotonToGrid", globalCount);
 
         computeEngine.executeKernel("photonmap_mapPhotonToGrid", 0, &globalCount, &localCount, 1);
         computeEngine.finish(0);
-    
-    }
-    
-    ///
-    void ocl_sortPhotonGrid() {
+        
+        double endTime = glfwGetTime();
+        TSLoggerLog(std::cout, "elapsed toGrid time: ", endTime - startTime);
     
     }
     
     ///
     void ocl_computeGridFirstIndices() {
     
+        double startTime = glfwGetTime();
+    
+        computeEngine.setKernelArgs("photonmap_computeGridFirstPhoton",
+            computeEngine.getBuffer("map_photon_data"),
+            (cl_int) raysPerLight,
+            
+            computeEngine.getBuffer("map_gridIndices"),
+            computeEngine.getBuffer("map_gridFirstPhotonIndices")
+        );
+        
+        size_t globalCount = raysPerLight;
+        size_t localCount = localCountForGlobalCount("photonmap_computeGridFirstPhoton", globalCount);
+
+        computeEngine.executeKernel("photonmap_computeGridFirstPhoton", 0, &globalCount, &localCount, 1);
+        computeEngine.finish(0);
+        
+        double endTime = glfwGetTime();
+        TSLoggerLog(std::cout, "elapsed first index time: ", endTime - startTime);
     }
     
     ///
@@ -459,10 +517,7 @@ public:
         );
         
         size_t globalCount = rayCount;
-        size_t localCount = imageWidth;
-        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
-            localCount = 20;
-        }
+        size_t localCount = localCountForGlobalCount("raytrace_one_ray", globalCount);
       
         computeEngine.executeKernel("raytrace_one_ray", 0, &globalCount, &localCount, 1);
         computeEngine.finish(0);

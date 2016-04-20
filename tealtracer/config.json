@@ -33,7 +33,7 @@
     "GPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
-        "useGPU": false,
+        "useGPU": true,
         
         "outputWidth" : 640,
         "outputHeight" : 480,

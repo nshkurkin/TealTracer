@@ -297,51 +297,46 @@ kernel void photonmap_mapPhotonToGrid(
 /// SYNOPSIS: called after photons have been emitted and "photonmap_mapPhotonToGrid"
 ///             has completed.
 ///
-/// NOTE:  N threads, WG is workgroup size. Sort WG input blocks in each workgroup.
-///         Taken from: http://www.bealto.com/gpu-sorting_parallel-merge-local.html
+/// NOTE: Call this on "numPhotons/2" threads, "numPhotons" times
 
-kernel void photonmap_sortPhotonHash(
-    __global const int * photon_hash_in,
-    __global int * photon_hash_out,
-    __local int * aux) {
+kernel void photonmap_sortPhotons(
+    PHOTON_HASHMAP_BASIC_PARAMS,
+    __global float * photon_data,
+    const int numPhotons,
+    const int parity) {
   
-    int i = get_local_id(0); // index in workgroup
-    int wg = get_local_size(0); // workgroup size = block size, power of 2
+    struct PhotonHashmap map;
+    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+  
+    int threadID = (int) get_global_id(0);
+    int indexA, indexB;
     
-    // Move IN, OUT to block start
-    int offset = get_group_id(0) * wg;
-    photon_hash_in += offset;
-    photon_hash_out += offset;
-    
-    // Load block in AUX[WG]
-    aux[i] = photon_hash_in[i];
-    barrier(CLK_LOCAL_MEM_FENCE); // make sure AUX is entirely up to date
-    
-    // Now we will merge sub-sequences of length 1,2,...,WG/2
-    for (int length = 1; length < wg; length <<= 1) {
-        int iData = aux[i];
-        uint iKey = iData;// getKey(iData);
-        int ii = i & (length-1);  // index in our sequence in 0..length-1
-        int sibling = (i - ii) ^ length; // beginning of the sibling sequence
-        int pos = 0;
-        // increment for dichotomic search
-        for (int inc = length; inc > 0; inc >>= 1) {
-            int j = sibling + pos + inc - 1;
-            uint jKey = aux[j]; //getKey(aux[j]);
-            bool smaller = (jKey < iKey) || ( jKey == iKey && j < i );
-            pos += (smaller)? inc : 0;
-            pos = min(pos,length);
-        }
-        
-        int bits = 2*length - 1; // mask for destination
-        int dest = ((ii + pos) & bits) | (i & ~bits); // destination index in merged sequence
-        barrier(CLK_LOCAL_MEM_FENCE);
-        aux[dest] = iData;
-        barrier(CLK_LOCAL_MEM_FENCE);
+    if (parity == 0) {
+        indexA = threadID * 2;
+        indexB = indexA + 1;
+    }
+    else {
+        indexB = threadID * 2 + 1;
+        indexA = indexB - 1;
     }
     
-    // Write output
-    photon_hash_out[i] = aux[i];
+    if (max(indexA, indexB) >= numPhotons) {
+        return;
+    }
+    
+    struct JensenPhoton photonA, photonB;
+    int hashA, hashB;
+    
+    photonA = JensenPhoton_fromData(photon_data, indexA);
+    photonB = JensenPhoton_fromData(photon_data, indexB);
+    
+    hashA = PhotonHashmap_cellIndexHash(&map, photonA.position);
+    hashB = PhotonHashmap_cellIndexHash(&map, photonB.position);
+    
+    if (hashA > hashB) {
+        JensenPhoton_setData(&photonA, photon_data, indexB);
+        JensenPhoton_setData(&photonB, photon_data, indexA);
+    }
 }
 
 
@@ -356,9 +351,12 @@ kernel void photonmap_sortPhotonHash(
 
 kernel void photonmap_computeGridFirstPhoton(
     // Grid specification
+    PHOTON_HASHMAP_PHOTON_PARAMS,
     PHOTON_HASHMAP_META_PARAMS) {
 
     struct PhotonHashmap map;
+    
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
     PHOTON_HASHMAP_SET_META_PARAMS((&map));
     
     int index = (int) get_global_id(0);
