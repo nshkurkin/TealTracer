@@ -60,8 +60,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define DEBUG_CL_printf(...) 
-// printf( __VA_ARGS__ )
+#define DEBUG_CL_printf(...) printf( __VA_ARGS__ )
 
 unsigned int ComputeEngine::ms_uiMaxDeviceCount = 256;
 

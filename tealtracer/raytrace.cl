@@ -116,7 +116,9 @@ void processEmittedPhoton(
     ///
     RGBf sourceLightEnergy,
     float3 initialRayOrigin,
-    float3 initialRayDirection);
+    float3 initialRayDirection,
+    /// output
+    bool * photonStored);
 
 ///
 kernel void emit_photon(
@@ -169,13 +171,17 @@ kernel void emit_photon(
     int whichLight = SceneConfig_randomInt(&config) % numLights;
     struct PovrayLightSourceData light = PovrayLightSourceData_fromData(&lightData[kPovrayLightSourceStride * whichLight]);
     
-    float u = SceneConfig_randomNormalizedFloat(&config);
-    float v = SceneConfig_randomNormalizedFloat(&config);
+    bool photonStored = false;
     
-    float3 rayOrigin = light.position;
-    float3 rayDirection = cosineSampleSphere(u, v).xyz;
-    
-    processEmittedPhoton(&config, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection);
+    while (!photonStored) {
+        float u = SceneConfig_randomNormalizedFloat(&config);
+        float v = SceneConfig_randomNormalizedFloat(&config);
+        
+        float3 rayOrigin = light.position;
+        float3 rayDirection = cosineSampleSphere(u, v).xyz;
+        
+        processEmittedPhoton(&config, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection, &photonStored);
+    }
 }
 
 void processEmittedPhoton(
@@ -184,9 +190,13 @@ void processEmittedPhoton(
     ///
     RGBf sourceLightEnergy,
     float3 initialRayOrigin,
-    float3 initialRayDirection) {
+    float3 initialRayDirection,
+    
+    ///
+    bool * photonStored
+    ) {
 
-    bool photonStored = false;
+    *photonStored = false;
     
     float3 rayOrigin = initialRayOrigin;
     float3 rayDirection = initialRayDirection;
@@ -194,7 +204,7 @@ void processEmittedPhoton(
     
     struct RayIntersectionResult hit = SceneConfig_findClosestIntersection(config, initialRayOrigin, initialRayDirection);
 
-    while (!photonStored && hit.intersected) {
+    while (!*photonStored && hit.intersected) {
         struct JensenPhoton photon;
         
         photon.position = RayIntersectionResult_locationOfIntersection(&hit);
@@ -248,7 +258,7 @@ void processEmittedPhoton(
         }
         else {
             PhotonHashmap_setPhoton(&config->map, &photon, (int) get_global_id(0));
-            photonStored = true;
+            *photonStored = true;
         }
     }
 }
@@ -275,8 +285,9 @@ kernel void photonmap_mapPhotonToGrid(
     PHOTON_HASHMAP_SET_META_PARAMS((&map));
     
     int index = (int) get_global_id(0);
-    
-    PhotonHashmap_mapPhotonToGrid(&map, index);
+    if (index < map.numPhotons) {
+        PhotonHashmap_mapPhotonToGrid(&map, index);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////

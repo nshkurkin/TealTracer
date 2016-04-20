@@ -100,6 +100,9 @@ public:
     void start() {
         ocl_raytraceSetup();
         ocl_pushSceneData();
+        
+        ocl_buildPhotonMap();
+        
         enqueRayTrace();
     }
 
@@ -243,10 +246,10 @@ public:
         computeEngine.createKernel("raytrace_prog", "raytrace_one_ray");
         
         /// Photon mapping kernels
-        computeEngine.createKernel("emit_photon_prog", "emit_photon");
-        computeEngine.createKernel("photonmap_mapPhotonToGrid_prog", "photonmap_mapPhotonToGrid");
-        computeEngine.createKernel("photonmap_sortPhotonHash_prog", "photonmap_sortPhotonHash");
-        computeEngine.createKernel("photonmap_computeGridFirstPhoton_prog", "photonmap_computeGridFirstPhoton");
+        computeEngine.createKernel("raytrace_prog", "emit_photon");
+        computeEngine.createKernel("raytrace_prog", "photonmap_mapPhotonToGrid");
+        computeEngine.createKernel("raytrace_prog", "photonmap_sortPhotonHash");
+        computeEngine.createKernel("raytrace_prog", "photonmap_computeGridFirstPhoton");
         
         auto camera = scene_->camera();
         
@@ -286,8 +289,9 @@ public:
         
         if (numberOfPhotonsToGather > 0) {
             const int kNumFloatsInOCLPhoton = 9;
-            computeEngine.createBuffer("map_photon_data", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * kNumFloatsInOCLPhoton * numberOfPhotonsToGather);
-            computeEngine.createBuffer("map_gridIndices", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * numberOfPhotonsToGather);
+            //! TODO: We might need to multiply the number of lights
+            computeEngine.createBuffer("map_photon_data", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * kNumFloatsInOCLPhoton * raysPerLight);
+            computeEngine.createBuffer("map_gridIndices", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * raysPerLight);
         }
         
         int mapGridDimensions = photonHashmap->xdim * photonHashmap->ydim * photonHashmap->zdim;
@@ -306,37 +310,71 @@ public:
     
     ///
     void ocl_emitPhotons() {
-//        computeEngine.setKernelArgs("raytrace_one_ray",
-//           cameraData.location,
-//           cameraData.up,
-//           cameraData.right,
-//           cameraData.lookAt,
-//           
-//           (cl_uint) brdfType,
-//           
-//           computeEngine.getBuffer("spheres"),
-//           (cl_uint) numSpheres,
-//
-//           computeEngine.getBuffer("planes"),
-//           (cl_uint) numPlanes,
-//           
-//           computeEngine.getBuffer("imageOutput"),
-//           (cl_uint) imageWidth,
-//           (cl_uint) imageHeight
-//        );
-//        
-//        size_t globalCount = rayCount;
-//        size_t localCount = imageWidth;
-//        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
-//            localCount = 20;
-//        }
-//      
-//        computeEngine.executeKernel("raytrace_one_ray", 0, &globalCount, &localCount, 1);
-//        computeEngine.finish(0);
+        computeEngine.setKernelArgs("emit_photon",
+            (cl_uint) brdfType,
+            
+            computeEngine.getBuffer("spheres"),
+            (cl_uint) numSpheres,
+            computeEngine.getBuffer("planes"),
+            (cl_uint) numPlanes,
+            computeEngine.getBuffer("lights"),
+            (cl_uint) numLights,
+            
+            (cl_float) 1.0f,
+            (cl_float) photonBounceProbability,
+            (cl_float) photonBounceEnergyMultipler,
+            
+            computeEngine.getBuffer("map_photon_data"),
+            (cl_int) raysPerLight
+        );
+
+        size_t globalCount = raysPerLight;
+        size_t localCount = raysPerLight / 100;
+        if (localCount > 1000) {
+            localCount = 1000;
+        }
+        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
+            localCount = 20;
+        }
+
+        computeEngine.executeKernel("emit_photon", 0, &globalCount, &localCount, 1);
+        computeEngine.finish(0);
     }
     
     ///
     void ocl_mapPhotonsToGrid() {
+    
+        computeEngine.setKernelArgs("photonmap_mapPhotonToGrid",
+            (cl_int) photonHashmap->spacing,
+            (cl_float) photonHashmap->xmin,
+            (cl_float) photonHashmap->ymin,
+            (cl_float) photonHashmap->zmin,
+            (cl_float) photonHashmap->xmax,
+            (cl_float) photonHashmap->ymax,
+            (cl_float) photonHashmap->zmax,
+            (cl_int) photonHashmap->xdim,
+            (cl_int) photonHashmap->ydim,
+            (cl_int) photonHashmap->zdim,
+            (cl_float) photonHashmap->cellsize,
+        
+            computeEngine.getBuffer("map_photon_data"),
+            (cl_int) raysPerLight, // num_photons
+
+            computeEngine.getBuffer("map_gridIndices"),
+            computeEngine.getBuffer("map_gridFirstPhotonIndices")
+        );
+    
+        size_t globalCount = raysPerLight;
+        size_t localCount = raysPerLight / 100;
+        if (localCount > 1000) {
+            localCount = 1000;
+        }
+        if (computeEngine.requestedDeviceType == ComputeEngine::DeviceType::DEVICE_TYPE_CPU) {
+            localCount = 20;
+        }
+
+        computeEngine.executeKernel("photonmap_mapPhotonToGrid", 0, &globalCount, &localCount, 1);
+        computeEngine.finish(0);
     
     }
     
