@@ -99,10 +99,8 @@ public:
 
     void start() {
         ocl_raytraceSetup();
-        ocl_pushSceneData();
         
         ocl_buildPhotonMap();
-        
         enqueRayTrace();
     }
 
@@ -253,33 +251,7 @@ public:
         
         auto camera = scene_->camera();
         
-        auto spheres = scene_->findElements<PovraySphere>();
-        std::vector<cl_float> sphereData;
-        for (auto itr = spheres.begin(); itr != spheres.end(); itr++) {
-            CLPovraySphereData((*itr)->data()).writeOutData(sphereData);
-        }
-        
-        auto planes = scene_->findElements<PovrayPlane>();
-        std::vector<cl_float> planeData;
-        for (auto itr = planes.begin(); itr != planes.end(); itr++) {
-            CLPovrayPlaneData((*itr)->data()).writeOutData(planeData);
-        }
-        
-        auto lights = scene_->findElements<PovrayLightSource>();
-        std::vector<cl_float> lightData;
-        for (auto itr = lights.begin(); itr != lights.end(); itr++) {
-            CLPovrayLightSourceData((*itr)->data()).writeOutData(lightData);
-        }
-        
-        if (spheres.size() > 0) {
-            computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
-        }
-        if (planes.size() > 0) {
-            computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
-        }
-        if (lights.size() > 0) {
-            computeEngine.createBuffer("lights", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * lightData.size());
-        }
+        ocl_pushSceneData();
         
         computeEngine.createBuffer("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, imageDataSize);
         
@@ -475,13 +447,26 @@ public:
         numPlanes = (unsigned int) planes.size();
         numLights = (unsigned int) lights.size();
         
+        /// Fill the buffers
         if (spheres.size() > 0) {
+            if (computeEngine.getBuffer("spheres") == nullptr) {
+                computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
+            }
+        
             computeEngine.writeBuffer("spheres", 0, 0, sizeof(cl_float) * sphereData.size(), &sphereData[0]);
         }
         if (planes.size() > 0) {
+             if (computeEngine.getBuffer("planes") == nullptr) {
+                computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
+            }
+        
             computeEngine.writeBuffer("planes", 0, 0, sizeof(cl_float) * planeData.size(), &planeData[0]);
         }
         if (lights.size() > 0) {
+            if (computeEngine.getBuffer("lights") == nullptr) {
+                computeEngine.createBuffer("lights", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * lightData.size());
+            }
+        
             computeEngine.writeBuffer("lights", 0, 0, sizeof(cl_float) * lightData.size(), &lightData[0]);
         }
     }
