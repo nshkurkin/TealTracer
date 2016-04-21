@@ -8,10 +8,10 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 80,
-        "outputHeight" : 60,
+        "outputWidth" : 40,
+        "outputHeight" : 30,
         
-        "numberOfPhotonsToGather" : 100,
+        "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 5000,
         "lumensPerLight" : 3000,
         "photonBounceProbability" : 0.1,
@@ -21,7 +21,7 @@
             "KDTree" : 0,
             "Hashmap" : 1
         },
-        "photonMapType" : 0,
+        "photonMapType" : 1,
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,
@@ -35,10 +35,10 @@
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": true,
         
-        "outputWidth" : 320,
-        "outputHeight" : 240,
+        "outputWidth" : 40,
+        "outputHeight" : 30,
         
-        "numberOfPhotonsToGather" : 100,
+        "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 5000,
         "lumensPerLight" : 3000,
         "photonBounceProbability" : 0.1,

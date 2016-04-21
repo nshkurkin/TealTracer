@@ -218,13 +218,6 @@ void processEmittedPhoton(
             float3 reflectedRay_direction = RayIntersectionResult_outgoingDirection(&hit);
             float3 reflectedRay_origin = RayIntersectionResult_locationOfIntersection(&hit) + 0.001f * reflectedRay_direction;
             
-            
-            /// NOTE: Super frustrating on the GPU; the following line crashes
-            ///         clBuildProgram for whatever reason not explained! It has
-            ///         instead been expanded below and it works?
-            
-//            RGBf hitEnergy = computeOutputEnergyForHit(config->brdf, hit, -rayDirection, reflectedRay_direction) * config->photonBounceEnergyMultipler;
-            
             //////
             struct PovrayPigment pigment;
             struct PovrayFinish finish;
@@ -247,7 +240,7 @@ void processEmittedPhoton(
                 }
             }
     
-            RGBf hitEnergy = computeOutputEnergyForBRDF(config->brdf, pigment, finish, (RGBf) {1.0f,1.0f,1.0f}, -rayDirection, reflectedRay_direction, hit.surfaceNormal) * config->photonBounceEnergyMultipler;
+            RGBf hitEnergy = computeOutputEnergyForBRDF(config->brdf, pigment, finish, energy, -rayDirection, reflectedRay_direction, hit.surfaceNormal) * config->photonBounceEnergyMultipler;
             //////
             
             /// Calculate intersection
@@ -524,6 +517,7 @@ kernel void raytrace_one_ray(
     
         RGBf energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, -bestIntersection.rayDirection, photon_indices, photon_distances);
         
+        /// DEBUG
 //        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
         color = ubyte4_make(energy.x * 255, energy.y * 255, energy.z * 255, 255);
     }

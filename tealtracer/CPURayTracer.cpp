@@ -196,7 +196,7 @@ void CPURayTracer::raytraceScene() {
             Image::Vector4ub color = Image::Vector4ub(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
-                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, true);
+                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, RGBf(1,1,1), true);
                 for (int i = 0; i < 3; i++) {
                     result(i) = std::min<float>(255.0, result(i));
                 }
@@ -209,7 +209,7 @@ void CPURayTracer::raytraceScene() {
     }
 }
 
-RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, bool usePhotonMap) {
+RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy, bool usePhotonMap) {
     
     RGBf output = RGBf::Zero();
     brdf->pigment = *hitResult.element->pigment();
@@ -230,7 +230,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
             }
             
             photonEnergy = brdf->computeColor(rgbe2rgb(p.energy), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
-            surfaceEnergy = brdf->computeColor(RGBf(1,1,1), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
+            surfaceEnergy = brdf->computeColor(sourceEnergy, -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
             
             output.x() += photonEnergy.x() * surfaceEnergy.x();
             output.y() += photonEnergy.y() * surfaceEnergy.y();
@@ -241,7 +241,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
         
     }
     else {
-       output = brdf->computeColor(RGBf(1,1,1), toLight, toViewer, hitResult.hit.surfaceNormal);
+       output = brdf->computeColor(sourceEnergy, toLight, toViewer, hitResult.hit.surfaceNormal);
     }
     
     return output;

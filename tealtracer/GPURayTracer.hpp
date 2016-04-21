@@ -326,7 +326,7 @@ public:
             computeEngine.getBuffer("lights"),
             (cl_uint) numLights,
             
-            (cl_float) 1.0f,
+            (cl_float) lumensPerLight / (float) raysPerLight,
             (cl_float) photonBounceProbability,
             (cl_float) photonBounceEnergyMultipler,
             

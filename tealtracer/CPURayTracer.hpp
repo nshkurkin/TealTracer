@@ -121,7 +121,7 @@ public:
     void raytraceScene();
     
     ///
-    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, bool usePhotonMap);
+    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy, bool usePhotonMap);
     
     ///
     std::shared_ptr<PhotonMap> photonMap;
@@ -197,7 +197,7 @@ public:
                 reflectedRay.direction = hitResult.hit.outgoingDirection();
                 reflectedRay.origin = hitResult.hit.locationOfIntersection() + 0.001 * reflectedRay.direction;
                 
-                auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), false) * photonBounceEnergyMultipler;
+                auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), energy, false) * photonBounceEnergyMultipler;
                 auto newHits = scene_->intersections(reflectedRay);
                 
                 processHits(hitEnergy, reflectedRay, newHits);

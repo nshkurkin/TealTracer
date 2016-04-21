@@ -44,7 +44,7 @@ int PhotonHashmap::getCellIndexHash(const Eigen::Vector3f & position) const {
 
 ///
 int
-PhotonHashmap::findMaxDistancePhotonIndex(const std::vector<PhotonMap::PhotonIndexInfo> & photonIndices, const Eigen::Vector3f & intersection) {
+PhotonHashmap::findMaxDistancePhotonIndex(const std::vector<PhotonMap::PhotonIndexInfo> & photonIndices) {
     MaxDistanceSearchResult result;
 
     int index = -1;
@@ -168,7 +168,7 @@ PhotonHashmap::gatherPhotonsIndices(
                             // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
                             // to the intersection is smaller, replace the photon with the largest distance with the current photon
                             else {
-                                auto index = findMaxDistancePhotonIndex(neighborPhotons, intersection);
+                                auto index = findMaxDistancePhotonIndex(neighborPhotons);
                                 auto searchResult = neighborPhotons[index];
                                 if (distSqd < searchResult.squareDistance) {
                                     neighborPhotons[index].index = pi;

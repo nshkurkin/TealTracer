@@ -310,14 +310,13 @@ void PhotonHashmap_gatherPhotonIndices(
                             else {
                                 int maxDistIndex = findMaxDistancePhotonIndex(photon_distances, *photonsFound);
                                 
-                                int searchResult_index = photon_indices[maxDistIndex];
                                 float searchResult_squareDistance = photon_distances[maxDistIndex];
                                 
                                 if (distSqd < searchResult_squareDistance) {
-                                    photon_indices[searchResult_index] = pi;
-                                    photon_distances[searchResult_index] = distSqd;
+                                    photon_indices[maxDistIndex] = pi;
+                                    photon_distances[maxDistIndex] = distSqd;
                                     if (distSqd > maxRadiusSqd
-                                     || fabs(maxRadiusSqd - photon_distances[searchResult_index]) < 0.0001f) {
+                                     || fabs(maxRadiusSqd - searchResult_squareDistance) < 0.0001f) {
                                         maxRadiusSqd = distSqd;
                                     }
                                 }
