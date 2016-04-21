@@ -287,6 +287,7 @@ public:
     ///
     void ocl_emitPhotons() {
         double startTime = glfwGetTime();
+        float luminosityPerPhoton = (((float) lumensPerLight) / (float) raysPerLight);
     
         computeEngine.setKernelArgs("emit_photon",
             (cl_uint) brdfType,
@@ -298,7 +299,7 @@ public:
             computeEngine.getBuffer("lights"),
             (cl_uint) numLights,
             
-            (cl_float) lumensPerLight / (float) raysPerLight,
+            (cl_float) luminosityPerPhoton,
             (cl_float) photonBounceProbability,
             (cl_float) photonBounceEnergyMultipler,
             

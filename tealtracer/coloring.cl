@@ -202,24 +202,20 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     for (int i = 0; i < numPhotonsFound; ++i) {
         
         struct JensenPhoton p = PhotonHashmap_getPhoton(map, photon_indices[i]);
-        
         RGBf photonEnergy = (RGBf) {0,0,0};
-        RGBf surfaceEnergy = (RGBf) {0,0,0};
         
         if (photon_distances[i] > maxSqrDist) {
             maxSqrDist = photon_distances[i];
         }
         
         photonEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, p.energy, -p.incomingDirection, toViewer, hitResult.surfaceNormal);
-        surfaceEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, (RGBf){1,1,1}, -p.incomingDirection, toViewer, hitResult.surfaceNormal);
         
-        output.x += photonEnergy.x * surfaceEnergy.x;
-        output.y += photonEnergy.y * surfaceEnergy.y;
-        output.z += photonEnergy.z * surfaceEnergy.z;
+        output += photonEnergy;
     }
     
-    output = output / (float) (M_PI * maxSqrDist);
-    
+    if (numPhotonsFound > 0) {
+        output = output / (float) (M_PI * maxSqrDist);
+    }
     
     return output;
 }

@@ -170,6 +170,89 @@ void CPURayTracer::mouseScroll(TSWindow * window, double dx, double dy) {
 }
 
 ///
+///
+void CPURayTracer::enqueuePhotonMapping() {
+    jobPool.emplaceJob([=]() {
+        TSLoggerLog(std::cout, "[", glfwGetTime(), "] Started building photon map");
+        buildPhotonMap();
+    }, [=]() {
+        TSLoggerLog(std::cout, "[", glfwGetTime(), "] Finished building photon map");
+    });
+}
+
+///
+void CPURayTracer::buildPhotonMap() {
+    assert(photonMap != nullptr);
+    photonMap->photons.clear();
+    emitPhotons();
+    photonMap->buildMap();
+}
+
+std::default_random_engine generator;
+std::uniform_real_distribution<float> distribution;
+
+///
+void CPURayTracer::emitPhotons() {
+    /// for each light, emit photons into the scene.
+    auto lights = scene_->findElements<PovrayLightSource>();
+    for (auto itr = lights.begin(); itr != lights.end(); itr++) {
+        auto light = *itr;
+        auto color = light->color();
+
+        float lumens = lumensPerLight;
+        int numRays = raysPerLight;
+        float luminosityPerPhoton = lumens/(float)numRays;
+
+        for (int i = 0; i < numRays; i++) {
+            float u = distribution(generator);
+            float v = distribution(generator);
+            
+            Ray ray;
+            
+            ray.origin = light->position();
+            ray.direction = light->getSampleDirection(u, v);
+            
+            auto hits = scene_->intersections(ray);
+            processHits(color.block<3,1>(0,0) * luminosityPerPhoton, ray, hits);
+        }
+    }
+    
+    TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
+}
+
+
+
+///
+void CPURayTracer::processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits) {
+    /// Add in shadow photons
+    for (int i = 1; i < hits.size(); i++) {
+        const auto & hitResult = hits[i];
+        photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+    }
+
+    /// bounce around the other photon
+    if (hits.size() > 0) {
+        const auto & hitResult = hits[0];
+        JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, energy, false, false, hitResult.element->id());
+        
+        if (distribution(generator) < photonBounceProbability) {
+            Ray reflectedRay;
+            
+            reflectedRay.direction = hitResult.hit.outgoingDirection();
+            reflectedRay.origin = hitResult.hit.locationOfIntersection() + 0.001 * reflectedRay.direction;
+            
+            auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), energy, false) * photonBounceEnergyMultipler;
+            auto newHits = scene_->intersections(reflectedRay);
+            
+            processHits(hitEnergy, reflectedRay, newHits);
+        }
+        else {
+            photonMap->photons.push_back(photon);
+        }
+    }
+}
+
+///
 void CPURayTracer::raytraceScene() {
     assert(scene_ != nullptr);
     
@@ -224,17 +307,14 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
             
             const auto & p = photonMap->photons[photonInfo[i].index];
             
-            RGBf photonEnergy = RGBf::Zero(), surfaceEnergy = RGBf::Zero();
+            RGBf photonEnergy = RGBf::Zero();
             if (photonInfo[i].squareDistance > maxSqrDist) {
                 maxSqrDist = photonInfo[i].squareDistance;
             }
             
             photonEnergy = brdf->computeColor(rgbe2rgb(p.energy), -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
-            surfaceEnergy = brdf->computeColor(sourceEnergy, -p.incomingDirection.vector(), toViewer, hitResult.hit.surfaceNormal);
             
-            output.x() += photonEnergy.x() * surfaceEnergy.x();
-            output.y() += photonEnergy.y() * surfaceEnergy.y();
-            output.z() += photonEnergy.z() * surfaceEnergy.z();
+            output += photonEnergy;
         }
         
         output = output / (M_PI * maxSqrDist);

@@ -14,7 +14,7 @@
         "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 5000,
         "lumensPerLight" : 3000,
-        "photonBounceProbability" : 0.1,
+        "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 0.75,
         
         "__enum_photonMapType" : {
@@ -41,7 +41,7 @@
         "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 5000,
         "lumensPerLight" : 3000,
-        "photonBounceProbability" : 0.1,
+        "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 0.75,
         
         "__enum_brdfType" : {

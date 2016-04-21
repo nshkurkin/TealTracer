@@ -69,9 +69,23 @@ struct JensenPhoton JensenPhoton_fromData(
     
     __global float * photon_floats_start = &(photon_data[whichPhoton * 9]);
     
-    photon.position = (float3) { photon_floats_start[0], photon_floats_start[1], photon_floats_start[2] };
-    photon.incomingDirection = (float3) { photon_floats_start[3], photon_floats_start[4], photon_floats_start[5] };
-    photon.energy = (float3) { photon_floats_start[6], photon_floats_start[7], photon_floats_start[8] };
+    photon.position = (float3) {
+        photon_floats_start[0],
+        photon_floats_start[1],
+        photon_floats_start[2]
+    };
+    
+    photon.incomingDirection = (float3) {
+        photon_floats_start[3],
+        photon_floats_start[4],
+        photon_floats_start[5]
+    };
+    
+    photon.energy = (float3) {
+        photon_floats_start[6],
+        photon_floats_start[7],
+        photon_floats_start[8]
+    };
     
     return photon;
 }

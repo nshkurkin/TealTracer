@@ -36,7 +36,7 @@ struct RayIntersectionResult {
     
     ///
     Eigen::Vector3f locationOfIntersection() const {
-        return ray.direction * timeOfIntersection + ray.origin;
+        return ray.origin + (ray.direction * timeOfIntersection);
     }
     
     ///

@@ -112,7 +112,8 @@ int SceneConfig_randomInt(struct SceneConfig * config) {
 ///
 void processEmittedPhoton(
     struct SceneConfig * config,
-
+    int whichPhoton,
+    
     ///
     RGBf sourceLightEnergy,
     float3 initialRayOrigin,
@@ -180,12 +181,13 @@ kernel void emit_photon(
         float3 rayOrigin = light.position;
         float3 rayDirection = cosineSampleSphere(u, v).xyz;
         
-        processEmittedPhoton(&config, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection, &photonStored);
+        processEmittedPhoton(&config, whichPhoton, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection, &photonStored);
     }
 }
 
 void processEmittedPhoton(
     struct SceneConfig * config,
+    int whichPhoton,
     
     ///
     RGBf sourceLightEnergy,
@@ -250,7 +252,7 @@ void processEmittedPhoton(
             energy = hitEnergy;
         }
         else {
-            PhotonHashmap_setPhoton(&config->map, &photon, (int) get_global_id(0));
+            PhotonHashmap_setPhoton(&config->map, &photon, whichPhoton);
             *photonStored = true;
         }
     }
@@ -519,7 +521,12 @@ kernel void raytrace_one_ray(
         
         /// DEBUG
 //        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
-        color = ubyte4_make(energy.x * 255, energy.y * 255, energy.z * 255, 255);
+
+        color = ubyte4_make(
+            min(energy.x * 255.0, 255.0),
+            min(energy.y * 255.0, 255.0),
+            min(energy.z * 255.0, 255.0),
+            255);
     }
     
     /// Update the output
