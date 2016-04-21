@@ -444,12 +444,29 @@ kernel void raytrace_one_ray(
     __global float * planeData,
     const unsigned int numPlanes,
     
+    /// usable data
+    __global int * photon_index_array,
+    __global float * photon_distance_array,
+    const int maxNumPhotonsToGather,
+
+    /// photon map
+    PHOTON_HASHMAP_BASIC_PARAMS,
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS,
+    
     /// output
     /// image data is organized into 4 byte pixels in a height*width pixels
     __global unsigned char * imageOutput,
     const unsigned int imageWidth,
     const unsigned int imageHeight
     ) {
+    
+    ///
+    struct PhotonHashmap map;
+    
+    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
     
     /// Create the ray for this given pixel
     struct mat4x4 viewTransform;
@@ -461,6 +478,10 @@ kernel void raytrace_one_ray(
     float3 right = mat4x4_mult4x1(&viewTransform, (float4){Right.x, Right.y, Right.z, 0.0f}).xyz * length(camera_right);
     
     unsigned int threadId = (unsigned int) get_global_id(0);
+    
+    if (threadId >= imageWidth * imageHeight) {
+        return;
+    }
     
     int px = threadId % imageWidth;
     int py = threadId / imageWidth;
@@ -497,7 +518,13 @@ kernel void raytrace_one_ray(
     
     /// Calculate color
     if (bestIntersection.intersected) {
-        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
+    
+        __global int * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
+        __global float * photon_distances = &photon_distance_array[threadId * maxNumPhotonsToGather];
+    
+        RGBf energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, -bestIntersection.rayDirection, photon_indices, photon_distances);
+        
+//        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
         color = ubyte4_make(energy.x * 255, energy.y * 255, energy.z * 255, 255);
     }
     

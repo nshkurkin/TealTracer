@@ -1,15 +1,15 @@
 {
     "povrayScene" : "simple_cam.pov",
     
-    "windowWidth" : 600,
-    "windowHeight" : 600,
+    "windowWidth" : 640,
+    "windowHeight" : 480,
     
     "CPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 50,
-        "outputHeight" : 50,
+        "outputWidth" : 80,
+        "outputHeight" : 60,
         
         "numberOfPhotonsToGather" : 100,
         "raysPerLight" : 5000,
@@ -35,8 +35,8 @@
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": true,
         
-        "outputWidth" : 640,
-        "outputHeight" : 480,
+        "outputWidth" : 320,
+        "outputHeight" : 240,
         
         "numberOfPhotonsToGather" : 100,
         "raysPerLight" : 5000,

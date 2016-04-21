@@ -298,6 +298,10 @@ public:
         if (mapGridDimensions > 0) {
             computeEngine.createBuffer("map_gridFirstPhotonIndices", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * mapGridDimensions);
         }
+        
+        int photonAccumBufferSize = numberOfPhotonsToGather * outputImage.width * outputImage.height;
+        computeEngine.createBuffer("photon_index_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * photonAccumBufferSize);
+        computeEngine.createBuffer("photon_distance_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * photonAccumBufferSize);
     }
     
     ///
@@ -498,18 +502,40 @@ public:
         auto cameraData = CLPovrayCameraData(camera->data());
 
         computeEngine.setKernelArgs("raytrace_one_ray",
-           cameraData.location,
-           cameraData.up,
-           cameraData.right,
-           cameraData.lookAt,
+            cameraData.location,
+            cameraData.up,
+            cameraData.right,
+            cameraData.lookAt,
            
-           (cl_uint) brdfType,
-           
-           computeEngine.getBuffer("spheres"),
-           (cl_uint) numSpheres,
+            (cl_uint) brdfType,
+            
+            computeEngine.getBuffer("spheres"),
+            (cl_uint) numSpheres,
+            
+            computeEngine.getBuffer("planes"),
+            (cl_uint) numPlanes,
+            
+            computeEngine.getBuffer("photon_index_array"),
+            computeEngine.getBuffer("photon_distance_array"),
+            (cl_int) numberOfPhotonsToGather,
+            
+            (cl_int) photonHashmap->spacing,
+            (cl_float) photonHashmap->xmin,
+            (cl_float) photonHashmap->ymin,
+            (cl_float) photonHashmap->zmin,
+            (cl_float) photonHashmap->xmax,
+            (cl_float) photonHashmap->ymax,
+            (cl_float) photonHashmap->zmax,
+            (cl_int) photonHashmap->xdim,
+            (cl_int) photonHashmap->ydim,
+            (cl_int) photonHashmap->zdim,
+            (cl_float) photonHashmap->cellsize,
+        
+            computeEngine.getBuffer("map_photon_data"),
+            (cl_int) raysPerLight, // num_photons
 
-           computeEngine.getBuffer("planes"),
-           (cl_uint) numPlanes,
+            computeEngine.getBuffer("map_gridIndices"),
+            computeEngine.getBuffer("map_gridFirstPhotonIndices"),
            
            computeEngine.getBuffer("imageOutput"),
            (cl_uint) imageWidth,
