@@ -121,10 +121,10 @@ struct PhotonHashmap {
     float xmax, ymax, zmax;
     int xdim, ydim, zdim;
     float cellsize;
-    int numPhotons;
     
     /// Photon heap data
     __global float * photon_data;
+    int numPhotons;
     
     /// Photon metadata
     __global int * gridIndices; // size: numPhotons
@@ -134,6 +134,7 @@ struct PhotonHashmap {
 int PhotonHashmap_photonHashIJK(struct PhotonHashmap * map, int i, int j, int k);
 int PhotonHashmap_photonHash3i(struct PhotonHashmap * map, int3 index);
 int PhotonHashmap_cellIndexHash(struct PhotonHashmap * map, float3 position);
+int PhotonHashmap_clampedCellIndexHash(struct PhotonHashmap * map, float3 position);
 int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position);
 
 #define PHOTON_HASHMAP_BASIC_PARAMS \
@@ -205,7 +206,21 @@ int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position) {
 }
 
 ///
-void PhotonHashmap_mapPhotonToGrid(struct PhotonHashmap * map, int index);
+int PhotonHashmap_clampedCellIndexHash(struct PhotonHashmap * map, float3 position) {
+    int hash;
+    int3 cellIndex = PhotonHashmap_cellIndex(map, position);
+    if (cellIndex.x >= 0 && cellIndex.x < map->xdim
+     && cellIndex.y >= 0 && cellIndex.y < map->ydim
+     && cellIndex.z >= 0 && cellIndex.z < map->zdim) {
+        hash = PhotonHashmap_photonHash3i(map, cellIndex);
+    }
+    else {
+        hash = -1;
+    }
+    return hash;
+}
+
+///
 void PhotonHashmap_computeGridFirstPhoton(struct PhotonHashmap * map, int index);
 struct JensenPhoton PhotonHashmap_getPhoton(struct PhotonHashmap * map, int index);
 void PhotonHashmap_setPhoton(struct PhotonHashmap * map, struct JensenPhoton * photon, int index);
@@ -218,24 +233,6 @@ struct JensenPhoton PhotonHashmap_getPhoton(struct PhotonHashmap * map, int inde
 ///
 void PhotonHashmap_setPhoton(struct PhotonHashmap * map, struct JensenPhoton * photon, int index) {
     JensenPhoton_setData(photon, map->photon_data, index);
-}
-
-// Called over "photons.size()" photons
-void PhotonHashmap_mapPhotonToGrid(struct PhotonHashmap * map, int index) {
-    
-    if (index >= map->numPhotons) {
-        return;
-    }
-    
-    struct JensenPhoton photon = JensenPhoton_fromData(map->photon_data, index);
-    
-    int3 cellIndex = PhotonHashmap_cellIndex(map, photon.position);
-    if (cellIndex.x >= 0 && cellIndex.x < map->xdim
-     && cellIndex.y >= 0 && cellIndex.y < map->ydim
-     && cellIndex.z >= 0 && cellIndex.z < map->zdim) {
-    
-        map->gridIndices[index] = PhotonHashmap_photonHash3i(map, cellIndex);
-    }
 }
 
 ///

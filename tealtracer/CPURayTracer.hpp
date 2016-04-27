@@ -81,6 +81,8 @@ public:
     float photonBounceProbability;
     float photonBounceEnergyMultipler;
 
+    bool mapShadowPhotons;
+
     ///
     virtual void setupDrawingInWindow(TSWindow * window);
 
@@ -137,6 +139,8 @@ public:
     ///
     void emitPhotons();
     
+    ///
+    void processEmittedPhoton(RGBf sourceLightEnergy, const Ray & initialRay, bool * photonStored);
     ///
     void processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits);
     

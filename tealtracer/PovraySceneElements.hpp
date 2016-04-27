@@ -179,7 +179,7 @@ public:
     
     ///
     Eigen::Vector3f getSampleDirection(const float & u, const float & v) {
-        return cosineSampleSphere(u, v).block<3,1>(0,0);
+        return uniformSampleSphere(u, v).block<3,1>(0,0);
     }
     
     /// Sampling functions taken from:

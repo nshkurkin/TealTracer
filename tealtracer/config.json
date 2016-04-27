@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "simple_cam.pov",
+    "povrayScene" : "planes.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -13,9 +13,11 @@
         
         "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 5000,
-        "lumensPerLight" : 3000,
+        "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
-        "photonBounceEnergyMultipler" : 0.75,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "mapShadowPhotons" : false,
         
         "__enum_photonMapType" : {
             "KDTree" : 0,
@@ -33,16 +35,16 @@
     "GPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
-        "useGPU": true,
+        "useGPU": false,
         
-        "outputWidth" : 40,
-        "outputHeight" : 30,
+        "outputWidth" : 120,
+        "outputHeight" : 90,
         
-        "numberOfPhotonsToGather" : 30,
-        "raysPerLight" : 5000,
-        "lumensPerLight" : 3000,
+        "numberOfPhotonsToGather" : 300,
+        "raysPerLight" : 20000,
+        "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
-        "photonBounceEnergyMultipler" : 0.75,
+        "photonBounceEnergyMultipler" : 1.00,
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,

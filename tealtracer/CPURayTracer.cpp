@@ -195,15 +195,15 @@ std::uniform_real_distribution<float> distribution;
 void CPURayTracer::emitPhotons() {
     /// for each light, emit photons into the scene.
     auto lights = scene_->findElements<PovrayLightSource>();
-    for (auto itr = lights.begin(); itr != lights.end(); itr++) {
-        auto light = *itr;
-        auto color = light->color();
-
-        float lumens = lumensPerLight;
-        int numRays = raysPerLight;
-        float luminosityPerPhoton = lumens/(float)numRays;
-
-        for (int i = 0; i < numRays; i++) {
+    float lumens = lumensPerLight;
+    int numRays = raysPerLight;
+    float luminosityPerPhoton = lumens/(float)numRays;
+    
+    for (int photonItr = 0; photonItr < numRays; photonItr++) {
+        bool photonStored = false;
+        while (!photonStored) {
+            auto light = lights[(int) (distribution(generator) * (float) lights.size()) % lights.size()];
+            
             float u = distribution(generator);
             float v = distribution(generator);
             
@@ -212,15 +212,93 @@ void CPURayTracer::emitPhotons() {
             ray.origin = light->position();
             ray.direction = light->getSampleDirection(u, v);
             
-            auto hits = scene_->intersections(ray);
-            processHits(color.block<3,1>(0,0) * luminosityPerPhoton, ray, hits);
+            processEmittedPhoton(light->color().block<3,1>(0,0) * luminosityPerPhoton, ray, &photonStored);
         }
     }
+    
+//    
+//    for (auto itr = lights.begin(); itr != lights.end(); itr++) {
+//        auto light = *itr;
+//        auto color = light->color();
+//
+//        float lumens = lumensPerLight;
+//        int numRays = raysPerLight;
+//        float luminosityPerPhoton = lumens/(float)numRays;
+//
+//        for (int i = 0; i < numRays; i++) {
+//            float u = distribution(generator);
+//            float v = distribution(generator);
+//            
+//            Ray ray;
+//            
+//            ray.origin = light->position();
+//            ray.direction = light->getSampleDirection(u, v);
+//            
+//            auto hits = scene_->intersections(ray);
+//            processHits(color.block<3,1>(0,0) * luminosityPerPhoton, ray, hits);
+//        }
+//    }
     
     TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
 }
 
+void CPURayTracer::processEmittedPhoton(
+    ///
+    RGBf sourceLightEnergy,
+    const Ray & initialRay,
+    
+    ///
+    bool * photonStored
+    ) {
 
+    *photonStored = false;
+    
+    Ray ray;
+    ray.origin = initialRay.origin;
+    ray.direction = initialRay.direction;
+    RGBf energy = sourceLightEnergy;
+    
+    auto hits = scene_->intersections(ray);
+
+    while (!*photonStored && hits.size() > 0) {
+        struct JensenPhoton photon;
+        auto hit = hits[0];
+        
+        photon.position = hit.hit.locationOfIntersection();
+        photon.incomingDirection = CompressedNormalVector3(ray.direction);
+        photon.energy = rgb2rgbe(energy);
+        photon.flags.geometryIndex = hit.element->id();
+
+        if (mapShadowPhotons) {
+            for (int i = 1; i < hits.size(); i++) {
+                const auto & hitResult = hits[i];
+                photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+            }
+        }
+
+        float value = distribution(generator);
+
+        if (value < photonBounceProbability) {
+
+            Ray reflectedRay;
+            reflectedRay.direction = hit.hit.outgoingDirection();
+            reflectedRay.origin = hit.hit.locationOfIntersection() + 0.001f * reflectedRay.direction;
+            
+            RGBf hitEnergy = computeOutputEnergyForHit(hit, -ray.direction, hit.hit.outgoingDirection(), energy, false) * photonBounceEnergyMultipler;
+            //////
+            
+            /// Calculate intersection
+            hits = scene_->intersections(reflectedRay);
+            ray.origin = reflectedRay.origin;
+            ray.direction = reflectedRay.direction;
+            energy = hitEnergy;
+        }
+        else {
+            photonMap->photons.push_back(photon);
+            *photonStored = true;
+        }
+    }
+}
 
 ///
 void CPURayTracer::processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits) {

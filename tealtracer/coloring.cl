@@ -41,6 +41,7 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     struct RayIntersectionResult hitResult,
     struct PhotonHashmap * map,
     int maxNumPhotonsToGather,
+    float maxGatherDistance,
     float3 toViewer,
     __global int * photon_indices,
     __global float * photon_distances);
@@ -167,6 +168,7 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     struct RayIntersectionResult hitResult,
     struct PhotonHashmap * map,
     int maxNumPhotonsToGather,
+    float maxGatherDistance,
     float3 toViewer,
     __global int * photon_indices,
     __global float * photon_distances
@@ -195,9 +197,10 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     }
     
     int numPhotonsFound;
-    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, INFINITY, RayIntersectionResult_locationOfIntersection(&hitResult), photon_indices, photon_distances, &numPhotonsFound);
+    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, maxGatherDistance, RayIntersectionResult_locationOfIntersection(&hitResult), photon_indices, photon_distances, &numPhotonsFound);
     
     float maxSqrDist = 0.001f;
+    
     //  Accumulate radiance of the K nearest photons
     for (int i = 0; i < numPhotonsFound; ++i) {
         

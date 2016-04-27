@@ -107,6 +107,8 @@ TealTracer::run(const std::vector<std::string> & args) {
         cpuRayTracer_->photonBounceProbability = config["CPURayTracer"]["photonBounceProbability"].get<double>();
         cpuRayTracer_->photonBounceEnergyMultipler = config["CPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
         
+        cpuRayTracer_->mapShadowPhotons = config["CPURayTracer"]["mapShadowPhotons"].get<bool>();
+        
         cpuRayTracer_->start();
     }
     

@@ -194,7 +194,25 @@ public:
         size_t* uiGlobalDim,
         size_t* uiLocalDim,
         uint uiDimCount);
+    
+    ///
+    size_t localCountForGlobalCount(const char * kernel, size_t count) {
+        size_t local = getEstimatedWorkGroupSize(kernel);
+        while (count % local != 0) {
+            local--;
+        }
+        return local;
+    }
+    
+    bool executeKernel(
+        const char * kernelName,
+        uint deviceID,
+        size_t globalDim) {
         
+        size_t localDim = localCountForGlobalCount(kernelName, globalDim);
+        return executeKernel(kernelName, deviceID, &globalDim, &localDim, 1);
+    }
+    
     bool createBuffer(
         const char* acMemObjName, 
         MemFlags eMemFlags, 

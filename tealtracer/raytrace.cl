@@ -64,7 +64,7 @@ struct SceneConfig {
 
 ///
 struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneConfig * config, float3 rayOrigin, float3 rayDirection);
-void SceneConfig_initGenerator(struct SceneConfig * config);
+void SceneConfig_initGenerator(struct SceneConfig * config, unsigned int generatorSeed);
 float SceneConfig_randomNormalizedFloat(struct SceneConfig * config);
 int SceneConfig_randomInt(struct SceneConfig * config);
 
@@ -95,13 +95,13 @@ struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneCon
 }
 
 ///
-void SceneConfig_initGenerator(struct SceneConfig * config) {
-    MWC64X_SeedStreams(&(config->generator), (ulong) get_global_id(0), (ulong) get_global_size(0));
+void SceneConfig_initGenerator(struct SceneConfig * config, unsigned int generatorSeed) {
+    MWC64X_SeedStreams(&(config->generator), (ulong) get_global_id(0) + generatorSeed, (ulong) get_global_size(0) + generatorSeed);
 }
 
 ///
 float SceneConfig_randomNormalizedFloat(struct SceneConfig * config) {
-    return ((float) (((int) MWC64X_NextUint(&(config->generator))) % 100000)) / 100000.0f;
+    return ((float) (MWC64X_NextUint(&(config->generator)) % 100000)) / 100000.0f;
 }
 
 ///
@@ -124,6 +124,7 @@ void processEmittedPhoton(
 ///
 kernel void emit_photon(
     ///
+    const unsigned int generatorSeed,
     const unsigned int brdf, // one of (enum BRDFType)
     
     /// scene elements
@@ -166,7 +167,7 @@ kernel void emit_photon(
     
     PHOTON_HASHMAP_SET_PHOTON_PARAMS((&config.map));
     
-    SceneConfig_initGenerator(&config);
+    SceneConfig_initGenerator(&config, generatorSeed);
     
     /// choose a random light and direction
     int whichLight = SceneConfig_randomInt(&config) % numLights;
@@ -179,7 +180,7 @@ kernel void emit_photon(
         float v = SceneConfig_randomNormalizedFloat(&config);
         
         float3 rayOrigin = light.position;
-        float3 rayDirection = cosineSampleSphere(u, v).xyz;
+        float3 rayDirection = uniformSampleSphere(u, v).xyz;
         
         processEmittedPhoton(&config, whichPhoton, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection, &photonStored);
     }
@@ -280,9 +281,12 @@ kernel void photonmap_mapPhotonToGrid(
     PHOTON_HASHMAP_SET_META_PARAMS((&map));
     
     int index = (int) get_global_id(0);
-    if (index < map.numPhotons) {
-        PhotonHashmap_mapPhotonToGrid(&map, index);
+    if (index >= map.numPhotons) {
+        return;
     }
+    
+    struct JensenPhoton photon = JensenPhoton_fromData(map.photon_data, index);
+    map.gridIndices[index] = PhotonHashmap_clampedCellIndexHash(&map, photon.position);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -306,16 +310,10 @@ kernel void photonmap_sortPhotons(
     int threadID = (int) get_global_id(0);
     int indexA, indexB;
     
-    if (parity == 0) {
-        indexA = threadID * 2;
-        indexB = indexA + 1;
-    }
-    else {
-        indexB = threadID * 2 + 1;
-        indexA = indexB - 1;
-    }
+    indexA = threadID * 2 + parity;
+    indexB = indexA + 1;
     
-    if (max(indexA, indexB) >= numPhotons) {
+    if (indexB >= numPhotons) {
         return;
     }
     
@@ -325,8 +323,8 @@ kernel void photonmap_sortPhotons(
     photonA = JensenPhoton_fromData(photon_data, indexA);
     photonB = JensenPhoton_fromData(photon_data, indexB);
     
-    hashA = PhotonHashmap_cellIndexHash(&map, photonA.position);
-    hashB = PhotonHashmap_cellIndexHash(&map, photonB.position);
+    hashA = PhotonHashmap_clampedCellIndexHash(&map, photonA.position);
+    hashB = PhotonHashmap_clampedCellIndexHash(&map, photonB.position);
     
     if (hashA > hashB) {
         JensenPhoton_setData(&photonA, photon_data, indexB);
@@ -334,61 +332,28 @@ kernel void photonmap_sortPhotons(
     }
 }
 
-
+///////////////////////////////////////////////////////////////////////////
 ///
-
-//kernel void photonmap_sortPhotons_parallelMerge(
-//    PHOTON_HASHMAP_BASIC_PARAMS,
-//    __global const float * photon_data,
-//    __global float * photon_data_out,
-//    __local float * aux_pool,
-//    
-//    const int numPhotons,
-//    const int parity) {
-//  
-//    struct PhotonHashmap map;
-//    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
-//    
-//    int index = (int) get_local_id(0); // index in workgroup
-//    int workGroupSize = (int) get_local_size(0); // workgroup size = block size, power of 2
-//    
-//    // Move IN, OUT to block start
-//    int offset = ((int) get_group_id(0)) * workGroupSize;
-//    
-//    photon_data += offset;
-//    photon_data_out += offset;
-//    
-//    // Load block in AUX[WG]
-//    aux[index] = photon_data[index];
-//    barrier(CLK_LOCAL_MEM_FENCE); // make sure AUX is entirely up to date
-//    
-//    // Now we will merge sub-sequences of length 1,2,...,WG/2
-//    for (int length = 1; length < workGroupSize; length <<= 1) {
-//        data_t iData = aux_pool[index];
-//        uint iKey = getKey(iData);
-//        int ii = index & (length-1);  // index in our sequence in 0..length-1
-//        int sibling = (index - ii) ^ length; // beginning of the sibling sequence
-//        int pos = 0;
-//        
-//        // increment for dichotomic search
-//        for (int inc = length; inc > 0; inc >>= 1) {
-//            int j = sibling + pos + inc - 1;
-//            uint jKey = getKey(aux_pool[j]);
-//            bool smaller = (jKey < iKey) || ( jKey == iKey && j < index );
-//            pos += (smaller) ? inc : 0;
-//            pos = min(pos,length);
-//        }
-//        int bits = 2*length - 1; // mask for destination
-//        int dest = ((ii + pos) & bits) | (index & ~bits); // destination index in merged sequence
-//        barrier(CLK_LOCAL_MEM_FENCE);
-//        aux_pool[dest] = iData;
-//        barrier(CLK_LOCAL_MEM_FENCE);
-//    }
-//    
-//    // Write output
-//    photon_data_out[index] = aux_pool[index];
-//}
-
+/// KERNEL: photonmap_initGridFirstPhoton
+///
+/// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.
+///
+/// NOTE: Called over "map->xdim * map->ydim * map->zdim"
+///
+kernel void photonmap_initGridFirstPhoton(
+    const int map_xdim,
+    const int map_ydim,
+    const int map_zdim,
+    __global int * map_gridFirstPhotonIndices) {
+    
+    int index = (int) get_global_id(0);
+    
+    if (index > map_xdim * map_ydim * map_zdim) {
+        return;
+    }
+    
+    map_gridFirstPhotonIndices[index] = -1;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ///
@@ -517,7 +482,7 @@ kernel void raytrace_one_ray(
         __global int * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
         __global float * photon_distances = &photon_distance_array[threadId * maxNumPhotonsToGather];
     
-        RGBf energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, -bestIntersection.rayDirection, photon_indices, photon_distances);
+        RGBf energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, INFINITY, -bestIntersection.rayDirection, photon_indices, photon_distances);
         
         /// DEBUG
 //        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
