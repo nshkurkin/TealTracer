@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "planes.pov",
+    "povrayScene" : "simple_cam.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -35,7 +35,7 @@
     "GPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
-        "useGPU": false,
+        "useGPU": true,
         
         "outputWidth" : 120,
         "outputHeight" : 90,
