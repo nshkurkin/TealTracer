@@ -334,29 +334,6 @@ kernel void photonmap_sortPhotons(
 
 ///////////////////////////////////////////////////////////////////////////
 ///
-/// KERNEL: photonmap_initGridFirstPhoton
-///
-/// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.
-///
-/// NOTE: Called over "map->xdim * map->ydim * map->zdim"
-///
-kernel void photonmap_initGridFirstPhoton(
-    const int map_xdim,
-    const int map_ydim,
-    const int map_zdim,
-    __global int * map_gridFirstPhotonIndices) {
-    
-    int index = (int) get_global_id(0);
-    
-    if (index > map_xdim * map_ydim * map_zdim) {
-        return;
-    }
-    
-    map_gridFirstPhotonIndices[index] = -1;
-}
-
-///////////////////////////////////////////////////////////////////////////
-///
 /// KERNEL: photonmap_computeGridFirstPhoton
 ///
 /// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.

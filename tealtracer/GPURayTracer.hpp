@@ -254,7 +254,6 @@ public:
         computeEngine.createKernel("raytrace_prog", "emit_photon");
         computeEngine.createKernel("raytrace_prog", "photonmap_sortPhotons");
         computeEngine.createKernel("raytrace_prog", "photonmap_mapPhotonToGrid");
-        computeEngine.createKernel("raytrace_prog", "photonmap_initGridFirstPhoton");
         computeEngine.createKernel("raytrace_prog", "photonmap_computeGridFirstPhoton");
         
         auto camera = scene_->camera();
@@ -320,6 +319,7 @@ public:
         size_t localCount = localCountForGlobalCount("emit_photon", globalCount);
 
         computeEngine.executeKernel("emit_photon", 0, &globalCount, &localCount, 1);
+        computeEngine.finish(0);
         
         double endTime = glfwGetTime();
         TSLoggerLog(std::cout, "elapsed emit time: ", endTime - startTime);
@@ -367,17 +367,14 @@ public:
             computeEngine.executeKernel("photonmap_sortPhotons", 0, &globalCount, &localCount, 1);
         }
         
+        computeEngine.finish(0);
+        
         double endTime = glfwGetTime();
         TSLoggerLog(std::cout, "elapsed sort time: ", endTime - startTime);
     }
     
     ///
     void ocl_mapPhotonsToGrid() {
-    
-        ///
-//        std::vector<cl_float> photonData(raysPerLight * 9, -1000.0f);
-//        computeEngine.readBuffer("map_photon_data", 0, 0, sizeof(cl_float) * raysPerLight * 9, &photonData[0]);
-        ///
     
         double startTime = glfwGetTime();
     
@@ -409,62 +406,12 @@ public:
         
         double endTime = glfwGetTime();
         TSLoggerLog(std::cout, "elapsed toGrid time: ", endTime - startTime);
-    
-    
-        //////
-//        std::vector<cl_int> photonHashes(raysPerLight, -1000);
-//        computeEngine.readBuffer("map_gridIndices", 0, 0, sizeof(cl_int) * raysPerLight, &photonHashes[0]);
-//       
-//        int validPhotons = 0;
-//       
-//        for (int i = 0; i < photonData.size(); i+= 9) {
-//            Eigen::Vector3f position, direction, energy;
-//            
-//            position << photonData[i+0], photonData[i+1], photonData[i+2];
-//            direction << photonData[i+3], photonData[i+4], photonData[i+5];
-//            energy << photonData[i+6], photonData[i+7], photonData[i+8];
-//            
-//            TSLoggerLog(std::cout, "photon[", i / 9, "]={\nposition=\n", position, ", \ndirection=\n", direction, ", \nenergy=\n", energy, "}");
-//            
-//            int expectedHash = -1;
-//            auto cellIndex = photonHashmap->getCellIndex(position);
-//            if (cellIndex.x() >= 0 && cellIndex.x() < photonHashmap->xdim
-//             && cellIndex.y() >= 0 && cellIndex.y() < photonHashmap->ydim
-//             && cellIndex.z() >= 0 && cellIndex.z() < photonHashmap->zdim) {
-//                expectedHash = photonHashmap->photonHash(cellIndex);
-//            }
-//            
-//            TSLoggerLog(std::cout, "photonHash[", i / 9, "] = ", photonHashes[i / 9], ", should be ", expectedHash);
-//            
-//            TSLoggerLog(std::cout, "photonHashmap: spacing=", photonHashmap->spacing, ", xmin=", photonHashmap->xmin, ", ymin=", photonHashmap->ymin, ", zmin=", photonHashmap->zmin, ", xmax=", photonHashmap->xmax, ", ymax=", photonHashmap->ymax, ", zmin=", photonHashmap->zmin, ", xdim=", photonHashmap->xdim, ", ydim=", photonHashmap->ydim, ", zdim=", photonHashmap->zdim);
-//            TSLoggerLog(std::cout, "cellIndex=", cellIndex);
-//            
-//            assert(photonHashes[i / 9] == expectedHash);
-//            if ((i/9) > 0) {
-//                assert(photonHashes[(i/9)-1] <= photonHashes[i/9]);
-//            }
-//            if (photonHashes[i/9] >= 0) {
-//                validPhotons++;
-//            }
-//        }
-//    
-//        TSLoggerLog(std::cout, "photons in GPU map=", validPhotons);
-    
     }
     
     ///
     void ocl_computeGridFirstIndices() {
     
         double startTime = glfwGetTime();
-    
-        computeEngine.setKernelArgs("photonmap_initGridFirstPhoton",
-            (cl_int) photonHashmap->xdim,
-            (cl_int) photonHashmap->ydim,
-            (cl_int) photonHashmap->zdim,
-            computeEngine.getBuffer("map_gridFirstPhotonIndices")
-        );
-        
-        computeEngine.executeKernel("photonmap_initGridFirstPhoton", 0, photonHashmap->xdim * photonHashmap->ydim * photonHashmap->zdim);
     
         computeEngine.setKernelArgs("photonmap_computeGridFirstPhoton",
             computeEngine.getBuffer("map_photon_data"),

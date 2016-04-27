@@ -300,7 +300,7 @@ void PhotonHashmap_gatherPhotonIndices(
                     
                     int gridIndex = PhotonHashmap_photonHashIJK(map, i, j, k);
                     // find the index of the first photon in the cell
-                    if (map->gridFirstPhotonIndices[gridIndex] != -1) {
+                    if (map->gridFirstPhotonIndices[gridIndex] > 0) {
                         int pi = map->gridFirstPhotonIndices[gridIndex];
                         while (pi < map->numPhotons && map->gridIndices[pi] == gridIndex) {
                             struct JensenPhoton p = JensenPhoton_fromData(map->photon_data, pi);

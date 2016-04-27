@@ -40,8 +40,8 @@
         "outputWidth" : 120,
         "outputHeight" : 90,
         
-        "numberOfPhotonsToGather" : 300,
-        "raysPerLight" : 20000,
+        "numberOfPhotonsToGather" : 50,
+        "raysPerLight" : 5000,
         "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 1.00,
