@@ -53,7 +53,7 @@ public:
     ///     3) Render "outputTexture"
     ///
 
-    Image outputImage;
+    Image<uint8_t> outputImage;
     TextureRenderTarget target;
     JobPool jobPool;
     

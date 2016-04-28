@@ -12,12 +12,13 @@
 #include <vector>
 #include <Eigen/Dense>
 
+template <typename PixelFieldType>
 struct Image {
 
     ///
-    typedef Eigen::Matrix<uint8_t, 4, 1> Vector4ub;
+    typedef Eigen::Matrix<PixelFieldType, 4, 1> Vector4;
 
-    std::vector<Vector4ub> pixels;
+    std::vector<Vector4> pixels;
     int width;
     int height;
     
@@ -32,7 +33,7 @@ struct Image {
     }
     
     ///
-    void setDimensions(int width, int height, const Vector4ub & fill = Vector4ub(100, 100, 100, 255)) {
+    void setDimensions(int width, int height, const Vector4 & fill = Vector4(100, 100, 100, 255)) {
         this->width = width;
         this->height = height;
         
@@ -40,7 +41,7 @@ struct Image {
     }
     
     ///
-    Vector4ub & pixel(int x, int y) {
+    Vector4 & pixel(int x, int y) {
         return pixels[x + width * y];
     }
     
@@ -56,7 +57,7 @@ struct Image {
     
     //
     size_t dataSize() {
-        return sizeof(uint8_t) * size_t(4 * width * height);
+        return sizeof(PixelFieldType) * size_t(4 * width * height);
     }
 };
 

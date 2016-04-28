@@ -50,7 +50,7 @@ public:
     std::default_random_engine generator;
     std::uniform_real_distribution<float> distribution;
     
-    Image outputImage;
+    Image<uint8_t> outputImage;
     int renderOutputWidth;
     int renderOutputHeight;
 
@@ -100,15 +100,19 @@ public:
         ///
         lastX = std::numeric_limits<float>::infinity();
         lastY = std::numeric_limits<float>::infinity();
+        
+        ///
+        ocl_raytraceSetup();
     }
 
     float FPSsaved, realtimeSaved;
 
     void start() {
-        ocl_raytraceSetup();
-        
-        ocl_buildPhotonMap();
-        enqueRayTrace();
+        jobPool.emplaceJob([=](){
+            this->ocl_buildPhotonMap();
+        }, [=](){
+            this->enqueRayTrace();
+        });
     }
 
     ///
@@ -282,6 +286,9 @@ public:
         int photonAccumBufferSize = numberOfPhotonsToGather * outputImage.width * outputImage.height;
         computeEngine.createBuffer("photon_index_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * photonAccumBufferSize);
         computeEngine.createBuffer("photon_distance_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * photonAccumBufferSize);
+        
+        /// Link up to OpenGL
+//        computeEngine.createGLTextureReference("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, target.outputTexture->metaData().targetType, target.outputTexture->metaData().mipmapLevel, target.outputTexture->handle());
     }
     
     ///
@@ -473,6 +480,9 @@ public:
     ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
     void ocl_raytraceRays() {
         
+//        glFinish(); // Wait for all OpenGL calls to finish
+//        computeEngine.attachGLBuffer("imageOutput");
+        
         unsigned int imageWidth = outputImage.width;
         unsigned int imageHeight = outputImage.height;
         void * imageData = outputImage.dataPtr();
@@ -526,9 +536,9 @@ public:
         
         computeEngine.executeKernel("raytrace_one_ray", 0, rayCount);
         computeEngine.finish(0);
+//        computeEngine.detachGLBuffer("imageOutput");
         
         computeEngine.readBuffer("imageOutput", 0, 0, imageDataSize, imageData);
-        
         target.outputTexture->setNeedsUpdate();
     }
     

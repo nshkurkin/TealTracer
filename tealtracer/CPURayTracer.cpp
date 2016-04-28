@@ -354,7 +354,7 @@ void CPURayTracer::raytraceScene() {
             ray.direction = (pixelPos - camPos).normalized();
             
             auto hitTest = scene_->closestIntersection(ray);
-            Image::Vector4ub color = Image::Vector4ub(0, 0, 0, 255);
+            Image<uint8_t>::Vector4 color = Image<uint8_t>::Vector4(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
                 RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, RGBf(1,1,1), true);

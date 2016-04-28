@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "simple_cam.pov",
+    "povrayScene" : "planes.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -35,13 +35,13 @@
     "GPURayTracer" : {
         "enabled" : true,
         "initialTitle" : "GPU Ray Tracer",
-        "useGPU": true,
+        "useGPU": false,
         
-        "outputWidth" : 120,
-        "outputHeight" : 90,
+        "outputWidth" : 640,
+        "outputHeight" : 480,
         
-        "numberOfPhotonsToGather" : 50,
-        "raysPerLight" : 5000,
+        "numberOfPhotonsToGather" : 1000,
+        "raysPerLight" : 15000,
         "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 1.00,
