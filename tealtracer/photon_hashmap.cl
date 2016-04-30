@@ -270,6 +270,208 @@ int findMaxDistancePhotonIndex(
     __global float * photon_distances,
     int numPhotons
     );
+void PhotonHashmap_gatherClosestPhotonsForGridIndex(
+    struct PhotonHashmap * map,
+    const int maxNumPhotonsToGather,
+    const float maxPhotonDistance,
+    const float3 intersection,
+    ///
+    int i, int j, int k,
+    
+    // output
+    __global int * photon_indices,
+    __global float * photon_distances,
+    int * photonsFound,
+    float * maxRadiusSqd);
+
+///
+void PhotonHashmap_gatherClosestPhotonsForGridIndex(
+    struct PhotonHashmap * map,
+    const int maxNumPhotonsToGather,
+    const float maxPhotonDistance,
+    const float3 intersection,
+    ///
+    int i, int j, int k,
+    
+    // output
+    __global int * photon_indices,
+    __global float * photon_distances,
+    int * photonsFound,
+    float * maxRadiusSqd
+) {
+
+    int gridIndex = PhotonHashmap_photonHashIJK(map, i, j, k);
+    // find the index of the first photon in the cell
+    if (map->gridFirstPhotonIndices[gridIndex] > 0) {
+        int pi = map->gridFirstPhotonIndices[gridIndex];
+        while (pi < map->numPhotons && map->gridIndices[pi] == gridIndex) {
+            struct JensenPhoton p = JensenPhoton_fromData(map->photon_data, pi);
+            // Check if the photon is on the same geometry as the intersection
+            // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
+            float distSqd = dot(p.position - intersection, p.position - intersection);
+            if (*photonsFound < maxNumPhotonsToGather) {
+                if (distSqd < maxPhotonDistance * maxPhotonDistance) {
+                    photon_indices[*photonsFound] = pi;
+                    photon_distances[*photonsFound] = distSqd;
+                    *photonsFound += 1;
+                    
+                    *maxRadiusSqd = max(distSqd, *maxRadiusSqd);
+                }
+            }
+            // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
+            // to the intersection is smaller, replace the photon with the largest distance with the current photon
+            else {
+                int maxDistIndex = findMaxDistancePhotonIndex(photon_distances, *photonsFound);
+                
+                float searchResult_squareDistance = photon_distances[maxDistIndex];
+                
+                if (distSqd < searchResult_squareDistance) {
+                    photon_indices[maxDistIndex] = pi;
+                    photon_distances[maxDistIndex] = distSqd;
+                    if (distSqd > *maxRadiusSqd
+                     || fabs(*maxRadiusSqd - searchResult_squareDistance) < 0.0001f) {
+                        *maxRadiusSqd = distSqd;
+                    }
+                }
+            }
+            pi++;
+        }
+    }
+
+}
+
+bool pointInsideCube(
+    float3 point,
+    
+    float3 cube_start,
+    float3 cube_end);
+bool sphereInsideCube(
+    float3 sphere_position,
+    float sphere_radius,
+    
+    float3 cube_start,
+    float3 cube_end);
+float3 PhotonHashmap_getCellBoxStart(
+    struct PhotonHashmap * map,
+    /// which cell
+    int i, int j, int k);
+
+///
+bool pointInsideCube(
+    float3 point,
+    
+    float3 cube_start,
+    float3 cube_end) {
+
+    return cube_start.x <= point.x && point.x <= cube_end.x
+     && cube_start.y <= point.y && point.y <= cube_end.y
+     && cube_start.z <= point.z && point.z <= cube_end.z;
+}
+
+///
+bool sphereInsideCube(
+    float3 sphere_position,
+    float sphere_radius,
+    
+    float3 cube_start,
+    float3 cube_end) {
+
+    return pointInsideCube(sphere_position + (float3) {sphere_radius, sphere_radius, sphere_radius}, cube_start, cube_end)
+//     && pointInsideCube(sphere_position + (float3) {sphere_radius, sphere_radius, -sphere_radius}, cube_start, cube_end)
+//     && pointInsideCube(sphere_position + (float3) {sphere_radius, -sphere_radius, sphere_radius}, cube_start, cube_end)
+//     && pointInsideCube(sphere_position + (float3) {sphere_radius, -sphere_radius, -sphere_radius}, cube_start, cube_end)
+//     && pointInsideCube(sphere_position + (float3) {-sphere_radius, sphere_radius, -sphere_radius}, cube_start, cube_end)
+//     && pointInsideCube(sphere_position + (float3) {-sphere_radius, -sphere_radius, sphere_radius}, cube_start, cube_end)
+     && pointInsideCube(sphere_position + (float3) {-sphere_radius, -sphere_radius, -sphere_radius}, cube_start, cube_end);
+}
+
+float3 PhotonHashmap_getCellBoxStart(
+    struct PhotonHashmap * map,
+    /// which cell
+    int i, int j, int k) {
+    
+    float3 start;
+    
+    start.x = map->xmin + (map->cellsize * (float) i);
+    start.y = map->ymin + (map->cellsize * (float) j);
+    start.z = map->zmin + (map->cellsize * (float) k);
+
+    return start;
+}
+
+///
+void PhotonHashmap_gatherPhotonIndices_v2(
+    struct PhotonHashmap * map,
+    const int maxNumPhotonsToGather,
+    const float maxPhotonDistance,
+    const float3 intersection,
+    // output
+    __global int * photon_indices,
+    __global float * photon_distances,
+    int * photonsFound
+    ) {
+    
+    int3 gridIndex = PhotonHashmap_cellIndex(map, intersection);
+    int px = gridIndex.x, py = gridIndex.y, pz = gridIndex.z;
+    *photonsFound = 0;
+    
+    /// Only consider intersections within the grid
+    if (px >= 0 && px < map->xdim
+     && py >= 0 && py < map->ydim
+     && pz >= 0 && pz < map->zdim) {
+        
+        float maxRadiusSqd = -1.0f;
+        
+        /// Find initial set of photons
+        PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
+        
+        int innerBoxWidth = 1;
+        int outerBoxWidth = 3;
+        float3 outerBoxStart, outerBoxEnd;
+//        int largestDim = max(max(map->xdim, map->ydim), map->zdim);
+        
+        outerBoxStart = PhotonHashmap_getCellBoxStart(map, px - 1, py - 1, pz - 1);
+        outerBoxEnd = outerBoxStart + (float3) { map->cellsize, map->cellsize, map->cellsize } * (float) outerBoxWidth;
+        
+        /// TODO: This is what I think the code should like for searching for the # of photons we desire. But it doesn't
+        ///     quite work.
+        
+//        while (!(*photonsFound == maxNumPhotonsToGather
+//         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), outerBoxStart, outerBoxEnd))
+//         && outerBoxWidth <= largestDim) {
+
+        ///     instead I'm using this "while" condition
+        while (outerBoxWidth <= 5) {
+            for (int counter = 0; counter < outerBoxWidth * outerBoxWidth * outerBoxWidth; counter++) {
+                int boxX = (counter % outerBoxWidth);
+                int boxY = ((counter / outerBoxWidth) % outerBoxWidth);
+                int boxZ = (counter / (outerBoxWidth * outerBoxWidth));
+            
+                if (boxX == 1 && boxZ > 0 && (boxZ < outerBoxWidth - 1) && boxY > 0 && (boxY < outerBoxWidth - 1)) {
+                    counter += innerBoxWidth;
+                }
+                
+                int bi = (counter % outerBoxWidth) - (outerBoxWidth / 2);
+                int bj = ((counter / outerBoxWidth) % outerBoxWidth) - (outerBoxWidth / 2);
+                int bk = (counter / (outerBoxWidth * outerBoxWidth)) - (outerBoxWidth / 2);
+                
+                int i = min(max(0, px + bi), map->xdim);
+                int j = min(max(0, py + bj), map->ydim);
+                int k = min(max(0, pz + bk), map->zdim);
+                
+                if (i == (px + bi) && j == (py + bj) && k == (pz + bk)) {
+                    PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
+                }
+            }
+        
+            outerBoxWidth += 2;
+            innerBoxWidth += 2;
+            
+            outerBoxStart = PhotonHashmap_getCellBoxStart(map, px - (outerBoxWidth / 2), py - (outerBoxWidth / 2), pz - (outerBoxWidth / 2));
+            outerBoxEnd = outerBoxStart + (float3) { map->cellsize, map->cellsize, map->cellsize } * (float) outerBoxWidth;
+        }
+    }
+}
 
 ///
 void PhotonHashmap_gatherPhotonIndices(
@@ -293,48 +495,12 @@ void PhotonHashmap_gatherPhotonIndices(
      && pz >= 0 && pz < map->zdim) {
         
         float maxRadiusSqd = -1.0f;
-        
+    
         for (int i = max(0, px - map->spacing); i < min(map->xdim, px+map->spacing+1); ++i) {
             for (int j = max(0, py - map->spacing); j < min(map->ydim, py+map->spacing+1); ++j) {
                 for (int k = max(0, pz - map->spacing); k < min(map->zdim, pz+map->spacing+1); ++k) {
                     
-                    int gridIndex = PhotonHashmap_photonHashIJK(map, i, j, k);
-                    // find the index of the first photon in the cell
-                    if (map->gridFirstPhotonIndices[gridIndex] > 0) {
-                        int pi = map->gridFirstPhotonIndices[gridIndex];
-                        while (pi < map->numPhotons && map->gridIndices[pi] == gridIndex) {
-                            struct JensenPhoton p = JensenPhoton_fromData(map->photon_data, pi);
-                            // Check if the photon is on the same geometry as the intersection
-                            // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
-                            float distSqd = dot(p.position - intersection, p.position - intersection);
-                            if (*photonsFound < maxNumPhotonsToGather) {
-                                if (distSqd < maxPhotonDistance * maxPhotonDistance) {
-                                    photon_indices[*photonsFound] = pi;
-                                    photon_distances[*photonsFound] = distSqd;
-                                    *photonsFound += 1;
-                                    
-                                    maxRadiusSqd = max(distSqd, maxRadiusSqd);
-                                }
-                            }
-                            // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
-                            // to the intersection is smaller, replace the photon with the largest distance with the current photon
-                            else {
-                                int maxDistIndex = findMaxDistancePhotonIndex(photon_distances, *photonsFound);
-                                
-                                float searchResult_squareDistance = photon_distances[maxDistIndex];
-                                
-                                if (distSqd < searchResult_squareDistance) {
-                                    photon_indices[maxDistIndex] = pi;
-                                    photon_distances[maxDistIndex] = distSqd;
-                                    if (distSqd > maxRadiusSqd
-                                     || fabs(maxRadiusSqd - searchResult_squareDistance) < 0.0001f) {
-                                        maxRadiusSqd = distSqd;
-                                    }
-                                }
-                            }
-                            pi++;
-                        }
-                    }
+                    PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
                 }
             }
         }
