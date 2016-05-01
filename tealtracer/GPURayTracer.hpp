@@ -256,7 +256,6 @@ public:
         
         /// Photon mapping kernels
         computeEngine.createKernel("raytrace_prog", "emit_photon");
-        computeEngine.createKernel("raytrace_prog", "photonmap_sortPhotons");
         computeEngine.createKernel("raytrace_prog", "photonmap_mapPhotonToGrid");
         computeEngine.createKernel("raytrace_prog", "photonmap_initGridFirstPhoton");
         computeEngine.createKernel("raytrace_prog", "photonmap_computeGridFirstPhoton");
@@ -332,35 +331,24 @@ public:
     
     ///
     void ocl_sortPhotons() {
-        int numPhotons = raysPerLight;
+    
         double startTime = glfwGetTime();
         
-        for (int itr = 0; itr < numPhotons; itr++) {
-            int parity = itr % 2;
+        ///
+        packed_struct PackedPhoton {
+            float pos_x, pos_y, pos_z;
+            float dir_x, dir_y, dir_z;
+            float ene_x, ene_y, ene_z;
+        };
         
-            computeEngine.setKernelArgs("photonmap_sortPhotons",
-                (cl_int) photonHashmap->spacing,
-                (cl_float) photonHashmap->xmin,
-                (cl_float) photonHashmap->ymin,
-                (cl_float) photonHashmap->zmin,
-                (cl_float) photonHashmap->xmax,
-                (cl_float) photonHashmap->ymax,
-                (cl_float) photonHashmap->zmax,
-                (cl_int) photonHashmap->xdim,
-                (cl_int) photonHashmap->ydim,
-                (cl_int) photonHashmap->zdim,
-                (cl_float) photonHashmap->cellsize,
-            
-                computeEngine.getBuffer("map_photon_data"),
-                (cl_int) numPhotons,
-                
-                (cl_int) parity
-            );
-            
-            computeEngine.executeKernel("photonmap_sortPhotons", 0, raysPerLight / 2);
-        }
+        std::vector<PackedPhoton> photons(raysPerLight, PackedPhoton());
+        computeEngine.readBuffer("map_photon_data", 0, 0, sizeof(PackedPhoton) * raysPerLight, &photons[0]);
+        std::sort(photons.begin(), photons.end(), [&](const PackedPhoton & a, const PackedPhoton & b) {
+            return photonHashmap->getCellIndexHash(Eigen::Vector3f(a.pos_x, a.pos_y, a.pos_z)) < photonHashmap->getCellIndexHash(Eigen::Vector3f(b.pos_x, b.pos_y, b.pos_z));
+        });
+        computeEngine.writeBuffer("map_photon_data", 0, 0, sizeof(PackedPhoton) * raysPerLight, &photons[0]);
+        ///
         
-        computeEngine.finish(0);
         double endTime = glfwGetTime();
         TSLoggerLog(std::cout, "elapsed sort time: ", endTime - startTime);
     }

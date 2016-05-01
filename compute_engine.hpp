@@ -213,6 +213,15 @@ public:
         return executeKernel(kernelName, deviceID, &globalDim, &localDim, 1);
     }
     
+    bool executeKernel(
+        const char * kernelName,
+        uint deviceID,
+        size_t globalDim,
+        size_t localDim) {
+    
+        return executeKernel(kernelName, deviceID, &globalDim, &localDim, 1);
+    }
+    
     bool createBuffer(
         const char* acMemObjName, 
         MemFlags eMemFlags, 
