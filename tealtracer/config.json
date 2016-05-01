@@ -37,11 +37,11 @@
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": true,
         
-        "outputWidth" : 120,
-        "outputHeight" : 90,
+        "outputWidth" : 320,
+        "outputHeight" : 240,
         
         "numberOfPhotonsToGather" : 100,
-        "raysPerLight" : 5000,
+        "raysPerLight" : 10000,
         "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 1.00,

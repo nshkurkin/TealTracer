@@ -416,6 +416,8 @@ ReportError(int iError, const char * file, const int line, const char * function
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <vector>
+
 ComputeEngine::ComputeEngine() :
     m_uiDeviceCount(0),
     m_kContext(0),
@@ -469,6 +471,11 @@ ComputeEngine::connect(
         // Create a context from a CGL share group
         //
         m_kContext = clCreateContext(akProperties, 0, 0, clLogMessagesToStdoutAPPLE, 0, 0);
+        
+        if (iError != CL_SUCCESS) {
+            ReportError(iError);
+            return false;
+        }
     }
     else
     {
@@ -478,9 +485,24 @@ ComputeEngine::connect(
         {
             DEBUG_CL_printf("Error: Failed to locate compute device!\n");
             return false;
-        }      
+        }
+        
+        cl_uint numPlatformsAvailable = 0;
+        clGetPlatformIDs(0, NULL, &numPlatformsAvailable);
+        std::vector<cl_platform_id> platforms(numPlatformsAvailable, 0);
+        clGetPlatformIDs(numPlatformsAvailable, &platforms[0], NULL);
 
-        m_kContext = clCreateContext(0, uiAvailableDeviceCount, akAvailableDeviceIds, NULL, NULL, &iError);
+        cl_context_properties properties[] = {
+            CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[0],
+            NULL
+        };
+
+        m_kContext = clCreateContext(properties, uiAvailableDeviceCount, akAvailableDeviceIds, NULL, NULL, &iError);
+        
+        if (iError != CL_SUCCESS) {
+            ReportError(iError);
+            return false;
+        }
     }
     
     if (!m_kContext)
