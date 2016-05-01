@@ -18,6 +18,7 @@
 #include "stl_extensions.hpp"
 
 struct TextureRenderTarget {
+    std::shared_ptr<OpenGLTextureBuffer> swapTexture;
     std::shared_ptr<OpenGLTextureBuffer> outputTexture;
     std::shared_ptr<OpenGLProgram> program;
     

@@ -372,8 +372,7 @@ kernel void raytrace_one_ray(
     PHOTON_HASHMAP_META_PARAMS,
     
     /// output
-    /// image data is organized into 4 byte pixels in a height*width pixels
-    __global unsigned char * imageOutput,
+    __write_only image2d_t image_output,
     const unsigned int imageWidth,
     const unsigned int imageHeight
     ) {
@@ -402,9 +401,6 @@ kernel void raytrace_one_ray(
     
     int px = threadId % imageWidth;
     int py = threadId / imageWidth;
-    struct ubyte4 color;
-    
-    color = ubyte4_make(0,0,0,255);
     
     float3 rayOrigin
         = camera_location + forward - 0.5f*up - 0.5f*right
@@ -433,27 +429,24 @@ kernel void raytrace_one_ray(
         }
     }
     
+    RGBf energy = (RGBf) {0, 0, 0};
     /// Calculate color
     if (bestIntersection.intersected) {
     
         __global int * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
         __global float * photon_distances = &photon_distance_array[threadId * maxNumPhotonsToGather];
     
-        RGBf energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, INFINITY, -bestIntersection.rayDirection, photon_indices, photon_distances);
+        energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, INFINITY, -bestIntersection.rayDirection, photon_indices, photon_distances);
         
         /// DEBUG
 //        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
-
-        color = ubyte4_make(
-            min(energy.x * 255.0, 255.0),
-            min(energy.y * 255.0, 255.0),
-            min(energy.z * 255.0, 255.0),
-            255);
     }
     
-    /// Update the output
-    for (int i = 0; i < 4; i++) {
-        imageOutput[4 * (px + imageWidth * py) + i] = color.bytes[i];
-    }
+    write_imagef(image_output, (int2) {px, py}, (float4) {
+        min(energy.x, 1.0f), // * 255.0, 255.0),
+        min(energy.y, 1.0f), // * 255.0, 255.0),
+        min(energy.z, 1.0f), // * 255.0, 255.0),
+        1.0f //255
+    });
 }
 

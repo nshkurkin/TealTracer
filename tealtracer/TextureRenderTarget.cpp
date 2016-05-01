@@ -66,6 +66,9 @@ void TextureRenderTarget::init(int texWidth, int texHeight, void * texData) {
     
     this->outputTexture = std::shared_ptr<OpenGLTextureBuffer>(new OpenGLTextureBuffer(0, textureFormat));
     this->outputTexture->sendData();
+    
+    this->swapTexture = std::shared_ptr<OpenGLTextureBuffer>(new OpenGLTextureBuffer(0, textureFormat));
+    this->swapTexture->sendData();
 }
 
 ///
@@ -73,17 +76,19 @@ void TextureRenderTarget::draw() {
     auto lastProgramHandle = this->program->setAsActiveProgram();
     OpenGLTextureBuffer::GLState oldTextureState;
     
+    auto texture = this->outputTexture;
+    
     if (!firstDraw) {
-        this->outputTexture->sendData();
-        oldTextureState = this->outputTexture->glBind();
-        this->program->attach("tex", this->outputTexture.get());
+        texture->sendData();
+        oldTextureState = texture->glBind();
+        this->program->attach("tex", texture.get());
     }
     
     auto oldVaoHandle = this->triangleVAO->setAsActiveVAO();
     glDrawArrays(GLenum(GL_TRIANGLES), 0, GLsizei(this->points.size()));
     
     if (!firstDraw) {
-        this->outputTexture->glUnbind(oldTextureState);
+        texture->glUnbind(oldTextureState);
     }
     this->triangleVAO->restoreActiveVAO(oldVaoHandle);
     this->program->restoreActiveProgram(lastProgramHandle);

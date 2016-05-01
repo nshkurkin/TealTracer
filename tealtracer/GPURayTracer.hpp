@@ -86,7 +86,8 @@ public:
         glDepthFunc(GLenum(GL_LESS));
         
         outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
-        target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
+        void * imageDataPtr = useGPU? nullptr : outputImage.dataPtr();
+        target.init(outputImage.width, outputImage.height, imageDataPtr);
         
         FPSsaved = 0.0;
         realtimeSaved = 0.0;
@@ -117,22 +118,29 @@ public:
 
     ///
     virtual void drawInWindow(TSWindow * window) {
-        glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        target.draw();
-        
         jobPool.checkAndUpdateFinishedJobs();
+        
+        glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        if (useGPU && !imageOutRendered[currentRenderableOutImageCLName]) {
+            return;
+        }
+        
+        /// Draw the scene
+        target.draw();
+        ///
     
         float FPS = 0;
-        if (rayTraceElapsedTime > 0.001) {
+        if (rayTraceElapsedTime > 0.0001) {
             FPS = 1.0 / rayTraceElapsedTime;
         }
         
-        if (framesRendered % 10 == 0) {
+        if (framesRendered % 5 == 0 || rayTraceElapsedTime > 0.33) {
             FPSsaved = std::floor(FPS * 100.0) / 100.0;
             realtimeSaved = std::floor(rayTraceElapsedTime * 10000.0) / 10000.0;
         }
         
         window->setTitle(make_string("GPU Ray Tracer (FPS: ", FPSsaved, ", t: ", realtimeSaved, " frames: ", framesRendered, ")"));
+        glFinish();
     }
     
     ///
@@ -223,12 +231,27 @@ public:
     
     ///
     void enqueRayTrace() {
+    
         jobPool.emplaceJob([=](){
             auto startTime = glfwGetTime();
             this->ocl_raytraceRays();
             auto endTime = glfwGetTime();
             lastRayTraceTime = endTime - startTime;
         }, [=](){
+            if (useGPU) {
+                /// swap and increment
+                auto saved = target.outputTexture;
+                target.outputTexture = target.swapTexture;
+                target.swapTexture = saved;
+                
+                imageOutRendered[currentOutImageCLName] = true;
+                currentRenderableOutImageCLName = currentOutImageCLName;
+                currentOutImageIdx = (currentOutImageIdx + 1) % this->validOutImageCLNames.size();
+                currentOutImageCLName = validOutImageCLNames[currentOutImageIdx];
+                
+                TSLoggerLog(std::cout, "viewing: ", currentRenderableOutImageCLName, " raytracing: ", currentOutImageCLName);
+            }
+        
             rayTraceElapsedTime = lastRayTraceTime;
             framesRendered++;
             this->target.outputTexture->setNeedsUpdate();
@@ -239,6 +262,11 @@ public:
     bool useGPU;
     unsigned int numSpheres, numPlanes, numLights;
     
+    int currentOutImageIdx;
+    std::string currentOutImageCLName, currentRenderableOutImageCLName;
+    std::vector<std::string> validOutImageCLNames;
+    std::map<std::string, bool> imageOutRendered;
+    
     ///
     void ocl_raytraceSetup() {
         
@@ -248,8 +276,6 @@ public:
         else {
             computeEngine.connect(ComputeEngine::DEVICE_TYPE_CPU, 4, false);
         }
-
-        size_t imageDataSize = outputImage.dataSize();
         
         computeEngine.createProgramFromFile("raytrace_prog", "raytrace.cl");
         computeEngine.createKernel("raytrace_prog", "raytrace_one_ray");
@@ -263,8 +289,6 @@ public:
         auto camera = scene_->camera();
         
         ocl_pushSceneData();
-        
-        computeEngine.createBuffer("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, imageDataSize);
         
         //////
         /// Photon map
@@ -286,8 +310,25 @@ public:
         computeEngine.createBuffer("photon_index_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * photonAccumBufferSize);
         computeEngine.createBuffer("photon_distance_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * photonAccumBufferSize);
         
-        /// Link up to OpenGL
-//        computeEngine.createGLTextureReference("imageOutput", ComputeEngine::MemFlags::MEM_WRITE_ONLY, target.outputTexture->metaData().targetType, target.outputTexture->metaData().mipmapLevel, target.outputTexture->handle());
+        currentOutImageIdx = 0;
+        currentOutImageCLName = "image_output";
+        currentRenderableOutImageCLName = "image_output";
+        validOutImageCLNames.push_back("image_output");
+        imageOutRendered["image_output"] = false;
+        
+        if (useGPU) {
+            /// Link up to OpenGL
+            glFinish();
+            computeEngine.createGLTextureReference("image_output", ComputeEngine::MemFlags::MEM_WRITE_ONLY, target.swapTexture->metaData().targetType, target.swapTexture->metaData().mipmapLevel, target.swapTexture->handle());
+            computeEngine.createGLTextureReference("image_outputB", ComputeEngine::MemFlags::MEM_WRITE_ONLY, target.outputTexture->metaData().targetType, target.outputTexture->metaData().mipmapLevel, target.outputTexture->handle());
+            
+            validOutImageCLNames.push_back("image_outputB");
+            currentRenderableOutImageCLName = "image_outputB";
+            imageOutRendered["image_outputB"] = false;
+        }
+        else {
+            computeEngine.createImage2D("image_output", ComputeEngine::MemFlags::MEM_WRITE_ONLY, ComputeEngine::ChannelOrder::RGBA, ComputeEngine::ChannelType::UNORM_INT8, outputImage.width, outputImage.height);
+        }
     }
     
     ///
@@ -468,13 +509,13 @@ public:
     ///     https://developer.apple.com/library/mac/samplecode/OpenCL_Hello_World_Example/Listings/hello_c.html
     void ocl_raytraceRays() {
         
-//        glFinish(); // Wait for all OpenGL calls to finish
-//        computeEngine.attachGLBuffer("imageOutput");
+        if (useGPU) {
+            computeEngine.attachGLBuffer(currentOutImageCLName.c_str());
+        }
         
         unsigned int imageWidth = outputImage.width;
         unsigned int imageHeight = outputImage.height;
         void * imageData = outputImage.dataPtr();
-        size_t imageDataSize = outputImage.dataSize();
         
         unsigned int rayCount = imageWidth * imageHeight;
         
@@ -517,17 +558,21 @@ public:
             computeEngine.getBuffer("map_gridIndices"),
             computeEngine.getBuffer("map_gridFirstPhotonIndices"),
            
-           computeEngine.getBuffer("imageOutput"),
+           computeEngine.getBuffer(currentOutImageCLName.c_str()),
            (cl_uint) imageWidth,
            (cl_uint) imageHeight
         );
         
         computeEngine.executeKernel("raytrace_one_ray", 0, rayCount);
         computeEngine.finish(0);
-//        computeEngine.detachGLBuffer("imageOutput");
         
-        computeEngine.readBuffer("imageOutput", 0, 0, imageDataSize, imageData);
-        target.outputTexture->setNeedsUpdate();
+        if (useGPU) {
+            computeEngine.detachGLBuffer(currentOutImageCLName.c_str());
+        }
+        else {
+            computeEngine.readImage(currentOutImageCLName.c_str(), 0, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);
+            target.outputTexture->setNeedsUpdate();
+        }
     }
     
 protected:

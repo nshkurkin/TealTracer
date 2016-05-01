@@ -60,7 +60,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define DEBUG_CL_printf(...)
+#define DEBUG_CL_printf(...) 
 // printf( __VA_ARGS__ )
 
 unsigned int ComputeEngine::ms_uiMaxDeviceCount = 256;
@@ -220,7 +220,7 @@ ReportBuildLog(cl_program kProgram, cl_device_id kDeviceId)
     clGetProgramBuildInfo(kProgram, kDeviceId, CL_PROGRAM_BUILD_LOG, len, log, NULL);
     
     if(len < 1) {
-        DEBUG_CL_printf("Compute Engine: Empty Build Log!\n");
+        printf("Compute Engine: Empty Build Log!\n");
     }
     else {
         printf("%s\n", log);
@@ -406,7 +406,7 @@ ReportError(int iError, const char * file, const int line, const char * function
     
     if(kLength)
     {
-        DEBUG_CL_printf("{%s:%d (%s)} OpenCL Error[%d]: %s\n", file, line, function, iError, acErrorString);
+        printf("{%s:%d (%s)} OpenCL Error[%d]: %s\n", file, line, function, iError, acErrorString);
         assert(false);
         delete [] acErrorString;
     }
@@ -513,10 +513,10 @@ ComputeEngine::connect(
     {
         m_akDeviceIds[i] = 0;
         clGetDeviceInfo(akAvailableDeviceIds[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &kDeviceType, &kReturnedSize);
-        if(kRequestedDeviceType == kDeviceType) 
-        {
+//        if(kRequestedDeviceType == kDeviceType) 
+//        {
             m_akDeviceIds[m_uiDeviceCount++] = akAvailableDeviceIds[i];
-        }	
+//        }	
     }
 
     for(uint i = 0; i < m_uiDeviceCount; i++)
@@ -533,7 +533,7 @@ ComputeEngine::connect(
         }
     
         DEBUG_CL_printf(SEPARATOR);
-        DEBUG_CL_printf("Creating command queue for %s %s...\n", acVendorName, acDeviceName);
+        printf("Creating command queue for %s %s...\n", acVendorName, acDeviceName);
         
         m_akCommandQueues[i] = clCreateCommandQueue(m_kContext, m_akDeviceIds[i], 0, &iError);
         if (!m_akCommandQueues[i] || iError)
@@ -701,7 +701,7 @@ ComputeEngine::createProgramFromSourceString(
     iError = clBuildProgram(kProgram, m_uiDeviceCount, m_akDeviceIds, "-I./", NULL, NULL);
     
     for(uint i = 0; i < m_uiDeviceCount; i++) {
-//        DEBUG_CL_printf("Build log for device '%d':\n", i);
+        printf("Build log for device '%d':\n", i);
         ReportBuildLog(kProgram, m_akDeviceIds[i]);
     }
     
@@ -1110,16 +1110,22 @@ ComputeEngine::createImage2D(
     DEBUG_CL_printf("Compute Engine: Creating 2D image '%s' %d x %d with %d channels...\n",
         acMemObjName, uiWidth, uiHeight, uiChannelCount);
 
-    cl_image_format kFormat;    
+    cl_image_format kFormat;
     kFormat.image_channel_order = (cl_channel_order) eOrder;
     kFormat.image_channel_data_type = (cl_channel_type) eType;
+    
     cl_mem_flags kFlags = (cl_mem_flags) eMemFlags;
+    
     auto desc = cl_image_desc();
     desc.image_type = cl_mem_object_type(CL_MEM_OBJECT_IMAGE2D);
     desc.image_width = (size_t) uiWidth;
     desc.image_height = (size_t) uiHeight;
     desc.image_array_size = 1;
     desc.image_row_pitch = (size_t) uiRowPitch;
+    desc.image_slice_pitch = 0;
+    desc.num_mip_levels = 0;
+    desc.num_samples = 0;
+    desc.buffer = NULL;
 
 
     int iError = CL_SUCCESS;
