@@ -292,11 +292,8 @@ PhotonHashmap::gatherPhotonsIndices(
         /// Find initial set of photons
         gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, neighborPhotons, &maxRadiusSqd);
         
-        int innerBoxWidthSize = -1;
         int outerBoxWidthSize = 1;
         float outerBoxWidth = cellsize * (float) outerBoxWidthSize;
-        int largestDim = std::max<int>(std::max<int>(xdim, ydim), zdim);
-        
         Eigen::Vector3f searchBoxCenter = getCellBoxStart(px, py, pz)
          + 0.5f * Eigen::Vector3f(cellsize, cellsize, cellsize);
         
@@ -305,12 +302,9 @@ PhotonHashmap::gatherPhotonsIndices(
         ///  OR If You have exceeded the max allowed search space
         
         while (!((neighborPhotons.size() == maxNumPhotonsToGather
-         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f))
-         || (outerBoxWidthSize > largestDim && outerBoxWidthSize > (2 * spacing + 1)))) {
+         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f)))) {
          
             outerBoxWidthSize += 2;
-            innerBoxWidthSize += 2;
-            
             outerBoxWidth = cellsize * (float) outerBoxWidthSize;
          
             for (int counter = 0; counter < outerBoxWidthSize * outerBoxWidthSize * outerBoxWidthSize; counter++) {
@@ -319,7 +313,7 @@ PhotonHashmap::gatherPhotonsIndices(
                 int boxZ = (counter / (outerBoxWidthSize * outerBoxWidthSize));
             
                 if (boxX == 1 && boxY > 0 && (boxY < outerBoxWidthSize - 1) && boxZ > 0 && (boxZ < outerBoxWidthSize - 1)) {
-                    counter += innerBoxWidthSize;
+                    counter += outerBoxWidthSize - 2;
                 }
                 
                 int bi = (counter % outerBoxWidthSize) - (outerBoxWidthSize / 2);

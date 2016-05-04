@@ -437,7 +437,6 @@ void PhotonHashmap_gatherPhotonIndices(
         int innerBoxWidthSize = -1;
         int outerBoxWidthSize = 1;
         float outerBoxWidth = map->cellsize * (float) outerBoxWidthSize;
-        int largestDim = max(max(map->xdim, map->ydim), map->zdim);
         
         float3 searchBoxCenter = PhotonHashmap_getCellBoxStart(map, px, py, pz)
          + 0.5f * (float3) { map->cellsize, map->cellsize, map->cellsize };
@@ -447,8 +446,7 @@ void PhotonHashmap_gatherPhotonIndices(
         ///  OR If You have exceeded the max allowed search space
         
         while (!((*photonsFound == maxNumPhotonsToGather
-         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f))
-         || (outerBoxWidthSize > largestDim && outerBoxWidthSize > (2 * map->spacing + 1)))) {
+         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f)))) {
             
             outerBoxWidthSize += 2;
             innerBoxWidthSize += 2;
