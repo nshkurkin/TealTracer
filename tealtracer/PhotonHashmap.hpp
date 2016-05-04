@@ -71,12 +71,33 @@ public:
         int maxNumPhotonsToGather,
         float maxPhotonDistance,
         const Eigen::Vector3f & intersection);
+    ///
+    virtual std::vector<PhotonMap::PhotonIndexInfo> gatherPhotonsIndices_v2(
+        int maxNumPhotonsToGather,
+        float maxPhotonDistance,
+        const Eigen::Vector3f & intersection);
     
 private:
     ///
     void mapPhotonsToGrid();
     ///
     void computeGridFirstPhotons();
+    ///
+    void gatherClosestPhotonsForGridIndex(
+        int maxNumPhotonsToGather,
+        float maxPhotonDistance,
+        const Eigen::Vector3f & intersection,
+        ///
+        int i, int j, int k,
+        
+        // output
+        std::vector<PhotonIndexInfo> & neighborPhotons,
+        float * maxRadiusSqd
+    );
+    
+    Eigen::Vector3f getCellBoxStart(
+        /// which cell
+        int i, int j, int k);
     
     std::vector<int> gridFirstPhotonIndices;
     std::vector<int> gridIndices;

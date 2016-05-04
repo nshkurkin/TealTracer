@@ -82,6 +82,11 @@ public:
     float photonBounceEnergyMultipler;
 
     bool mapShadowPhotons;
+    
+    Eigen::Vector3f hashmapGridStart, hashmapGridEnd;
+    float hashmapSpacing, hashmapCellsize;
+    
+    CPURayTracer();
 
     ///
     virtual void setupDrawingInWindow(TSWindow * window);

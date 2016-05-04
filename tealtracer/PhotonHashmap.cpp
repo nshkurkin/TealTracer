@@ -126,8 +126,58 @@ void PhotonHashmap::computeGridFirstPhotons() {
 #include "TSLogger.hpp"
 
 ///
+void
+PhotonHashmap::gatherClosestPhotonsForGridIndex(
+    const int maxNumPhotonsToGather,
+    const float maxPhotonDistance,
+    const Eigen::Vector3f & intersection,
+    ///
+    int i, int j, int k,
+    
+    // output
+    std::vector<PhotonIndexInfo> & neighborPhotons,
+    float * maxRadiusSqd
+) {
+
+    int gridIndex = photonHash(i, j, k);
+    // find the index of the first photon in the cell
+    assert(gridIndex <= gridFirstPhotonIndices.size());
+    if (gridFirstPhotonIndices[gridIndex] != -1) {
+        int pi = gridFirstPhotonIndices[gridIndex];
+        while (pi < photons.size() && gridIndices[pi] == gridIndex) {
+            const auto & p = photons[pi];
+            // Check if the photon is on the same geometry as the intersection
+            // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
+            float distSqd = (p.position - intersection).dot(p.position - intersection);
+            if (neighborPhotons.size() < maxNumPhotonsToGather) {
+                if (distSqd < maxPhotonDistance * maxPhotonDistance) {
+                    neighborPhotons.push_back(PhotonIndexInfo(pi, distSqd));
+                    *maxRadiusSqd = std::max<float>(distSqd, *maxRadiusSqd);
+                }
+            }
+            // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
+            // to the intersection is smaller, replace the photon with the largest distance with the current photon
+            else {
+                auto index = findMaxDistancePhotonIndex(neighborPhotons);
+                auto searchResult = neighborPhotons[index];
+                if (distSqd < searchResult.squareDistance) {
+                    neighborPhotons[index].index = pi;
+                    neighborPhotons[index].squareDistance = distSqd;
+                    if (distSqd > *maxRadiusSqd
+                     || fabs(*maxRadiusSqd - searchResult.squareDistance) < epsilon) {
+                        *maxRadiusSqd = distSqd;
+                    }
+                }
+            }
+            pi++;
+        }
+    }
+
+}
+
+///
 std::vector<PhotonMap::PhotonIndexInfo>
-PhotonHashmap::gatherPhotonsIndices(
+PhotonHashmap::gatherPhotonsIndices_v2(
     int maxNumPhotonsToGather,
     float maxPhotonDistance,
     const Eigen::Vector3f & intersection) {
@@ -143,49 +193,129 @@ PhotonHashmap::gatherPhotonsIndices(
      && pz >= 0 && pz < zdim
      && gridFirstPhotonIndices.size() > 0) {
         
-        float maxRadiusSqd = -1.0f;
+        float maxRadiusSqd = 0.0f;
         
         for (int i = std::max(0, px - spacing); i < std::min(xdim, px+spacing+1); ++i) {
             for (int j = std::max(0, py - spacing); j < std::min(ydim, py+spacing+1); ++j) {
                 for (int k = std::max(0, pz - spacing); k < std::min(zdim, pz+spacing+1); ++k) {
                     
-                    int gridIndex = photonHash(i, j, k);
-                    // find the index of the first photon in the cell
-                    assert(gridIndex <= gridFirstPhotonIndices.size());
-                    if (gridFirstPhotonIndices[gridIndex] != -1) {
-                        int pi = gridFirstPhotonIndices[gridIndex];
-                        while (pi < photons.size() && gridIndices[pi] == gridIndex) {
-                            const auto & p = photons[pi];
-                            // Check if the photon is on the same geometry as the intersection
-                            // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
-                            float distSqd = (p.position - intersection).dot(p.position - intersection);
-                            if (neighborPhotons.size() < maxNumPhotonsToGather) {
-                                if (distSqd < maxPhotonDistance * maxPhotonDistance) {
-                                    neighborPhotons.push_back(PhotonIndexInfo(pi, distSqd));
-                                    maxRadiusSqd = std::max<float>(distSqd, maxRadiusSqd);
-                                }
-                            }
-                            // If the array is full, find the photon with the largest distance to the intersection. If current photon's distance
-                            // to the intersection is smaller, replace the photon with the largest distance with the current photon
-                            else {
-                                auto index = findMaxDistancePhotonIndex(neighborPhotons);
-                                auto searchResult = neighborPhotons[index];
-                                if (distSqd < searchResult.squareDistance) {
-                                    neighborPhotons[index].index = pi;
-                                    neighborPhotons[index].squareDistance = distSqd;
-                                    if (distSqd > maxRadiusSqd
-                                     || fabs(maxRadiusSqd - searchResult.squareDistance) < epsilon) {
-                                        maxRadiusSqd = distSqd;
-                                    }
-                                }
-                            }
-                            pi++;
-                        }
-                    }
+                    gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, neighborPhotons, &maxRadiusSqd);
                 }
             }
         }
     }
     return neighborPhotons;
-//    return accumColor;
+}
+
+
+///
+static bool pointInsideCube(
+    const Eigen::Vector3f & point,
+    
+    const Eigen::Vector3f & cube_start,
+    const Eigen::Vector3f & cube_end) {
+
+    return cube_start.x() <= point.x() && point.x() <= cube_end.x()
+     && cube_start.y() <= point.y() && point.y() <= cube_end.y()
+     && cube_start.z() <= point.z() && point.z() <= cube_end.z();
+}
+
+///
+static bool sphereInsideCube(
+    const Eigen::Vector3f & sphere_position,
+    float sphere_radius_sqd,
+    
+    const Eigen::Vector3f & cube_center,
+    float cube_halfwidth_sqd) {
+
+    Eigen::Vector3f cube_start = cube_center + Eigen::Vector3f(-cube_halfwidth_sqd, -cube_halfwidth_sqd, -cube_halfwidth_sqd);
+    Eigen::Vector3f cube_end = cube_center + Eigen::Vector3f(cube_halfwidth_sqd, cube_halfwidth_sqd, cube_halfwidth_sqd);
+
+    return pointInsideCube(sphere_position + Eigen::Vector3f(sphere_radius_sqd, sphere_radius_sqd, sphere_radius_sqd), cube_start, cube_end)
+     && pointInsideCube(sphere_position + Eigen::Vector3f(-sphere_radius_sqd, -sphere_radius_sqd, -sphere_radius_sqd), cube_start, cube_end);
+}
+
+///
+Eigen::Vector3f
+PhotonHashmap::getCellBoxStart(
+    /// which cell
+    int i, int j, int k) {
+    
+    Eigen::Vector3f start;
+    
+    start(0) = xmin + (cellsize * (float) i);
+    start(1) = ymin + (cellsize * (float) j);
+    start(2) = zmin + (cellsize * (float) k);
+
+    return start;
+}
+
+///
+std::vector<PhotonMap::PhotonIndexInfo>
+PhotonHashmap::gatherPhotonsIndices(
+    int maxNumPhotonsToGather,
+    float maxPhotonDistance,
+    const Eigen::Vector3f & intersection) {
+    
+    auto gridIndex = getCellIndex(intersection);
+    int px = gridIndex.x(), py = gridIndex.y(), pz = gridIndex.z();
+    std::vector<PhotonIndexInfo> neighborPhotons;
+    
+    /// Only consider intersections within the grid
+    if (px >= 0 && px < xdim
+     && py >= 0 && py < ydim
+     && pz >= 0 && pz < zdim
+     && gridFirstPhotonIndices.size() > 0) {
+        
+        float maxRadiusSqd = 0.0f;
+        
+        /// Find initial set of photons
+        gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, neighborPhotons, &maxRadiusSqd);
+        
+        int innerBoxWidthSize = 1, outerBoxWidthSize = 3;
+        float outerBoxWidth = cellsize * (float) outerBoxWidthSize;
+        int largestDim = std::max<int>(std::max<int>(xdim, ydim), zdim);
+        
+        Eigen::Vector3f searchBoxCenter = getCellBoxStart(px, py, pz)
+         + 0.5f * Eigen::Vector3f(cellsize, cellsize, cellsize);
+        float searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
+        
+        /// Done
+        ///     If You have reached the # of photons needed && the search cube encapsulates the sphere
+        ///  OR If You have exceeded the max allowed search space
+        
+        while (!((neighborPhotons.size() == maxNumPhotonsToGather
+         && sphereInsideCube(intersection, maxRadiusSqd, searchBoxCenter, searchBoxHalfWidthSqd))
+         || (outerBoxWidthSize > largestDim && outerBoxWidth > (2 * spacing + 1)))) {
+            for (int counter = 0; counter < outerBoxWidthSize * outerBoxWidthSize * outerBoxWidthSize; counter++) {
+                int boxX = (counter % outerBoxWidthSize);
+                int boxY = ((counter / outerBoxWidthSize) % outerBoxWidthSize);
+                int boxZ = (counter / (outerBoxWidthSize * outerBoxWidthSize));
+            
+                if (boxX == 1 && boxZ > 0 && (boxZ < outerBoxWidthSize - 1) && boxY > 0 && (boxY < outerBoxWidthSize - 1)) {
+                    counter += innerBoxWidthSize;
+                }
+                
+                int bi = (counter % outerBoxWidthSize) - (outerBoxWidthSize / 2);
+                int bj = ((counter / outerBoxWidthSize) % outerBoxWidthSize) - (outerBoxWidthSize / 2);
+                int bk = (counter / (outerBoxWidthSize * outerBoxWidthSize)) - (outerBoxWidthSize / 2);
+                
+                int i = std::min<int>(std::max<int>(0, px + bi), xdim - 1);
+                int j = std::min<int>(std::max<int>(0, py + bj), ydim - 1);
+                int k = std::min<int>(std::max<int>(0, pz + bk), zdim - 1);
+                
+                if (i == (px + bi) && j == (py + bj) && k == (pz + bk)) {
+                    gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, neighborPhotons, &maxRadiusSqd);
+                }
+            }
+        
+            outerBoxWidthSize += 2;
+            innerBoxWidthSize += 2;
+            
+            outerBoxWidth = cellsize * (float) outerBoxWidthSize;
+            searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
+        }
+    }
+    
+    return neighborPhotons;
 }

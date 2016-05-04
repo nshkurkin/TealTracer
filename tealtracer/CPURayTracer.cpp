@@ -37,6 +37,20 @@ Eigen::Matrix4f lookAt(const Eigen::Vector3f & eye, const Eigen::Vector3f & cent
     return result;
 }
 
+CPURayTracer::CPURayTracer() {
+    photonMapType = KDTree;
+    photonBounceProbability = 0.5;
+    photonBounceEnergyMultipler = 0.5;
+    
+    hashmapCellsize = 2.0;
+    hashmapSpacing = 2;
+    hashmapGridStart = Eigen::Vector3f(-20, -20, -20);
+    hashmapGridEnd = Eigen::Vector3f(20, 20, 20);
+    
+    jobPool = JobPool(1);
+    distribution = std::uniform_real_distribution<float>(0.0,1.0);
+}
+
 ///
 void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     ///
@@ -46,13 +60,6 @@ void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
     
     outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
     target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
-    
-    photonMapType = KDTree;
-    photonBounceProbability = 0.5;
-    photonBounceEnergyMultipler = 0.5;
-    
-    jobPool = JobPool(1);
-    distribution = std::uniform_real_distribution<float>(0.0,1.0);
 }
 
 void CPURayTracer::start() {
@@ -65,7 +72,9 @@ void CPURayTracer::start() {
     }
     case Hashmap: {
         auto * map = new PhotonHashmap();
-        map->setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
+        map->cellsize = hashmapCellsize;
+        map->spacing = hashmapSpacing;
+        map->setDimensions(hashmapGridStart, hashmapGridEnd);
         photonMap = std::shared_ptr<PhotonMap>(map);
         break;
     }

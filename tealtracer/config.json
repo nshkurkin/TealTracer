@@ -8,11 +8,11 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 40,
-        "outputHeight" : 30,
+        "outputWidth" : 120,
+        "outputHeight" : 90,
         
         "numberOfPhotonsToGather" : 30,
-        "raysPerLight" : 2000,
+        "raysPerLight" : 10000,
         "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 1.00,
@@ -24,6 +24,13 @@
             "Hashmap" : 1
         },
         "photonMapType" : 1,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-20.0, -20.0, -20.0],
+            "gridEnd" : [20.0, 20.0, 20.0],
+            "spacing" : 4,
+            "cellsize" : 1.0
+        },
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,
@@ -40,11 +47,18 @@
         "outputWidth" : 320,
         "outputHeight" : 240,
         
-        "numberOfPhotonsToGather" : 100,
+        "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 10000,
         "lumensPerLight" : 1500,
         "photonBounceProbability" : 0.0,
         "photonBounceEnergyMultipler" : 1.00,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-20.0, -20.0, -20.0],
+            "gridEnd" : [20.0, 20.0, 20.0],
+            "spacing" : 4,
+            "cellsize" : 1.0
+        },
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,

@@ -266,6 +266,17 @@ void PhotonHashmap_gatherPhotonIndices(
     __global float * photon_distances,
     int * photonsFound
     );
+void PhotonHashmap_gatherPhotonIndices_v2(
+    struct PhotonHashmap * map,
+    const int maxNumPhotonsToGather,
+    const float maxPhotonDistance,
+    const float3 intersection,
+    // output
+    __global int * photon_indices,
+    __global float * photon_distances,
+    int * photonsFound
+    );
+
 int findMaxDistancePhotonIndex(
     __global float * photon_distances,
     int numPhotons
@@ -347,10 +358,10 @@ bool pointInsideCube(
     float3 cube_end);
 bool sphereInsideCube(
     float3 sphere_position,
-    float sphere_radius,
+    float sphere_radius_sqd,
     
-    float3 cube_start,
-    float3 cube_end);
+    float3 cube_center,
+    float cube_halfwidth_sqd);
 float3 PhotonHashmap_getCellBoxStart(
     struct PhotonHashmap * map,
     /// which cell
@@ -371,18 +382,16 @@ bool pointInsideCube(
 ///
 bool sphereInsideCube(
     float3 sphere_position,
-    float sphere_radius,
+    float sphere_radius_sqd,
     
-    float3 cube_start,
-    float3 cube_end) {
+    float3 cube_center,
+    float cube_halfwidth_sqd) {
 
-    return pointInsideCube(sphere_position + (float3) {sphere_radius, sphere_radius, sphere_radius}, cube_start, cube_end)
-//     && pointInsideCube(sphere_position + (float3) {sphere_radius, sphere_radius, -sphere_radius}, cube_start, cube_end)
-//     && pointInsideCube(sphere_position + (float3) {sphere_radius, -sphere_radius, sphere_radius}, cube_start, cube_end)
-//     && pointInsideCube(sphere_position + (float3) {sphere_radius, -sphere_radius, -sphere_radius}, cube_start, cube_end)
-//     && pointInsideCube(sphere_position + (float3) {-sphere_radius, sphere_radius, -sphere_radius}, cube_start, cube_end)
-//     && pointInsideCube(sphere_position + (float3) {-sphere_radius, -sphere_radius, sphere_radius}, cube_start, cube_end)
-     && pointInsideCube(sphere_position + (float3) {-sphere_radius, -sphere_radius, -sphere_radius}, cube_start, cube_end);
+    float3 cube_start = cube_center + (float3) {-cube_halfwidth_sqd, -cube_halfwidth_sqd, -cube_halfwidth_sqd};
+    float3 cube_end = cube_center + (float3) {cube_halfwidth_sqd, cube_halfwidth_sqd, cube_halfwidth_sqd};
+
+    return pointInsideCube(sphere_position + (float3) {sphere_radius_sqd, sphere_radius_sqd, sphere_radius_sqd}, cube_start, cube_end)
+     && pointInsideCube(sphere_position + (float3) {-sphere_radius_sqd, -sphere_radius_sqd, -sphere_radius_sqd}, cube_start, cube_end);
 }
 
 float3 PhotonHashmap_getCellBoxStart(
@@ -397,80 +406,6 @@ float3 PhotonHashmap_getCellBoxStart(
     start.z = map->zmin + (map->cellsize * (float) k);
 
     return start;
-}
-
-///
-void PhotonHashmap_gatherPhotonIndices_v2(
-    struct PhotonHashmap * map,
-    const int maxNumPhotonsToGather,
-    const float maxPhotonDistance,
-    const float3 intersection,
-    // output
-    __global int * photon_indices,
-    __global float * photon_distances,
-    int * photonsFound
-    ) {
-    
-    int3 gridIndex = PhotonHashmap_cellIndex(map, intersection);
-    int px = gridIndex.x, py = gridIndex.y, pz = gridIndex.z;
-    *photonsFound = 0;
-    
-    /// Only consider intersections within the grid
-    if (px >= 0 && px < map->xdim
-     && py >= 0 && py < map->ydim
-     && pz >= 0 && pz < map->zdim) {
-        
-        float maxRadiusSqd = -1.0f;
-        
-        /// Find initial set of photons
-        PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
-        
-        int innerBoxWidth = 1;
-        int outerBoxWidth = 3;
-        float3 outerBoxStart, outerBoxEnd;
-//        int largestDim = max(max(map->xdim, map->ydim), map->zdim);
-        
-        outerBoxStart = PhotonHashmap_getCellBoxStart(map, px - 1, py - 1, pz - 1);
-        outerBoxEnd = outerBoxStart + (float3) { map->cellsize, map->cellsize, map->cellsize } * (float) outerBoxWidth;
-        
-        /// TODO: This is what I think the code should like for searching for the # of photons we desire. But it doesn't
-        ///     quite work.
-        
-//        while (!(*photonsFound == maxNumPhotonsToGather
-//         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), outerBoxStart, outerBoxEnd))
-//         && outerBoxWidth <= largestDim) {
-
-        ///     instead I'm using this "while" condition
-        while (outerBoxWidth <= 5) {
-            for (int counter = 0; counter < outerBoxWidth * outerBoxWidth * outerBoxWidth; counter++) {
-                int boxX = (counter % outerBoxWidth);
-                int boxY = ((counter / outerBoxWidth) % outerBoxWidth);
-                int boxZ = (counter / (outerBoxWidth * outerBoxWidth));
-            
-                if (boxX == 1 && boxZ > 0 && (boxZ < outerBoxWidth - 1) && boxY > 0 && (boxY < outerBoxWidth - 1)) {
-                    counter += innerBoxWidth;
-                }
-                
-                int bi = (counter % outerBoxWidth) - (outerBoxWidth / 2);
-                int bj = ((counter / outerBoxWidth) % outerBoxWidth) - (outerBoxWidth / 2);
-                int bk = (counter / (outerBoxWidth * outerBoxWidth)) - (outerBoxWidth / 2);
-                
-                int i = min(max(0, px + bi), map->xdim);
-                int j = min(max(0, py + bj), map->ydim);
-                int k = min(max(0, pz + bk), map->zdim);
-                
-                if (i == (px + bi) && j == (py + bj) && k == (pz + bk)) {
-                    PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
-                }
-            }
-        
-            outerBoxWidth += 2;
-            innerBoxWidth += 2;
-            
-            outerBoxStart = PhotonHashmap_getCellBoxStart(map, px - (outerBoxWidth / 2), py - (outerBoxWidth / 2), pz - (outerBoxWidth / 2));
-            outerBoxEnd = outerBoxStart + (float3) { map->cellsize, map->cellsize, map->cellsize } * (float) outerBoxWidth;
-        }
-    }
 }
 
 ///
@@ -494,7 +429,79 @@ void PhotonHashmap_gatherPhotonIndices(
      && py >= 0 && py < map->ydim
      && pz >= 0 && pz < map->zdim) {
         
-        float maxRadiusSqd = -1.0f;
+        float maxRadiusSqd = 0.0f;
+        
+        /// Find initial set of photons
+        PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
+        
+        int innerBoxWidthSize = 1, outerBoxWidthSize = 3;
+        float outerBoxWidth = map->cellsize * (float) outerBoxWidthSize;
+        int largestDim = max(max(map->xdim, map->ydim), map->zdim);
+        
+        float3 searchBoxCenter = PhotonHashmap_getCellBoxStart(map, px, py, pz)
+         + 0.5f * (float3) { map->cellsize, map->cellsize, map->cellsize };
+        float searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
+        
+        /// Done
+        ///     If You have reached the # of photons needed && the search cube encapsulates the sphere
+        ///  OR If You have exceeded the max allowed search space
+        
+        while (!((*photonsFound == maxNumPhotonsToGather
+         && sphereInsideCube(intersection, maxRadiusSqd, searchBoxCenter, searchBoxHalfWidthSqd))
+         || (outerBoxWidthSize > largestDim && outerBoxWidthSize > (2 * map->spacing + 1)))) {
+            for (int counter = 0; counter < outerBoxWidthSize * outerBoxWidthSize * outerBoxWidthSize; counter++) {
+                int boxX = (counter % outerBoxWidthSize);
+                int boxY = ((counter / outerBoxWidthSize) % outerBoxWidthSize);
+                int boxZ = (counter / (outerBoxWidthSize * outerBoxWidthSize));
+            
+                if (boxX == 1 && boxZ > 0 && (boxZ < outerBoxWidthSize - 1) && boxY > 0 && (boxY < outerBoxWidthSize - 1)) {
+                    counter += innerBoxWidthSize;
+                }
+                
+                int bi = (counter % outerBoxWidthSize) - (outerBoxWidthSize / 2);
+                int bj = ((counter / outerBoxWidthSize) % outerBoxWidthSize) - (outerBoxWidthSize / 2);
+                int bk = (counter / (outerBoxWidthSize * outerBoxWidthSize)) - (outerBoxWidthSize / 2);
+                
+                int i = min(max(0, px + bi), map->xdim - 1);
+                int j = min(max(0, py + bj), map->ydim - 1);
+                int k = min(max(0, pz + bk), map->zdim - 1);
+                
+                if (i == (px + bi) && j == (py + bj) && k == (pz + bk)) {
+                    PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
+                }
+            }
+        
+            outerBoxWidthSize += 2;
+            innerBoxWidthSize += 2;
+            
+            outerBoxWidth = map->cellsize * (float) outerBoxWidthSize;
+            searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
+        }
+    }
+}
+
+///
+void PhotonHashmap_gatherPhotonIndices_v2(
+    struct PhotonHashmap * map,
+    const int maxNumPhotonsToGather,
+    const float maxPhotonDistance,
+    const float3 intersection,
+    // output
+    __global int * photon_indices,
+    __global float * photon_distances,
+    int * photonsFound
+    ) {
+    
+    int3 gridIndex = PhotonHashmap_cellIndex(map, intersection);
+    int px = gridIndex.x, py = gridIndex.y, pz = gridIndex.z;
+    *photonsFound = 0;
+    
+    /// Only consider intersections within the grid
+    if (px >= 0 && px < map->xdim
+     && py >= 0 && py < map->ydim
+     && pz >= 0 && pz < map->zdim) {
+        
+        float maxRadiusSqd = 0.0f;
     
         for (int i = max(0, px - map->spacing); i < min(map->xdim, px+map->spacing+1); ++i) {
             for (int j = max(0, py - map->spacing); j < min(map->ydim, py+map->spacing+1); ++j) {

@@ -70,17 +70,43 @@ public:
     
     std::shared_ptr<PhotonHashmap> photonHashmap;
     
+    Eigen::Vector3f hashmapGridStart, hashmapGridEnd;
+    float hashmapSpacing, hashmapCellsize;
     
     static const Eigen::Vector3f Up;
     static const Eigen::Vector3f Forward;
     static const Eigen::Vector3f Right;
 
+    JobPool jobPool;
+    int framesRendered;
+    double lastRayTraceTime, rayTraceElapsedTime;
+    
+    float FPSsaved, realtimeSaved;
+
+    GPURayTracer() {
+        FPSsaved = 0.0;
+        realtimeSaved = 0.0;
+        brdfType = BlinnPhong;
+        
+        hashmapCellsize = 2.0;
+        hashmapSpacing = 2;
+        hashmapGridStart = Eigen::Vector3f(-20, -20, -20);
+        hashmapGridEnd = Eigen::Vector3f(20, 20, 20);
+        
+        photonHashmap = std::shared_ptr<PhotonHashmap>(new PhotonHashmap());
+        
+        distribution = std::uniform_real_distribution<float>(0.0,1.0);
+        
+        jobPool = JobPool(1);
+        framesRendered = 0;
+        lastRayTraceTime = rayTraceElapsedTime = 0;
+        FPSsaved = realtimeSaved = 0;
+    }
+
     ///
     virtual void setupDrawingInWindow(TSWindow * window) {
         
         TSLoggerLog(std::cout, glGetString(GL_VERSION));
-    
-        jobPool = JobPool(1);
     
         /// OpenGL
         glClearColor(0.3, 0.3, 0.3, 1.0);
@@ -91,33 +117,28 @@ public:
         void * imageDataPtr = outputImage.dataPtr();
         target.init(outputImage.width, outputImage.height, imageDataPtr);
         
-        FPSsaved = 0.0;
-        realtimeSaved = 0.0;
-        brdfType = BlinnPhong;
-        
-        photonHashmap = std::shared_ptr<PhotonHashmap>(new PhotonHashmap());
-        photonHashmap->setDimensions(Eigen::Vector3f(-20,-20,-20), Eigen::Vector3f(20,20,20));
-        
-        distribution = std::uniform_real_distribution<float>(0.0,1.0);
-        
         ///
         lastX = std::numeric_limits<float>::infinity();
         lastY = std::numeric_limits<float>::infinity();
-        
-        ///
-        ocl_raytraceSetup();
     }
 
-    float FPSsaved, realtimeSaved;
-
     void start() {
+    
+        photonHashmap->cellsize = hashmapCellsize;
+        photonHashmap->spacing = hashmapSpacing;
+        photonHashmap->setDimensions(hashmapGridStart, hashmapGridEnd);
+    
         jobPool.emplaceJob([=](){
-            double t0 = glfwGetTime();
-            this->ocl_buildPhotonMap();
-            double tf = glfwGetTime();
-            TSLoggerLog(std::cout, "Done mapping photons: ", tf - t0);
-        }, [=](){
-            this->enqueRayTrace();
+            ocl_raytraceSetup();
+        }, [=]() {
+            this->jobPool.emplaceJob([=](){
+                double t0 = glfwGetTime();
+                this->ocl_buildPhotonMap();
+                double tf = glfwGetTime();
+                TSLoggerLog(std::cout, "Done mapping photons: ", tf - t0);
+            }, [=](){
+                this->enqueRayTrace();
+            });
         });
     }
 
@@ -224,11 +245,6 @@ public:
     virtual void mouseScroll(TSWindow * window, double dx, double dy) {
     
     }
-    
-    
-    JobPool jobPool;
-    int framesRendered;
-    double lastRayTraceTime, rayTraceElapsedTime;
     
     ///
     void enqueRayTrace() {

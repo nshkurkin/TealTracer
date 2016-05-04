@@ -76,6 +76,13 @@ TealTracer::run(const std::vector<std::string> & args) {
     gpuRayTracer_->photonBounceProbability = config["GPURayTracer"]["photonBounceProbability"].get<double>();
     gpuRayTracer_->photonBounceEnergyMultipler = config["GPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
     
+    gpuRayTracer_->hashmapCellsize = config["GPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
+    gpuRayTracer_->hashmapSpacing = config["GPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();
+    auto gpuGridStart = config["GPURayTracer"]["Hashmap_properties"]["gridStart"].get<std::vector<double>>();
+    auto gpuGridEnd = config["GPURayTracer"]["Hashmap_properties"]["gridEnd"].get<std::vector<double>>();
+    gpuRayTracer_->hashmapGridStart << gpuGridStart[0], gpuGridStart[1], gpuGridStart[2];
+    gpuRayTracer_->hashmapGridEnd << gpuGridEnd[0], gpuGridEnd[1], gpuGridEnd[2];
+    
     gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
     gpuWindow()->setWidth(config["windowWidth"].get<int>());
     gpuWindow()->setHeight(config["windowHeight"].get<int>());
@@ -96,6 +103,13 @@ TealTracer::run(const std::vector<std::string> & args) {
     cpuRayTracer_->photonBounceProbability = config["CPURayTracer"]["photonBounceProbability"].get<double>();
     cpuRayTracer_->photonBounceEnergyMultipler = config["CPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
     cpuRayTracer_->mapShadowPhotons = config["CPURayTracer"]["mapShadowPhotons"].get<bool>();
+    
+    cpuRayTracer_->hashmapCellsize = config["CPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
+    cpuRayTracer_->hashmapSpacing = config["CPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();
+    auto cpuGridStart = config["CPURayTracer"]["Hashmap_properties"]["gridStart"].get<std::vector<double>>();
+    auto cpuGridEnd = config["CPURayTracer"]["Hashmap_properties"]["gridEnd"].get<std::vector<double>>();
+    cpuRayTracer_->hashmapGridStart << cpuGridStart[0], cpuGridStart[1], cpuGridStart[2];
+    cpuRayTracer_->hashmapGridEnd << cpuGridEnd[0], cpuGridEnd[1], cpuGridEnd[2];
     
     cpuWindow()->setTitle(config["CPURayTracer"]["initialTitle"].get<std::string>());
     cpuWindow()->setWidth(config["windowWidth"].get<int>());
