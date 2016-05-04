@@ -287,13 +287,15 @@ PhotonHashmap::gatherPhotonsIndices(
      && pz >= 0 && pz < zdim
      && gridFirstPhotonIndices.size() > 0) {
         
-        float maxRadiusSqd = 0.0f;
+        float maxRadiusSqd = -1.0f;
         
         /// Find initial set of photons
         gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, neighborPhotons, &maxRadiusSqd);
         
         int outerBoxWidthSize = 1;
         float outerBoxWidth = cellsize * (float) outerBoxWidthSize;
+        int largestDim = std::max<int>(std::max<int>(xdim, ydim), zdim);
+
         Eigen::Vector3f searchBoxCenter = getCellBoxStart(px, py, pz)
          + 0.5f * Eigen::Vector3f(cellsize, cellsize, cellsize);
         
@@ -301,8 +303,11 @@ PhotonHashmap::gatherPhotonsIndices(
         ///     If You have reached the # of photons needed && the search cube encapsulates the sphere
         ///  OR If You have exceeded the max allowed search space
         
-        while (!((neighborPhotons.size() == maxNumPhotonsToGather
-         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f)))) {
+        bool photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f);
+        bool doneSearching = neighborPhotons.size() == maxNumPhotonsToGather && photonSphereInsideCube;
+        bool searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * spacing + 1);
+        
+        while (!doneSearching && !searchSpaceTooLarge) {
          
             outerBoxWidthSize += 2;
             outerBoxWidth = cellsize * (float) outerBoxWidthSize;
@@ -328,6 +333,10 @@ PhotonHashmap::gatherPhotonsIndices(
                     gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, neighborPhotons, &maxRadiusSqd);
                 }
             }
+            
+            photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f);
+            doneSearching = neighborPhotons.size() == maxNumPhotonsToGather && photonSphereInsideCube;
+            searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * spacing + 1);
         }
     }
     
