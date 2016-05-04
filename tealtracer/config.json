@@ -8,8 +8,8 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 120,
-        "outputHeight" : 90,
+        "outputWidth" : 80,
+        "outputHeight" : 60,
         
         "numberOfPhotonsToGather" : 30,
         "raysPerLight" : 10000,

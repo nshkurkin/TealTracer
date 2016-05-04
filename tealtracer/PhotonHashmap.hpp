@@ -55,6 +55,8 @@ public:
     int photonHash(const Eigen::Vector3i & index) const;
     ///
     int getCellIndexHash(const Eigen::Vector3f & position) const;
+    ///
+    Eigen::Vector3i getCellIndexForHash(int hash) const;
     
     ///
     typedef PhotonIndexInfo MaxDistanceSearchResult;
@@ -96,6 +98,9 @@ private:
     );
     
     Eigen::Vector3f getCellBoxStart(
+        /// which cell
+        int i, int j, int k);
+    Eigen::Vector3f getCellBoxEnd(
         /// which cell
         int i, int j, int k);
     

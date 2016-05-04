@@ -434,27 +434,33 @@ void PhotonHashmap_gatherPhotonIndices(
         /// Find initial set of photons
         PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
         
-        int innerBoxWidthSize = 1, outerBoxWidthSize = 3;
+        int innerBoxWidthSize = -1;
+        int outerBoxWidthSize = 1;
         float outerBoxWidth = map->cellsize * (float) outerBoxWidthSize;
         int largestDim = max(max(map->xdim, map->ydim), map->zdim);
         
         float3 searchBoxCenter = PhotonHashmap_getCellBoxStart(map, px, py, pz)
          + 0.5f * (float3) { map->cellsize, map->cellsize, map->cellsize };
-        float searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
         
         /// Done
         ///     If You have reached the # of photons needed && the search cube encapsulates the sphere
         ///  OR If You have exceeded the max allowed search space
         
         while (!((*photonsFound == maxNumPhotonsToGather
-         && sphereInsideCube(intersection, maxRadiusSqd, searchBoxCenter, searchBoxHalfWidthSqd))
+         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f))
          || (outerBoxWidthSize > largestDim && outerBoxWidthSize > (2 * map->spacing + 1)))) {
+            
+            outerBoxWidthSize += 2;
+            innerBoxWidthSize += 2;
+            
+            outerBoxWidth = map->cellsize * (float) outerBoxWidthSize;
+            
             for (int counter = 0; counter < outerBoxWidthSize * outerBoxWidthSize * outerBoxWidthSize; counter++) {
                 int boxX = (counter % outerBoxWidthSize);
                 int boxY = ((counter / outerBoxWidthSize) % outerBoxWidthSize);
                 int boxZ = (counter / (outerBoxWidthSize * outerBoxWidthSize));
             
-                if (boxX == 1 && boxZ > 0 && (boxZ < outerBoxWidthSize - 1) && boxY > 0 && (boxY < outerBoxWidthSize - 1)) {
+                if (boxX == 1 && boxY > 0 && (boxY < outerBoxWidthSize - 1) && boxZ > 0 && (boxZ < outerBoxWidthSize - 1)) {
                     counter += innerBoxWidthSize;
                 }
                 
@@ -470,12 +476,6 @@ void PhotonHashmap_gatherPhotonIndices(
                     PhotonHashmap_gatherClosestPhotonsForGridIndex(map, maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, photon_indices, photon_distances, photonsFound, &maxRadiusSqd);
                 }
             }
-        
-            outerBoxWidthSize += 2;
-            innerBoxWidthSize += 2;
-            
-            outerBoxWidth = map->cellsize * (float) outerBoxWidthSize;
-            searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
         }
     }
 }

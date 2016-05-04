@@ -303,6 +303,10 @@ void CPURayTracer::processEmittedPhoton(
             energy = hitEnergy;
         }
         else {
+            static const float factor = 10000.0f;
+            photon.position(0) =  std::floor(photon.position.x() * factor) / factor;
+            photon.position(1) =  std::floor(photon.position.y() * factor) / factor;
+            photon.position(2) =  std::floor(photon.position.z() * factor) / factor;
             photonMap->photons.push_back(photon);
             *photonStored = true;
         }

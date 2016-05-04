@@ -9,6 +9,18 @@
 #include "PhotonHashmap.hpp"
 
 ///
+static bool pointInsideCube(
+    const Eigen::Vector3f & point,
+    
+    const Eigen::Vector3f & cube_start,
+    const Eigen::Vector3f & cube_end) {
+
+    return cube_start.x() <= point.x() && point.x() <= cube_end.x()
+     && cube_start.y() <= point.y() && point.y() <= cube_end.y()
+     && cube_start.z() <= point.z() && point.z() <= cube_end.z();
+}
+
+///
 PhotonHashmap::PhotonHashmap() : epsilon(0.0001)  {
     spacing = 2;
     cellsize = 2.0;
@@ -25,6 +37,14 @@ Eigen::Vector3i PhotonHashmap::getCellIndex(const Eigen::Vector3f & position) co
     index.z() = std::floor((position.z() - zmin)/cellsize);
     
     return index;
+}
+
+///
+Eigen::Vector3i PhotonHashmap::getCellIndexForHash(int hash) const {
+    int i = hash % xdim;
+    int j = (hash / xdim) % ydim;
+    int k = (hash / xdim / ydim);
+    return Eigen::Vector3i(i, j, k);
 }
 
 ///
@@ -93,6 +113,7 @@ void PhotonHashmap::mapPhotonsToGrid() {
 
         //use hash funcion to assign a grid index to photon
         gridIndices[index] = photonHash(cellIndex);
+        
     }
 }
 
@@ -146,6 +167,7 @@ PhotonHashmap::gatherClosestPhotonsForGridIndex(
         int pi = gridFirstPhotonIndices[gridIndex];
         while (pi < photons.size() && gridIndices[pi] == gridIndex) {
             const auto & p = photons[pi];
+            
             // Check if the photon is on the same geometry as the intersection
             // We only store K photons. If there are less than K photons stored in the array, add the current photon to the array
             float distSqd = (p.position - intersection).dot(p.position - intersection);
@@ -207,32 +229,19 @@ PhotonHashmap::gatherPhotonsIndices_v2(
     return neighborPhotons;
 }
 
-
-///
-static bool pointInsideCube(
-    const Eigen::Vector3f & point,
-    
-    const Eigen::Vector3f & cube_start,
-    const Eigen::Vector3f & cube_end) {
-
-    return cube_start.x() <= point.x() && point.x() <= cube_end.x()
-     && cube_start.y() <= point.y() && point.y() <= cube_end.y()
-     && cube_start.z() <= point.z() && point.z() <= cube_end.z();
-}
-
 ///
 static bool sphereInsideCube(
     const Eigen::Vector3f & sphere_position,
-    float sphere_radius_sqd,
+    float sphere_radius,
     
     const Eigen::Vector3f & cube_center,
-    float cube_halfwidth_sqd) {
+    float cube_halfwidth) {
 
-    Eigen::Vector3f cube_start = cube_center + Eigen::Vector3f(-cube_halfwidth_sqd, -cube_halfwidth_sqd, -cube_halfwidth_sqd);
-    Eigen::Vector3f cube_end = cube_center + Eigen::Vector3f(cube_halfwidth_sqd, cube_halfwidth_sqd, cube_halfwidth_sqd);
+    Eigen::Vector3f cube_start = cube_center + Eigen::Vector3f(-cube_halfwidth, -cube_halfwidth, -cube_halfwidth);
+    Eigen::Vector3f cube_end = cube_center + Eigen::Vector3f(cube_halfwidth, cube_halfwidth, cube_halfwidth);
 
-    return pointInsideCube(sphere_position + Eigen::Vector3f(sphere_radius_sqd, sphere_radius_sqd, sphere_radius_sqd), cube_start, cube_end)
-     && pointInsideCube(sphere_position + Eigen::Vector3f(-sphere_radius_sqd, -sphere_radius_sqd, -sphere_radius_sqd), cube_start, cube_end);
+    return pointInsideCube(sphere_position + Eigen::Vector3f(sphere_radius, sphere_radius, sphere_radius), cube_start, cube_end)
+     && pointInsideCube(sphere_position + Eigen::Vector3f(-sphere_radius, -sphere_radius, -sphere_radius), cube_start, cube_end);
 }
 
 ///
@@ -248,6 +257,17 @@ PhotonHashmap::getCellBoxStart(
     start(2) = zmin + (cellsize * (float) k);
 
     return start;
+}
+
+///
+Eigen::Vector3f
+PhotonHashmap::getCellBoxEnd(
+    /// which cell
+    int i, int j, int k) {
+    
+    Eigen::Vector3f start = getCellBoxStart(i, j, k);
+    Eigen::Vector3f end = start + Eigen::Vector3f(cellsize, cellsize, cellsize);
+    return end;
 }
 
 ///
@@ -272,27 +292,33 @@ PhotonHashmap::gatherPhotonsIndices(
         /// Find initial set of photons
         gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, px, py, pz, neighborPhotons, &maxRadiusSqd);
         
-        int innerBoxWidthSize = 1, outerBoxWidthSize = 3;
+        int innerBoxWidthSize = -1;
+        int outerBoxWidthSize = 1;
         float outerBoxWidth = cellsize * (float) outerBoxWidthSize;
         int largestDim = std::max<int>(std::max<int>(xdim, ydim), zdim);
         
         Eigen::Vector3f searchBoxCenter = getCellBoxStart(px, py, pz)
          + 0.5f * Eigen::Vector3f(cellsize, cellsize, cellsize);
-        float searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
         
         /// Done
         ///     If You have reached the # of photons needed && the search cube encapsulates the sphere
         ///  OR If You have exceeded the max allowed search space
         
         while (!((neighborPhotons.size() == maxNumPhotonsToGather
-         && sphereInsideCube(intersection, maxRadiusSqd, searchBoxCenter, searchBoxHalfWidthSqd))
-         || (outerBoxWidthSize > largestDim && outerBoxWidth > (2 * spacing + 1)))) {
+         && sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f))
+         || (outerBoxWidthSize > largestDim && outerBoxWidthSize > (2 * spacing + 1)))) {
+         
+            outerBoxWidthSize += 2;
+            innerBoxWidthSize += 2;
+            
+            outerBoxWidth = cellsize * (float) outerBoxWidthSize;
+         
             for (int counter = 0; counter < outerBoxWidthSize * outerBoxWidthSize * outerBoxWidthSize; counter++) {
                 int boxX = (counter % outerBoxWidthSize);
                 int boxY = ((counter / outerBoxWidthSize) % outerBoxWidthSize);
                 int boxZ = (counter / (outerBoxWidthSize * outerBoxWidthSize));
             
-                if (boxX == 1 && boxZ > 0 && (boxZ < outerBoxWidthSize - 1) && boxY > 0 && (boxY < outerBoxWidthSize - 1)) {
+                if (boxX == 1 && boxY > 0 && (boxY < outerBoxWidthSize - 1) && boxZ > 0 && (boxZ < outerBoxWidthSize - 1)) {
                     counter += innerBoxWidthSize;
                 }
                 
@@ -308,12 +334,6 @@ PhotonHashmap::gatherPhotonsIndices(
                     gatherClosestPhotonsForGridIndex(maxNumPhotonsToGather, maxPhotonDistance, intersection, i, j, k, neighborPhotons, &maxRadiusSqd);
                 }
             }
-        
-            outerBoxWidthSize += 2;
-            innerBoxWidthSize += 2;
-            
-            outerBoxWidth = cellsize * (float) outerBoxWidthSize;
-            searchBoxHalfWidthSqd = ((float) (outerBoxWidth * outerBoxWidth)) / 4.0f;
         }
     }
     
