@@ -21,6 +21,12 @@ plane {<0, 1, 0>, -6
       finish {ambient 0.4 diffuse 0.8}
 }
 
+//top
+plane {<0, -1, 0>, -8
+      pigment {color rgb <0.15 0.2, 0.8>}
+      finish {ambient 0.4 diffuse 0.8}
+}
+
 //back
 plane {<0, 0, 1>, -6
       pigment {color rgb <0.2, 0.2, 0.8>}

@@ -8,13 +8,13 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 120,
-        "outputHeight" : 80,
+        "outputWidth" : 160,
+        "outputHeight" : 120,
         
-        "numberOfPhotonsToGather" : 30,
-        "raysPerLight" : 10000,
+        "numberOfPhotonsToGather" : 100,
+        "raysPerLight" : 15000,
         "lumensPerLight" : 1500,
-        "photonBounceProbability" : 0.0,
+        "photonBounceProbability" : 0.5,
         "photonBounceEnergyMultipler" : 1.00,
         
         "mapShadowPhotons" : false,
@@ -28,7 +28,7 @@
         "Hashmap_properties" : {
             "gridStart" : [-20.0, -20.0, -20.0],
             "gridEnd" : [20.0, 20.0, 20.0],
-            "spacing" : 4,
+            "spacing" : 20,
             "cellsize" : 0.5
         },
         
@@ -44,19 +44,19 @@
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": true,
         
-        "outputWidth" : 320,
-        "outputHeight" : 240,
+        "outputWidth" : 160,
+        "outputHeight" : 120,
         
-        "numberOfPhotonsToGather" : 30,
-        "raysPerLight" : 10000,
+        "numberOfPhotonsToGather" : 100,
+        "raysPerLight" : 15000,
         "lumensPerLight" : 1500,
-        "photonBounceProbability" : 0.0,
-        "photonBounceEnergyMultipler" : 1.00,
+        "photonBounceProbability" : 0.5,
+        "photonBounceEnergyMultipler" : 1.0,
         
         "Hashmap_properties" : {
             "gridStart" : [-20.0, -20.0, -20.0],
             "gridEnd" : [20.0, 20.0, 20.0],
-            "spacing" : 4,
+            "spacing" : 20,
             "cellsize" : 0.5
         },
         
