@@ -74,6 +74,7 @@ public:
     std::shared_ptr<BRDF> brdf;
 
     int numberOfPhotonsToGather;
+    float maxPhotonGatherDistance;
     int raysPerLight;
     int lumensPerLight;
     SupportedPhotonMap photonMapType;

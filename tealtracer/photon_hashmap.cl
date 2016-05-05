@@ -441,9 +441,9 @@ void PhotonHashmap_gatherPhotonIndices(
         float3 searchBoxCenter = PhotonHashmap_getCellBoxStart(map, px, py, pz)
          + 0.5f * (float3) { map->cellsize, map->cellsize, map->cellsize };
         
-        bool photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f);
+        bool photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 3.0f);
         bool doneSearching = *photonsFound == maxNumPhotonsToGather && photonSphereInsideCube;
-        bool searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * map->spacing + 1);
+        bool searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidth / 2.0f > maxPhotonDistance; // || outerBoxWidthSize > (2 * map->spacing + 1);
         
         while (!doneSearching && !searchSpaceTooLarge) {
             
@@ -472,7 +472,7 @@ void PhotonHashmap_gatherPhotonIndices(
                 }
             }
             
-            photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f);
+            photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 3.0f);
             doneSearching = *photonsFound == maxNumPhotonsToGather && photonSphereInsideCube;
             searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * map->spacing + 1);
         }

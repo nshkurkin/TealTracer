@@ -75,6 +75,10 @@ TealTracer::run(const std::vector<std::string> & args) {
     gpuRayTracer_->lumensPerLight = config["GPURayTracer"]["lumensPerLight"].get<int>();
     gpuRayTracer_->photonBounceProbability = config["GPURayTracer"]["photonBounceProbability"].get<double>();
     gpuRayTracer_->photonBounceEnergyMultipler = config["GPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
+    float gpuMaxPhotonGatherDistance = config["GPURayTracer"]["maxPhotonGatherDistance"].get<double>();
+    if (gpuMaxPhotonGatherDistance != -1.0f) {
+        gpuRayTracer_->maxPhotonGatherDistance = gpuMaxPhotonGatherDistance;
+    }
     
     gpuRayTracer_->hashmapCellsize = config["GPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
     gpuRayTracer_->hashmapSpacing = config["GPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();
@@ -103,6 +107,10 @@ TealTracer::run(const std::vector<std::string> & args) {
     cpuRayTracer_->photonBounceProbability = config["CPURayTracer"]["photonBounceProbability"].get<double>();
     cpuRayTracer_->photonBounceEnergyMultipler = config["CPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
     cpuRayTracer_->mapShadowPhotons = config["CPURayTracer"]["mapShadowPhotons"].get<bool>();
+    float cpuMaxPhotonGatherDistance = config["CPURayTracer"]["maxPhotonGatherDistance"].get<double>();
+    if (cpuMaxPhotonGatherDistance != -1.0f) {
+        cpuRayTracer_->maxPhotonGatherDistance = cpuMaxPhotonGatherDistance;
+    }
     
     cpuRayTracer_->hashmapCellsize = config["CPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
     cpuRayTracer_->hashmapSpacing = config["CPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();

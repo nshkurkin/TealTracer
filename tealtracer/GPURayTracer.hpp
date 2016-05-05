@@ -62,6 +62,7 @@ public:
     SupportedBRDF brdfType;
     
     int numberOfPhotonsToGather;
+    float maxPhotonGatherDistance;
     int raysPerLight;
     int lumensPerLight;
     
@@ -94,6 +95,7 @@ public:
         hashmapGridEnd = Eigen::Vector3f(20, 20, 20);
         
         photonHashmap = std::shared_ptr<PhotonHashmap>(new PhotonHashmap());
+        maxPhotonGatherDistance = std::numeric_limits<float>::infinity();
         
         distribution = std::uniform_real_distribution<float>(0.0,1.0);
         
@@ -515,6 +517,7 @@ public:
             computeEngine.getBuffer("photon_index_array"),
             computeEngine.getBuffer("photon_distance_array"),
             (cl_int) numberOfPhotonsToGather,
+            (cl_float) maxPhotonGatherDistance,
             
             (cl_int) photonHashmap->spacing,
             (cl_float) photonHashmap->xmin,

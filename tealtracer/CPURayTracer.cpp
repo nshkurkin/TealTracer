@@ -41,6 +41,7 @@ CPURayTracer::CPURayTracer() {
     photonMapType = KDTree;
     photonBounceProbability = 0.5;
     photonBounceEnergyMultipler = 0.5;
+    maxPhotonGatherDistance = std::numeric_limits<float>::infinity();
     
     hashmapCellsize = 2.0;
     hashmapSpacing = 2;
@@ -390,7 +391,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
     brdf->finish = *hitResult.element->finish();
     
     if (usePhotonMap) {
-        auto photonInfo = photonMap->gatherPhotonsIndices(numberOfPhotonsToGather, std::numeric_limits<float>::infinity(), hitResult.hit.locationOfIntersection());
+        auto photonInfo = photonMap->gatherPhotonsIndices(numberOfPhotonsToGather, maxPhotonGatherDistance, hitResult.hit.locationOfIntersection());
         
         float maxSqrDist = 0.001;
         //  Accumulate radiance of the K nearest photons

@@ -303,9 +303,9 @@ PhotonHashmap::gatherPhotonsIndices(
         ///     If You have reached the # of photons needed && the search cube encapsulates the sphere
         ///  OR If You have exceeded the max allowed search space
         
-        bool photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f);
+        bool photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 3.0f);
         bool doneSearching = neighborPhotons.size() == maxNumPhotonsToGather && photonSphereInsideCube;
-        bool searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * spacing + 1);
+        bool searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidth / 2.0f > maxPhotonDistance;// || outerBoxWidthSize > (2 * spacing + 1);
         
         while (!doneSearching && !searchSpaceTooLarge) {
          
@@ -334,7 +334,7 @@ PhotonHashmap::gatherPhotonsIndices(
                 }
             }
             
-            photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 2.0f);
+            photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 3.0f);
             doneSearching = neighborPhotons.size() == maxNumPhotonsToGather && photonSphereInsideCube;
             searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * spacing + 1);
         }

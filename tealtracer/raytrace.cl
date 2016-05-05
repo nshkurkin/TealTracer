@@ -365,6 +365,7 @@ kernel void raytrace_one_ray(
     __global int * photon_index_array,
     __global float * photon_distance_array,
     const int maxNumPhotonsToGather,
+    const float maxPhotonGatherDistance,
 
     /// photon map
     PHOTON_HASHMAP_BASIC_PARAMS,
@@ -436,17 +437,14 @@ kernel void raytrace_one_ray(
         __global int * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
         __global float * photon_distances = &photon_distance_array[threadId * maxNumPhotonsToGather];
     
-        energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, INFINITY, -bestIntersection.rayDirection, photon_indices, photon_distances);
-        
-        /// DEBUG
-//        RGBf energy = computeOutputEnergyForHit(brdf, bestIntersection, (float3) {1,0,0}, -bestIntersection.rayDirection);
+        energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, maxPhotonGatherDistance, -bestIntersection.rayDirection, photon_indices, photon_distances);
     }
     
     write_imagef(image_output, (int2) {px, py}, (float4) {
-        min(energy.x, 1.0f), // * 255.0, 255.0),
-        min(energy.y, 1.0f), // * 255.0, 255.0),
-        min(energy.z, 1.0f), // * 255.0, 255.0),
-        1.0f //255
+        min(energy.x, 1.0f),
+        min(energy.y, 1.0f),
+        min(energy.z, 1.0f),
+        1.0f
     });
 }
 
