@@ -226,29 +226,6 @@ void CPURayTracer::emitPhotons() {
         }
     }
     
-//    
-//    for (auto itr = lights.begin(); itr != lights.end(); itr++) {
-//        auto light = *itr;
-//        auto color = light->color();
-//
-//        float lumens = lumensPerLight;
-//        int numRays = raysPerLight;
-//        float luminosityPerPhoton = lumens/(float)numRays;
-//
-//        for (int i = 0; i < numRays; i++) {
-//            float u = distribution(generator);
-//            float v = distribution(generator);
-//            
-//            Ray ray;
-//            
-//            ray.origin = light->position();
-//            ray.direction = light->getSampleDirection(u, v);
-//            
-//            auto hits = scene_->intersections(ray);
-//            processHits(color.block<3,1>(0,0) * luminosityPerPhoton, ray, hits);
-//        }
-//    }
-    
     TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
 }
 
@@ -269,6 +246,7 @@ void CPURayTracer::processEmittedPhoton(
     RGBf energy = sourceLightEnergy;
     
     auto hits = scene_->intersections(ray);
+    bool firstHit = true;
 
     while (!*photonStored && hits.size() > 0) {
         struct JensenPhoton photon;
@@ -279,15 +257,18 @@ void CPURayTracer::processEmittedPhoton(
         photon.energy = rgb2rgbe(energy);
         photon.flags.geometryIndex = hit.element->id();
 
-        if (mapShadowPhotons) {
+        if (mapShadowPhotons && firstHit) {
             for (int i = 1; i < hits.size(); i++) {
                 const auto & hitResult = hits[i];
-                photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+                float value = distribution(generator);
+                if (value < 0.5) {
+                    photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+                }
             }
         }
+        firstHit = false;
 
         float value = distribution(generator);
-
         if (value < photonBounceProbability) {
 
             Ray reflectedRay;
@@ -409,7 +390,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
             output += photonEnergy;
         }
         
-        output = output / (M_PI * maxSqrDist);
+        output = ((float) photonInfo.size() / (float) numberOfPhotonsToGather) * output / (M_PI * maxSqrDist);
         
     }
     else {

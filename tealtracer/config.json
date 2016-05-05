@@ -16,7 +16,7 @@
         "raysPerLight" : 3000,
         "lumensPerLight" : 6000,
         "photonBounceProbability" : 0.9,
-        "photonBounceEnergyMultipler" : 1.5,
+        "photonBounceEnergyMultipler" : 1.00,
         
         "mapShadowPhotons" : false,
         
@@ -53,7 +53,7 @@
         "raysPerLight" : 3000,
         "lumensPerLight" : 6000,
         "photonBounceProbability" : 0.9,
-        "photonBounceEnergyMultipler" : 1.5,
+        "photonBounceEnergyMultipler" : 1.0,
         
         "Hashmap_properties" : {
             "gridStart" : [-20.0, -20.0, -20.0],
