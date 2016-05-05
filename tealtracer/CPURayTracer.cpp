@@ -390,7 +390,7 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
             output += photonEnergy;
         }
         
-        output = ((float) photonInfo.size() / (float) numberOfPhotonsToGather) * output / (M_PI * maxSqrDist);
+        output = output / (M_PI * maxSqrDist);
         
     }
     else {

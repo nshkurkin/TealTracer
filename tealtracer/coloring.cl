@@ -217,7 +217,7 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     }
     
     if (numPhotonsFound > 0) {
-        output = ((float) numPhotonsFound / (float) maxNumPhotonsToGather) * output / (float) (M_PI * maxSqrDist);
+        output = output / (float) (M_PI * maxSqrDist);
     }
     
     return output;
