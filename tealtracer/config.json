@@ -11,11 +11,11 @@
         "outputWidth" : 160,
         "outputHeight" : 120,
         
-        "numberOfPhotonsToGather" : 50,
+        "numberOfPhotonsToGather" : 10,
         "maxPhotonGatherDistance" : -1.0,
         "raysPerLight" : 3000,
         "lumensPerLight" : 6000,
-        "photonBounceProbability" : 0.9,
+        "photonBounceProbability" : 0.90,
         "photonBounceEnergyMultipler" : 1.00,
         
         "mapShadowPhotons" : false,
@@ -27,10 +27,10 @@
         "photonMapType" : 1,
         
         "Hashmap_properties" : {
-            "gridStart" : [-20.0, -20.0, -20.0],
-            "gridEnd" : [20.0, 20.0, 20.0],
+            "gridStart" : [-10.0, -10.0, -10.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
-            "cellsize" : 1.0
+            "cellsize" : 0.5
         },
         
         "__enum_brdfType" : {
@@ -48,18 +48,18 @@
         "outputWidth" : 320,
         "outputHeight" : 240,
         
-        "numberOfPhotonsToGather" : 100,
+        "numberOfPhotonsToGather" : 50,
         "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 3000,
+        "raysPerLight" : 12000,
         "lumensPerLight" : 6000,
-        "photonBounceProbability" : 0.9,
+        "photonBounceProbability" : 0.90,
         "photonBounceEnergyMultipler" : 1.0,
         
         "Hashmap_properties" : {
-            "gridStart" : [-20.0, -20.0, -20.0],
-            "gridEnd" : [20.0, 20.0, 20.0],
+            "gridStart" : [-10.0, -10.0, -10.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
-            "cellsize" : 1.0
+            "cellsize" : 0.25
         },
         
         "__enum_brdfType" : {

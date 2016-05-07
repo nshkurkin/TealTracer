@@ -38,6 +38,7 @@
 		C064A9761CB6FF8A003A3D8B /* sample_square.cl in Sources */ = {isa = PBXBuildFile; fileRef = C064A9751CB6FF8A003A3D8B /* sample_square.cl */; };
 		C064A9771CB70055003A3D8B /* sample_square.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9751CB6FF8A003A3D8B /* sample_square.cl */; };
 		C064A9791CB70DC0003A3D8B /* raytrace.cl in Sources */ = {isa = PBXBuildFile; fileRef = C064A9781CB70DC0003A3D8B /* raytrace.cl */; };
+		C066EE8E1CDC03FA002030DD /* GIRefScene1.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */; };
 		C0B860591CC6D51D00A3941B /* random.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0461CC19F770080FC65 /* random.cl */; };
 		C0C1231B1CAB20790024DA91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1231A1CAB20790024DA91 /* main.cpp */; };
 		C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125181CAB337F0024DA91 /* TSManagedObject.cpp */; };
@@ -62,6 +63,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C066EE8E1CDC03FA002030DD /* GIRefScene1.pov in CopyFiles */,
 				C0B860591CC6D51D00A3941B /* random.cl in CopyFiles */,
 				C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */,
 				C01EB0411CC186660080FC65 /* photon_hashmap.cl in CopyFiles */,
@@ -131,6 +133,7 @@
 		C064A9721CB6FD39003A3D8B /* spheres.pov */ = {isa = PBXFileReference; lastKnownFileType = text; path = spheres.pov; sourceTree = "<group>"; };
 		C064A9751CB6FF8A003A3D8B /* sample_square.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = sample_square.cl; sourceTree = "<group>"; };
 		C064A9781CB70DC0003A3D8B /* raytrace.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = raytrace.cl; sourceTree = "<group>"; };
+		C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */ = {isa = PBXFileReference; lastKnownFileType = text; path = GIRefScene1.pov; sourceTree = "<group>"; };
 		C0C123171CAB20790024DA91 /* tealtracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tealtracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0C1231A1CAB20790024DA91 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		C0C1231C1CAB20790024DA91 /* tealtracer.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = tealtracer.1; sourceTree = "<group>"; };
@@ -1285,6 +1288,7 @@
 				C064A9721CB6FD39003A3D8B /* spheres.pov */,
 				C01416F71CBEE5F40040D4C6 /* planes.pov */,
 				C01416F91CBEE81F0040D4C6 /* simple_cam.pov */,
+				C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */,
 			);
 			name = scenes;
 			sourceTree = "<group>";

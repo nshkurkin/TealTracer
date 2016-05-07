@@ -307,8 +307,7 @@ public:
         }
         
         int photonAccumBufferSize = numberOfPhotonsToGather * outputImage.width * outputImage.height;
-        computeEngine.createBuffer("photon_index_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * photonAccumBufferSize);
-        computeEngine.createBuffer("photon_distance_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * photonAccumBufferSize);
+        computeEngine.createBuffer("photon_index_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * photonAccumBufferSize);
         
         computeEngine.createImage2D("image_output", ComputeEngine::MemFlags::MEM_WRITE_ONLY, ComputeEngine::ChannelOrder::RGBA, ComputeEngine::ChannelType::UNORM_INT8, outputImage.width, outputImage.height);
     }
@@ -500,6 +499,11 @@ public:
         auto camera = scene_->camera();
         auto cameraData = CLPovrayCameraData(camera->data());
 
+        computeEngine.setKernelArg("raytrace_one_ray", 0, cameraData.location);
+        computeEngine.setKernelArg("raytrace_one_ray", 1, cameraData.up);
+        computeEngine.setKernelArg("raytrace_one_ray", 2, cameraData.right);
+        computeEngine.setKernelArg("raytrace_one_ray", 3, cameraData.lookAt);
+
         computeEngine.setKernelArgs("raytrace_one_ray",
             cameraData.location,
             cameraData.up,
@@ -515,7 +519,6 @@ public:
             (cl_uint) numPlanes,
             
             computeEngine.getBuffer("photon_index_array"),
-            computeEngine.getBuffer("photon_distance_array"),
             (cl_int) numberOfPhotonsToGather,
             (cl_float) maxPhotonGatherDistance,
             

@@ -43,8 +43,7 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     int maxNumPhotonsToGather,
     float maxGatherDistance,
     float3 toViewer,
-    __global int * photon_indices,
-    __global float * photon_distances);
+    __global float * photon_indices);
 
 ///
 RGBf computeBlinnPhongOutputEnergy(
@@ -170,8 +169,7 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     int maxNumPhotonsToGather,
     float maxGatherDistance,
     float3 toViewer,
-    __global int * photon_indices,
-    __global float * photon_distances
+    __global float * photon_indices
 ) {
     
     RGBf output = (RGBf) {0,0,0};
@@ -197,7 +195,8 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     }
     
     int numPhotonsFound;
-    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, maxGatherDistance, RayIntersectionResult_locationOfIntersection(&hitResult), photon_indices, photon_distances, &numPhotonsFound);
+    float3 intersection = RayIntersectionResult_locationOfIntersection(&hitResult);
+    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, maxGatherDistance, intersection, photon_indices, &numPhotonsFound);
     
     float maxSqrDist = 0.001f;
     
@@ -206,9 +205,10 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
         
         struct JensenPhoton p = PhotonHashmap_getPhoton(map, photon_indices[i]);
         RGBf photonEnergy = (RGBf) {0,0,0};
+        float distSqd = dot(p.position - intersection, p.position - intersection);
         
-        if (photon_distances[i] > maxSqrDist) {
-            maxSqrDist = photon_distances[i];
+        if (distSqd > maxSqrDist) {
+            maxSqrDist = distSqd;
         }
         
         photonEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, p.energy, -p.incomingDirection, toViewer, hitResult.surfaceNormal);

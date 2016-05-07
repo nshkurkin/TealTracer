@@ -336,7 +336,7 @@ PhotonHashmap::gatherPhotonsIndices(
             
             photonSphereInsideCube = sphereInsideCube(intersection, sqrt(maxRadiusSqd), searchBoxCenter, outerBoxWidth / 3.0f);
             doneSearching = neighborPhotons.size() == maxNumPhotonsToGather && photonSphereInsideCube;
-            searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidthSize > (2 * spacing + 1);
+            searchSpaceTooLarge = outerBoxWidthSize > largestDim || outerBoxWidth / 2.0f > maxPhotonDistance;
         }
     }
     

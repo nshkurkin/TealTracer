@@ -362,8 +362,7 @@ kernel void raytrace_one_ray(
     const unsigned int numPlanes,
     
     /// usable data
-    __global int * photon_index_array,
-    __global float * photon_distance_array,
+    __global float * photon_index_array,
     const int maxNumPhotonsToGather,
     const float maxPhotonGatherDistance,
 
@@ -434,10 +433,16 @@ kernel void raytrace_one_ray(
     /// Calculate color
     if (bestIntersection.intersected) {
     
-        __global int * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
-        __global float * photon_distances = &photon_distance_array[threadId * maxNumPhotonsToGather];
+        __global float * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
+        float gatherDistance;
+        if (maxPhotonGatherDistance < 0) {
+            gatherDistance = INFINITY;
+        }
+        else {
+            gatherDistance = maxPhotonGatherDistance;
+        }
     
-        energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, maxPhotonGatherDistance, -bestIntersection.rayDirection, photon_indices, photon_distances);
+        energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, gatherDistance, -bestIntersection.rayDirection, photon_indices);
     }
     
     write_imagef(image_output, (int2) {px, py}, (float4) {
