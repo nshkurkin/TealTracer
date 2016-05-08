@@ -47,7 +47,8 @@ public:
     ComputeEngine computeEngine;
     TextureRenderTarget target;
     
-    std::default_random_engine generator;
+    std::random_device randomDevice;
+    std::mt19937 generator;
     std::uniform_real_distribution<float> distribution;
     
     Image<uint8_t> outputImage;
@@ -101,6 +102,7 @@ public:
         photonHashmap = std::shared_ptr<PhotonHashmap>(new PhotonHashmap());
         maxPhotonGatherDistance = std::numeric_limits<float>::infinity();
         
+        generator = std::mt19937(randomDevice());
         distribution = std::uniform_real_distribution<float>(0.0,1.0);
         
         jobPool = JobPool(1);
@@ -330,9 +332,12 @@ public:
     void ocl_emitPhotons() {
         double startTime = glfwGetTime();
         float luminosityPerPhoton = (((float) lumensPerLight) / (float) raysPerLight);
+        float randFloat = distribution(generator);
+        unsigned int randVal = (int) (100000.0f * randFloat);
     
+        TSLoggerLog(std::cout, "Seeding GPU with value=", randVal, " float=", randFloat);
         computeEngine.setKernelArgs("emit_photon",
-            (cl_uint) (100000.0f * distribution(generator)),
+            (cl_uint) randVal,
             (cl_uint) brdfType,
             
             computeEngine.getBuffer("spheres"),

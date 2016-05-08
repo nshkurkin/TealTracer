@@ -19,7 +19,7 @@
         "maxPhotonGatherDistance" : -1.0,
         "raysPerLight" : 600,
         "lumensPerLight" : 60,
-        "photonBounceProbability" : 0.80,
+        "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
         "mapShadowPhotons" : false,
@@ -60,7 +60,7 @@
         "maxPhotonGatherDistance" : -1.0,
         "raysPerLight" : 600,
         "lumensPerLight" : 60,
-        "photonBounceProbability" : 0.80,
+        "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
         "Hashmap_properties" : {

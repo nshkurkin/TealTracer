@@ -143,7 +143,8 @@ public:
     ///
     void buildPhotonMap();
     
-    std::default_random_engine generator;
+    std::random_device randomDevice;
+    std::mt19937 generator;
     std::uniform_real_distribution<float> distribution;
     
     ///

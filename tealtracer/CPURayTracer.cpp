@@ -49,6 +49,7 @@ CPURayTracer::CPURayTracer() {
     hashmapGridEnd = Eigen::Vector3f(20, 20, 20);
     
     jobPool = JobPool(1);
+    generator = std::mt19937(randomDevice());
     distribution = std::uniform_real_distribution<float>(0.0,1.0);
     
     directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
