@@ -80,6 +80,10 @@ TealTracer::run(const std::vector<std::string> & args) {
         gpuRayTracer_->maxPhotonGatherDistance = gpuMaxPhotonGatherDistance;
     }
     
+    gpuRayTracer_->directIlluminationEnabled = config["GPURayTracer"]["directIlluminationEnabled"].get<bool>();
+    gpuRayTracer_->indirectIlluminationEnabled = config["GPURayTracer"]["indirectIlluminationEnabled"].get<bool>();
+    gpuRayTracer_->shadowsEnabled = config["GPURayTracer"]["shadowsEnabled"].get<bool>();
+    
     gpuRayTracer_->hashmapCellsize = config["GPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
     gpuRayTracer_->hashmapSpacing = config["GPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();
     auto gpuGridStart = config["GPURayTracer"]["Hashmap_properties"]["gridStart"].get<std::vector<double>>();
@@ -111,6 +115,10 @@ TealTracer::run(const std::vector<std::string> & args) {
     if (cpuMaxPhotonGatherDistance != -1.0f) {
         cpuRayTracer_->maxPhotonGatherDistance = cpuMaxPhotonGatherDistance;
     }
+    
+    cpuRayTracer_->directIlluminationEnabled = config["CPURayTracer"]["directIlluminationEnabled"].get<bool>();
+    cpuRayTracer_->indirectIlluminationEnabled = config["CPURayTracer"]["indirectIlluminationEnabled"].get<bool>();
+    cpuRayTracer_->shadowsEnabled = config["CPURayTracer"]["shadowsEnabled"].get<bool>();
     
     cpuRayTracer_->hashmapCellsize = config["CPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
     cpuRayTracer_->hashmapSpacing = config["CPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();

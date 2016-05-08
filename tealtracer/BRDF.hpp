@@ -42,7 +42,7 @@ public:
         multiplier += finish.ambient;
         multiplier += finish.diffuse * std::max<float>(0, surfaceNormal.dot(toLight));
         
-        if (finish.roughness > 0.001) {
+        if (finish.roughness > 0.001f) {
             Eigen::Vector3f halfwayVector = (toLight + toViewer).normalized();
             multiplier += finish.specular * std::pow(std::max<float>(0, surfaceNormal.dot(halfwayVector)), 1.0 / finish.roughness);
         }

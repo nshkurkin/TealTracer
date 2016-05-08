@@ -78,6 +78,10 @@ public:
     int raysPerLight;
     int lumensPerLight;
     SupportedPhotonMap photonMapType;
+    
+    bool directIlluminationEnabled;
+    bool indirectIlluminationEnabled;
+    bool shadowsEnabled;
 
     float photonBounceProbability;
     float photonBounceEnergyMultipler;

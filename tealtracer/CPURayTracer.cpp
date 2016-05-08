@@ -50,6 +50,8 @@ CPURayTracer::CPURayTracer() {
     
     jobPool = JobPool(1);
     distribution = std::uniform_real_distribution<float>(0.0,1.0);
+    
+    directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
 }
 
 ///
@@ -214,11 +216,9 @@ void CPURayTracer::emitPhotons() {
         while (!photonStored) {
             auto light = lights[(int) (distribution(generator) * (float) lights.size()) % lights.size()];
             
-            float u = distribution(generator);
-            float v = distribution(generator);
+            float u = distribution(generator), v = distribution(generator);
             
             Ray ray;
-            
             ray.origin = light->position();
             ray.direction = light->getSampleDirection(u, v);
             
@@ -257,19 +257,20 @@ void CPURayTracer::processEmittedPhoton(
         photon.energy = rgb2rgbe(energy);
         photon.flags.geometryIndex = hit.element->id();
 
-        if (mapShadowPhotons && firstHit) {
-            for (int i = 1; i < hits.size(); i++) {
-                const auto & hitResult = hits[i];
-                float value = distribution(generator);
-                if (value < 0.5) {
-                    photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+        if (firstHit) {
+            if (mapShadowPhotons) {
+                for (int i = 1; i < hits.size(); i++) {
+                    const auto & hitResult = hits[i];
+                    float value = distribution(generator);
+                    if (value < 0.5) {
+                        photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
+                    }
                 }
             }
         }
-        firstHit = false;
 
         float value = distribution(generator);
-        if (value < photonBounceProbability) {
+        if (value < photonBounceProbability || firstHit) {
 
             Ray reflectedRay;
             reflectedRay.direction = hit.hit.outgoingDirection();
@@ -283,12 +284,10 @@ void CPURayTracer::processEmittedPhoton(
             ray.origin = reflectedRay.origin;
             ray.direction = reflectedRay.direction;
             energy = hitEnergy;
+            
+            firstHit = false;
         }
         else {
-            static const float factor = 10000.0f;
-            photon.position(0) =  std::floor(photon.position.x() * factor) / factor;
-            photon.position(1) =  std::floor(photon.position.y() * factor) / factor;
-            photon.position(2) =  std::floor(photon.position.z() * factor) / factor;
             photonMap->photons.push_back(photon);
             *photonStored = true;
         }
@@ -331,6 +330,7 @@ void CPURayTracer::raytraceScene() {
     
     /// Get the camera
     auto camera = scene_->camera();
+    auto lights = scene_->findElements<PovrayLightSource>();
     
     /// TODO: build the photon map
     
@@ -345,14 +345,40 @@ void CPURayTracer::raytraceScene() {
         for (int py = 0; py < outputImage.height; py++) {
             Ray ray;
             ray.origin = camPos;
-            Eigen::Vector3f pixelPos = camPos + forward - 0.5*up - 0.5*right + right*(0.5+(double)px)/(double)outputImage.width + up*(0.5+(double)py)/(double)outputImage.height;
-            ray.direction = (pixelPos - camPos).normalized();
+            ray.direction = (forward - 0.5*up - 0.5*right + right*(0.5+(double)px)/(double)outputImage.width + up*(0.5+(double)py)/(double)outputImage.height).normalized();
             
             auto hitTest = scene_->closestIntersection(ray);
             Image<uint8_t>::Vector4 color = Image<uint8_t>::Vector4(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
-                RGBf result = 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, RGBf(1,1,1), true);
+                /// Get indirect lighting
+                RGBf result = RGBf(0,0,0);
+                
+                if (indirectIlluminationEnabled) {
+                    result += 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, RGBf(1,1,1), true);
+                }
+                
+                /// Get direct lighting
+                if (directIlluminationEnabled) {
+                    for (auto lightItr = lights.begin(); lightItr != lights.end(); lightItr++) {
+                        auto light = *lightItr;
+                        Eigen::Vector3f hitLoc = hitTest.hit.locationOfIntersection();
+                        Eigen::Vector3f toLight = light->position() - hitLoc;
+                        Eigen::Vector3f toLightDir = toLight.normalized();
+                        Ray shadowRay;
+                        shadowRay.origin = hitLoc + 0.01f * toLightDir;
+                        shadowRay.direction = toLightDir;
+                        auto shadowHitTest = scene_->closestIntersection(shadowRay);
+                        
+                        bool isShadowed = shadowsEnabled && !(!shadowHitTest.hit.intersected
+                         || (shadowHitTest.hit.intersected && shadowHitTest.hit.timeOfIntersection > toLight.norm()));
+                        
+                        if (!isShadowed) {
+                            result += 255.0 * computeOutputEnergyForHit(hitTest, toLightDir, (camPos - hitLoc).normalized(), light->color().block<3,1>(0,0), false);
+                        }
+                    }
+                }
+                
                 for (int i = 0; i < 3; i++) {
                     result(i) = std::min<float>(255.0, result(i));
                 }

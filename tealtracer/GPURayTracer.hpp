@@ -69,6 +69,10 @@ public:
     float photonBounceProbability;
     float photonBounceEnergyMultipler;
     
+    bool directIlluminationEnabled;
+    bool indirectIlluminationEnabled;
+    bool shadowsEnabled;
+    
     std::shared_ptr<PhotonHashmap> photonHashmap;
     
     Eigen::Vector3f hashmapGridStart, hashmapGridEnd;
@@ -103,6 +107,8 @@ public:
         framesRendered = 0;
         lastRayTraceTime = rayTraceElapsedTime = 0;
         FPSsaved = realtimeSaved = 0;
+        
+        directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
     }
 
     ///
@@ -512,11 +518,18 @@ public:
            
             (cl_uint) brdfType,
             
+            (cl_int) directIlluminationEnabled,
+            (cl_int) indirectIlluminationEnabled,
+            (cl_int) shadowsEnabled,
+            
             computeEngine.getBuffer("spheres"),
             (cl_uint) numSpheres,
             
             computeEngine.getBuffer("planes"),
             (cl_uint) numPlanes,
+            
+            computeEngine.getBuffer("lights"),
+            (cl_uint) numLights,
             
             computeEngine.getBuffer("photon_index_array"),
             (cl_int) numberOfPhotonsToGather,

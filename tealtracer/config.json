@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "planes.pov",
+    "povrayScene" : "lab1_simple.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -8,14 +8,18 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 160,
-        "outputHeight" : 120,
+        "outputWidth" : 320,
+        "outputHeight" : 240,
         
-        "numberOfPhotonsToGather" : 10,
+        "directIlluminationEnabled" : false,
+        "indirectIlluminationEnabled" : true,
+        "shadowsEnabled" : false,
+        
+        "numberOfPhotonsToGather" : 1,
         "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 3000,
-        "lumensPerLight" : 6000,
-        "photonBounceProbability" : 0.90,
+        "raysPerLight" : 600,
+        "lumensPerLight" : 60,
+        "photonBounceProbability" : 0.80,
         "photonBounceEnergyMultipler" : 1.00,
         
         "mapShadowPhotons" : false,
@@ -30,14 +34,14 @@
             "gridStart" : [-10.0, -10.0, -10.0],
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
-            "cellsize" : 0.5
+            "cellsize" : 1.0
         },
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,
             "OrenNayar" : 1
         },
-        "brdfType" : 0
+        "brdfType" : 1
     },
     
     "GPURayTracer" : {
@@ -45,27 +49,31 @@
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": true,
         
-        "outputWidth" : 320,
-        "outputHeight" : 240,
+        "outputWidth" : 640,
+        "outputHeight" :480,
         
-        "numberOfPhotonsToGather" : 50,
+        "directIlluminationEnabled" : false,
+        "indirectIlluminationEnabled" : true,
+        "shadowsEnabled" : false,
+        
+        "numberOfPhotonsToGather" : 1,
         "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 6000,
-        "photonBounceProbability" : 0.90,
-        "photonBounceEnergyMultipler" : 1.0,
+        "raysPerLight" : 600,
+        "lumensPerLight" : 60,
+        "photonBounceProbability" : 0.80,
+        "photonBounceEnergyMultipler" : 1.00,
         
         "Hashmap_properties" : {
             "gridStart" : [-10.0, -10.0, -10.0],
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
-            "cellsize" : 0.25
+            "cellsize" : 1.0
         },
         
         "__enum_brdfType" : {
             "BlinnPhong" : 0,
             "OrenNayar" : 1
         },
-        "brdfType" : 0
+        "brdfType" : 1
     }
 }

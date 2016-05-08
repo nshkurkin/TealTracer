@@ -269,13 +269,13 @@ RayIntersectionResult PovrayPlane::intersect(const Ray & ray) {
     RayIntersectionResult result;
     /// https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
     float product = ray.direction.dot(normal_);
-    if (product > 0.0001 || product < -0.0001) {
+    if (product > 0.001 || product < -0.001) {
         result.timeOfIntersection = -(ray.origin.dot(normal_) - distance_) / product;
         result.ray = ray;
         result.surfaceNormal = normal_;
     }
     
-    result.intersected = result.timeOfIntersection >= 0.0;
+    result.intersected = result.timeOfIntersection > 0.0;
     return result;
 }
 

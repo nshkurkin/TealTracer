@@ -176,8 +176,7 @@ kernel void emit_photon(
     bool photonStored = false;
     
     while (!photonStored) {
-        float u = SceneConfig_randomNormalizedFloat(&config);
-        float v = SceneConfig_randomNormalizedFloat(&config);
+        float u = SceneConfig_randomNormalizedFloat(&config), v = SceneConfig_randomNormalizedFloat(&config);
         
         float3 rayOrigin = light.position;
         float3 rayDirection = uniformSampleSphere(u, v).xyz;
@@ -201,6 +200,7 @@ void processEmittedPhoton(
 
     *photonStored = false;
     
+    bool firstHit = true;
     float3 rayOrigin = initialRayOrigin;
     float3 rayDirection = initialRayDirection;
     RGBf energy = sourceLightEnergy;
@@ -216,7 +216,7 @@ void processEmittedPhoton(
         
         float value = SceneConfig_randomNormalizedFloat(config);
 
-        if (value < config->photonBounceProbability) {
+        if (value < config->photonBounceProbability || firstHit) {
 
             float3 reflectedRay_direction = RayIntersectionResult_outgoingDirection(&hit);
             float3 reflectedRay_origin = RayIntersectionResult_locationOfIntersection(&hit) + 0.001f * reflectedRay_direction;
@@ -251,6 +251,8 @@ void processEmittedPhoton(
             rayOrigin = reflectedRay_origin;
             rayDirection = reflectedRay_direction;
             energy = hitEnergy;
+            
+            firstHit = false;
         }
         else {
             PhotonHashmap_setPhoton(&config->map, &photon, whichPhoton);
@@ -355,11 +357,18 @@ kernel void raytrace_one_ray(
     
     const unsigned int brdf, // one of (enum BRDFType)
     
+    const int directIlluminationEnabled,
+    const int indirectIlluminationEnabled,
+    const int shadowsEnabled,
+    
     __global float * sphereData,
     const unsigned int numSpheres,
 
     __global float * planeData,
     const unsigned int numPlanes,
+    
+    __global float * lightData,
+    const unsigned int numLights,
     
     /// usable data
     __global float * photon_index_array,
@@ -402,47 +411,58 @@ kernel void raytrace_one_ray(
     int px = threadId % imageWidth;
     int py = threadId / imageWidth;
     
-    float3 rayOrigin
-        = camera_location + forward - 0.5f*up - 0.5f*right
+    float3 rayOrigin = camera_location;
+    float3 rayDirection = normalize(forward - 0.5f*up - 0.5f*right
         + right * ((0.5f+(float)px)/(float)imageWidth)
-        + up * ((0.5f+(float)py)/(float)imageHeight);
-    float3 rayDirection = normalize(rayOrigin - camera_location);
+        + up * ((0.5f+(float)py)/(float)imageHeight));
     
-    /// Calculate intersections
-    struct RayIntersectionResult bestIntersection;
-    bestIntersection.intersected = false;
-    bestIntersection.timeOfIntersection = INFINITY;
+    struct SceneConfig scene;
+    scene.brdf = brdf;
+    scene.sphereData = sphereData;
+    scene.numSpheres = numSpheres;
+    scene.planeData = planeData;
+    scene.numPlanes = numPlanes;
+    scene.lightData = lightData;
+    scene.numLights = numLights;
     
-    __global float * dataPtrs[2] = { sphereData, planeData };
-    unsigned int dataCounts[2] = { numSpheres, numPlanes };
-    unsigned int dataStrides[2] = { kPovraySphereStride, kPovrayPlaneStride };
-    
-    for (unsigned int i = 0; i < (unsigned int) NumObjectTypes; i++) {
-        struct RayIntersectionResult intersection = closest_intersection(
-            dataPtrs[i], dataCounts[i], dataStrides[i],
-            rayOrigin, rayDirection,
-            (enum ObjectType) i);
-        
-        if (intersection.intersected
-         && intersection.timeOfIntersection < bestIntersection.timeOfIntersection) {
-            bestIntersection = intersection;
-        }
-    }
+    struct RayIntersectionResult bestIntersection = SceneConfig_findClosestIntersection(&scene, rayOrigin, rayDirection);
     
     RGBf energy = (RGBf) {0, 0, 0};
     /// Calculate color
     if (bestIntersection.intersected) {
     
-        __global float * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
-        float gatherDistance;
-        if (maxPhotonGatherDistance < 0) {
-            gatherDistance = INFINITY;
+        if (indirectIlluminationEnabled) {
+            __global float * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
+            energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, maxPhotonGatherDistance, -bestIntersection.rayDirection, photon_indices);
         }
-        else {
-            gatherDistance = maxPhotonGatherDistance;
+        
+        /// Get direct lighting
+        if (directIlluminationEnabled) {
+            for (unsigned int lightItr = 0; lightItr < scene.numLights; lightItr++) {
+                
+                struct PovrayLightSourceData light = PovrayLightSourceData_fromData(&scene.lightData[kPovrayLightSourceStride * lightItr]);
+                float3 hitLoc = RayIntersectionResult_locationOfIntersection(&bestIntersection);
+                float3 toLight = light.position - hitLoc;
+                float3 toLightDir = normalize(toLight);
+                
+                if (shadowsEnabled) {
+                    float3 shadowRay_origin = hitLoc + 0.01f * toLightDir;
+                    float3 shadowRay_direction = toLightDir;
+                    
+                    struct RayIntersectionResult shadowHitTest = SceneConfig_findClosestIntersection(&scene, shadowRay_origin, shadowRay_direction);
+                                                
+                    bool isShadowed = !(!shadowHitTest.intersected
+                     || (shadowHitTest.intersected && shadowHitTest.timeOfIntersection > length(toLight)));
+                            
+                    if (!isShadowed) {
+                        energy += computeOutputEnergyForHit(brdf, bestIntersection, light.color.xyz, toLightDir, normalize(camera_location - hitLoc));
+                    }
+                }
+                else {
+                    energy += computeOutputEnergyForHit(brdf, bestIntersection, light.color.xyz, toLightDir, normalize(camera_location - hitLoc));
+                }
+            }
         }
-    
-        energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, gatherDistance, -bestIntersection.rayDirection, photon_indices);
     }
     
     write_imagef(image_output, (int2) {px, py}, (float4) {

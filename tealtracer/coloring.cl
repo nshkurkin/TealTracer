@@ -22,7 +22,7 @@ enum BRDFType {
 RGBf computeOutputEnergyForHit(
     enum BRDFType brdf,
     struct RayIntersectionResult hitResult,
-    float3 toLight, float3 toViewer);
+    RGBf lightColor, float3 toLight, float3 toViewer);
 ///
 RGBf computeOutputEnergyForBRDF(
     enum BRDFType brdf,
@@ -133,7 +133,7 @@ RGBf computeOutputEnergyForBRDF(
 RGBf computeOutputEnergyForHit(
     enum BRDFType brdf,
     struct RayIntersectionResult hitResult,
-    float3 toLight, float3 toViewer) {
+    RGBf lightColor, float3 toLight, float3 toViewer) {
     
     RGBf output = (float3) {0.0f, 0.0f, 0.0f};
     struct PovrayPigment pigment;
@@ -157,7 +157,7 @@ RGBf computeOutputEnergyForHit(
         }
     }
     
-    output = computeOutputEnergyForBRDF(brdf, pigment, finish, (RGBf) {1.0f,1.0f,1.0f}, toLight, toViewer, hitResult.surfaceNormal);
+    output = computeOutputEnergyForBRDF(brdf, pigment, finish, lightColor, toLight, toViewer, hitResult.surfaceNormal);
     
     return output;
 }

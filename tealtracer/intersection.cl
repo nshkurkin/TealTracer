@@ -166,7 +166,7 @@ void plane_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirec
     struct PovrayPlaneData data = PovrayPlaneData_fromData(dataPtr);
     
     float product = dot(rayDirection, data.normal);
-    if (product > 0.0001f || product < -0.0001f) {
+    if (product > 0.001f || product < -0.001f) {
         result->timeOfIntersection = -(dot(rayOrigin, data.normal) - data.distance) / product;
     }
     
@@ -174,7 +174,7 @@ void plane_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirec
     result->rayDirection = rayDirection;
     result->surfaceNormal = data.normal;
     
-    result->intersected = result->timeOfIntersection >= 0.0f;
+    result->intersected = result->timeOfIntersection > 0.0f;
 }
 
 #endif /* intersection_h */

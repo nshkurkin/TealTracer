@@ -43,7 +43,7 @@ struct CLPovrayFinish {
         data.push_back(ambient);
         data.push_back(diffuse);
         data.push_back(specular);
-        data.push_back(diffuse);
+        data.push_back(roughness);
     }
 };
 
