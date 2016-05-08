@@ -70,6 +70,8 @@ public:
     float photonBounceProbability;
     float photonBounceEnergyMultipler;
     
+    bool usePhotonMappingForDirectIllumination;
+    
     bool directIlluminationEnabled;
     bool indirectIlluminationEnabled;
     bool shadowsEnabled;
@@ -111,6 +113,7 @@ public:
         FPSsaved = realtimeSaved = 0;
         
         directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
+        usePhotonMappingForDirectIllumination = false;
     }
 
     ///
@@ -138,18 +141,18 @@ public:
         photonHashmap->spacing = hashmapSpacing;
         photonHashmap->setDimensions(hashmapGridStart, hashmapGridEnd);
     
-        jobPool.emplaceJob([=](){
+        jobPool.emplaceJob(JobPool::WorkItem("[GPU] setup ray trace", [=](){
             ocl_raytraceSetup();
         }, [=]() {
-            this->jobPool.emplaceJob([=](){
+            this->jobPool.emplaceJob(JobPool::WorkItem("[GPU] build photon map", [=](){
                 double t0 = glfwGetTime();
                 this->ocl_buildPhotonMap();
                 double tf = glfwGetTime();
                 TSLoggerLog(std::cout, "Done mapping photons: ", tf - t0);
             }, [=](){
                 this->enqueRayTrace();
-            });
-        });
+            }));
+        }));
     }
 
     ///
@@ -212,6 +215,9 @@ public:
             case GLFW_KEY_E:
                 scene_->camera()->orientedTransform(0, 0, transform);
                 break;
+            case GLFW_KEY_B:
+                TSLoggerLog(std::cout, "Breakpoint!");
+                break;
             default:
                 break;
         }
@@ -259,7 +265,7 @@ public:
     ///
     void enqueRayTrace() {
     
-        jobPool.emplaceJob([=](){
+        jobPool.emplaceJob(JobPool::WorkItem("[GPU] raytrace", [=](){
             auto startTime = glfwGetTime();
             this->ocl_raytraceRays();
             auto endTime = glfwGetTime();
@@ -269,7 +275,7 @@ public:
             framesRendered++;
             this->target.outputTexture->setNeedsUpdate();
             this->enqueRayTrace();
-        });
+        }));
     }
 
     bool useGPU;
@@ -339,6 +345,7 @@ public:
         computeEngine.setKernelArgs("emit_photon",
             (cl_uint) randVal,
             (cl_uint) brdfType,
+            (cl_int) usePhotonMappingForDirectIllumination,
             
             computeEngine.getBuffer("spheres"),
             (cl_uint) numSpheres,
@@ -522,6 +529,8 @@ public:
             cameraData.lookAt,
            
             (cl_uint) brdfType,
+            
+            (cl_int) usePhotonMappingForDirectIllumination,
             
             (cl_int) directIlluminationEnabled,
             (cl_int) indirectIlluminationEnabled,

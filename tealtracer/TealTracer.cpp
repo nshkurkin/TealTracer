@@ -80,6 +80,8 @@ TealTracer::run(const std::vector<std::string> & args) {
         gpuRayTracer_->maxPhotonGatherDistance = gpuMaxPhotonGatherDistance;
     }
     
+    gpuRayTracer_->usePhotonMappingForDirectIllumination = config["GPURayTracer"]["usePhotonMappingForDirectIllumination"].get<bool>();
+    
     gpuRayTracer_->directIlluminationEnabled = config["GPURayTracer"]["directIlluminationEnabled"].get<bool>();
     gpuRayTracer_->indirectIlluminationEnabled = config["GPURayTracer"]["indirectIlluminationEnabled"].get<bool>();
     gpuRayTracer_->shadowsEnabled = config["GPURayTracer"]["shadowsEnabled"].get<bool>();
@@ -116,6 +118,8 @@ TealTracer::run(const std::vector<std::string> & args) {
         cpuRayTracer_->maxPhotonGatherDistance = cpuMaxPhotonGatherDistance;
     }
     
+    cpuRayTracer_->usePhotonMappingForDirectIllumination = config["CPURayTracer"]["usePhotonMappingForDirectIllumination"].get<bool>();
+    
     cpuRayTracer_->directIlluminationEnabled = config["CPURayTracer"]["directIlluminationEnabled"].get<bool>();
     cpuRayTracer_->indirectIlluminationEnabled = config["CPURayTracer"]["indirectIlluminationEnabled"].get<bool>();
     cpuRayTracer_->shadowsEnabled = config["CPURayTracer"]["shadowsEnabled"].get<bool>();
@@ -142,9 +146,18 @@ TealTracer::run(const std::vector<std::string> & args) {
     }
     
     while (gpuWindow()->opened() && cpuWindow()->opened()) {
+        double startTime = glfwGetTime();
+//        TSLoggerLog(std::cout, "Starting iteration");
         glfwPollEvents();
         for (auto windowItr = windowsBegin(); windowItr != windowsEnd(); windowItr++) {
             windowItr->second->draw();
+        }
+        double endTime = glfwGetTime();
+        double dt = (endTime - startTime); // dt = time in milliseconds
+//        TSLoggerLog(std::cout, "Time elapsed=", dt);
+        if (dt < (1.0 / 60.0)) {
+            int toElapse = 1000.0 * ((1.0 / 60.0) - dt);
+            usleep(toElapse);
         }
     }
     

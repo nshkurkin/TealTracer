@@ -79,6 +79,8 @@ public:
     int lumensPerLight;
     SupportedPhotonMap photonMapType;
     
+    bool usePhotonMappingForDirectIllumination;
+    
     bool directIlluminationEnabled;
     bool indirectIlluminationEnabled;
     bool shadowsEnabled;
@@ -138,8 +140,6 @@ public:
     ///
     std::shared_ptr<PhotonMap> photonMap;
     
-    ///
-    void enqueuePhotonMapping();
     ///
     void buildPhotonMap();
     

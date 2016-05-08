@@ -112,6 +112,7 @@ int SceneConfig_randomInt(struct SceneConfig * config) {
 ///
 void processEmittedPhoton(
     struct SceneConfig * config,
+    const int usePhotonMappingForDirectIllumination,
     int whichPhoton,
     
     ///
@@ -126,6 +127,8 @@ kernel void emit_photon(
     ///
     const unsigned int generatorSeed,
     const unsigned int brdf, // one of (enum BRDFType)
+    
+    const int usePhotonMappingForDirectIllumination,
     
     /// scene elements
     __global float * sphereData,
@@ -181,12 +184,14 @@ kernel void emit_photon(
         float3 rayOrigin = light.position;
         float3 rayDirection = uniformSampleSphere(u, v).xyz;
         
-        processEmittedPhoton(&config, whichPhoton, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection, &photonStored);
+        processEmittedPhoton(&config, usePhotonMappingForDirectIllumination, whichPhoton, light.color.xyz * luminosityPerPhoton, rayOrigin, rayDirection, &photonStored);
     }
 }
 
 void processEmittedPhoton(
     struct SceneConfig * config,
+    const int usePhotonMappingForDirectIllumination,
+    
     int whichPhoton,
     
     ///
@@ -200,7 +205,7 @@ void processEmittedPhoton(
 
     *photonStored = false;
     
-    bool firstHit = true;
+    bool firstHit = !usePhotonMappingForDirectIllumination;
     float3 rayOrigin = initialRayOrigin;
     float3 rayDirection = initialRayDirection;
     RGBf energy = sourceLightEnergy;
@@ -357,6 +362,8 @@ kernel void raytrace_one_ray(
     
     const unsigned int brdf, // one of (enum BRDFType)
     
+    const int usePhotonMappingForDirectIllumination,
+    
     const int directIlluminationEnabled,
     const int indirectIlluminationEnabled,
     const int shadowsEnabled,
@@ -431,13 +438,13 @@ kernel void raytrace_one_ray(
     /// Calculate color
     if (bestIntersection.intersected) {
     
-        if (indirectIlluminationEnabled) {
+        if (indirectIlluminationEnabled || usePhotonMappingForDirectIllumination) {
             __global float * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
             energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, maxPhotonGatherDistance, -bestIntersection.rayDirection, photon_indices);
         }
         
         /// Get direct lighting
-        if (directIlluminationEnabled) {
+        if (directIlluminationEnabled && !usePhotonMappingForDirectIllumination) {
             for (unsigned int lightItr = 0; lightItr < scene.numLights; lightItr++) {
                 
                 struct PovrayLightSourceData light = PovrayLightSourceData_fromData(&scene.lightData[kPovrayLightSourceStride * lightItr]);

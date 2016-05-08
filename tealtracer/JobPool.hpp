@@ -17,13 +17,42 @@
 
 #include <vector>
 #include <functional>
+#include <string>
 
 struct JobPool {
+public:
+
+    struct WorkItem {
+        std::function<void(void)> work, callback;
+        std::string identifier;
+        
+        WorkItem() : identifier(""), work([](){}), callback([](){}) {}
+        WorkItem(std::string id, std::function<void(void)> work, std::function<void(void)> callback) : identifier(id), work(work), callback(callback) {}
+        WorkItem(const WorkItem & other) {
+            work = other.work;
+            callback = other.callback;
+            identifier = other.identifier;
+        }
+        
+        WorkItem & operator=(const WorkItem & other) {
+            work = other.work;
+            callback = other.callback;
+            identifier = other.identifier;
+            return *this;
+        }
+        
+    protected:
+    
+        friend struct JobPool;
+    #ifndef __SINGLETHREADED__
+        std::future< std::function<void(void)> > workReturn;
+    #endif
+    };
+
 private:
-    std::vector< std::pair< std::function<void(void)>,
-     std::function<void(void)> > > pendingJobs;
+    std::vector<WorkItem> pendingJobs;
 #ifndef __SINGLETHREADED__
-    std::vector< std::future< std::function<void(void)> > > jobWaitPool;
+    std::vector<WorkItem> jobWaitPool;
 #endif
 public:
     int maxNumThreads;
@@ -32,7 +61,7 @@ public:
     JobPool(const JobPool & other);
     JobPool & operator=(const JobPool & other);
     
-    void emplaceJob(std::function<void(void)> dispatch, std::function<void(void)> callback);
+    void emplaceJob(const WorkItem & workItem);
     void checkAndUpdateFinishedJobs();
 
 };

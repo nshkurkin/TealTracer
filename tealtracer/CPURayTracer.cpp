@@ -52,7 +52,7 @@ CPURayTracer::CPURayTracer() {
     generator = std::mt19937(randomDevice());
     distribution = std::uniform_real_distribution<float>(0.0,1.0);
     
-    directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
+    usePhotonMappingForDirectIllumination = directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
 }
 
 ///
@@ -104,22 +104,31 @@ void CPURayTracer::start() {
     lastRayTraceTime = glfwGetTime();
     rayTraceElapsedTime = 0.0;
     framesRendered = 0;
-    enqueuePhotonMapping();
-    enqueRayTrace();
+    
+    jobPool.emplaceJob(JobPool::WorkItem("[CPU] Build photon map", [=]() {
+        TSLoggerLog(std::cout, "[", glfwGetTime(), "] Started building photon map");
+        buildPhotonMap();
+        TSLoggerLog(std::cout, "Done emplacing");
+    }, [=]() {
+        TSLoggerLog(std::cout, "[", glfwGetTime(), "] Finished building photon map");
+        this->enqueRayTrace();
+    }));
 }
 
 void CPURayTracer::enqueRayTrace() {
-    jobPool.emplaceJob([=](){
+    jobPool.emplaceJob(JobPool::WorkItem("[CPU] Raytrace", [=](){
+//        TSLoggerLog(std::cout, "Beginning ray trace");
         auto startTime = glfwGetTime();
         this->raytraceScene();
         auto endTime = glfwGetTime();
         lastRayTraceTime = endTime - startTime;
     }, [=](){
+//        TSLoggerLog(std::cout, "Finished ray trace");
         rayTraceElapsedTime = lastRayTraceTime;
         framesRendered++;
         this->target.outputTexture->setNeedsUpdate();
         this->enqueRayTrace();
-    });
+    }));
 }
 
 ///
@@ -183,17 +192,6 @@ void CPURayTracer::mouseScroll(TSWindow * window, double dx, double dy) {
 }
 
 ///
-///
-void CPURayTracer::enqueuePhotonMapping() {
-    jobPool.emplaceJob([=]() {
-        TSLoggerLog(std::cout, "[", glfwGetTime(), "] Started building photon map");
-        buildPhotonMap();
-    }, [=]() {
-        TSLoggerLog(std::cout, "[", glfwGetTime(), "] Finished building photon map");
-    });
-}
-
-///
 void CPURayTracer::buildPhotonMap() {
     assert(photonMap != nullptr);
     photonMap->photons.clear();
@@ -247,7 +245,7 @@ void CPURayTracer::processEmittedPhoton(
     RGBf energy = sourceLightEnergy;
     
     auto hits = scene_->intersections(ray);
-    bool firstHit = true;
+    bool firstHit = !usePhotonMappingForDirectIllumination;
 
     while (!*photonStored && hits.size() > 0) {
         struct JensenPhoton photon;
@@ -355,12 +353,12 @@ void CPURayTracer::raytraceScene() {
                 /// Get indirect lighting
                 RGBf result = RGBf(0,0,0);
                 
-                if (indirectIlluminationEnabled) {
+                if (indirectIlluminationEnabled || usePhotonMappingForDirectIllumination) {
                     result += 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, RGBf(1,1,1), true);
                 }
                 
                 /// Get direct lighting
-                if (directIlluminationEnabled) {
+                if (directIlluminationEnabled && !usePhotonMappingForDirectIllumination) {
                     for (auto lightItr = lights.begin(); lightItr != lights.end(); lightItr++) {
                         auto light = *lightItr;
                         Eigen::Vector3f hitLoc = hitTest.hit.locationOfIntersection();

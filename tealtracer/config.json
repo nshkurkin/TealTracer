@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "lab1_simple.pov",
+    "povrayScene" : "GIRefScene1.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -8,17 +8,19 @@
         "enabled" : true,
         "initialTitle" : "CPU Ray Tracer",
         
-        "outputWidth" : 320,
-        "outputHeight" : 240,
+        "outputWidth" : 80,
+        "outputHeight" : 60,
         
-        "directIlluminationEnabled" : false,
+        "usePhotonMappingForDirectIllumination" : true,
+        
+        "directIlluminationEnabled" : true,
         "indirectIlluminationEnabled" : true,
-        "shadowsEnabled" : false,
+        "shadowsEnabled" : true,
         
-        "numberOfPhotonsToGather" : 1,
+        "numberOfPhotonsToGather" : 100,
         "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 600,
-        "lumensPerLight" : 60,
+        "raysPerLight" : 96000,
+        "lumensPerLight" : 1,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
@@ -31,7 +33,7 @@
         "photonMapType" : 1,
         
         "Hashmap_properties" : {
-            "gridStart" : [-10.0, -10.0, -10.0],
+            "gridStart" : [-10.0, -10.0, -20.0],
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
             "cellsize" : 1.0
@@ -49,25 +51,27 @@
         "initialTitle" : "GPU Ray Tracer",
         "useGPU": true,
         
-        "outputWidth" : 640,
-        "outputHeight" :480,
+        "outputWidth" : 40,
+        "outputHeight" : 30,
         
-        "directIlluminationEnabled" : false,
+        "usePhotonMappingForDirectIllumination" : true,
+        
+        "directIlluminationEnabled" : true,
         "indirectIlluminationEnabled" : true,
-        "shadowsEnabled" : false,
+        "shadowsEnabled" : true,
         
-        "numberOfPhotonsToGather" : 1,
+        "numberOfPhotonsToGather" : 200,
         "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 600,
-        "lumensPerLight" : 60,
+        "raysPerLight" : 48000,
+        "lumensPerLight" : 1,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
         "Hashmap_properties" : {
-            "gridStart" : [-10.0, -10.0, -10.0],
+            "gridStart" : [-10.0, -10.0, -20.0],
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
-            "cellsize" : 1.0
+            "cellsize" : 0.5
         },
         
         "__enum_brdfType" : {

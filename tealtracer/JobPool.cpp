@@ -7,6 +7,7 @@
 //
 
 #include "JobPool.hpp"
+#include "TSLogger.hpp"
 
 JobPool::JobPool(int numThreads) {
     maxNumThreads = numThreads;
@@ -27,25 +28,29 @@ static std::function<void(void)> async_OGSDispatch(
     return toRet;
 }
 
-void JobPool::emplaceJob(std::function<void(void)> dispatch,
- std::function<void(void)> callback) {
-    pendingJobs.push_back(std::make_pair(dispatch, callback));
+void JobPool::emplaceJob(const JobPool::WorkItem & workItem) {
+    pendingJobs.push_back(workItem);
 }
 
 void JobPool::checkAndUpdateFinishedJobs() {
     std::vector<int> completed;
+//    TSLoggerLog(std::cout, "checking jobs in pool");
 #ifndef __SINGLETHREADED__
+    
     /// Push jobs onto the job wait pool if there is room available.
     while ((int) jobWaitPool.size() < maxNumThreads && pendingJobs.size() > 0) {
-        jobWaitPool.emplace_back(std::async(
+        auto & workItem = *pendingJobs.begin();
+        jobWaitPool.push_back(*pendingJobs.begin());
+        jobWaitPool[jobWaitPool.size() - 1].workReturn = std::async(
             async_OGSDispatch,
-            pendingJobs[0].first, pendingJobs[0].second
-        ));
+            workItem.work, workItem.callback
+        );
+
         pendingJobs.erase(pendingJobs.begin() + 0);
     }
     /// Check to see if any jobs completed
     for (int i = 0; i < (int) jobWaitPool.size(); i++) {
-        std::future< std::function<void(void)> > & ftr = jobWaitPool[i];
+        std::future< std::function<void(void)> > & ftr = jobWaitPool[i].workReturn;
         if (ftr.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
             completed.push_back(i);
         }
@@ -53,16 +58,18 @@ void JobPool::checkAndUpdateFinishedJobs() {
 #else
     int which = -1;
     while (++which < maxNumThreads && pendingJobs.size() > 0) {
-        async_OGSDispatch(pendingJobs[0].first, pendingJobs[0].second);
+        async_OGSDispatch(pendingJobs[0].work, pendingJobs[0].callback);
         completed.push_back(which);
     }
 #endif
     /// Cleanup any completed jobs
     for (int i = 0; i < (int) completed.size(); i++) {
         int index = completed[i] - i;
-        std::function<void(void)> func = jobWaitPool[index].get();
+        std::function<void(void)> func = jobWaitPool[index].workReturn.get();
         
         func();
         jobWaitPool.erase(jobWaitPool.begin() + index);
     }
+    
+//    TSLoggerLog(std::cout, "Done checking jobs in pool");
 }
