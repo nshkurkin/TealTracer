@@ -1,20 +1,18 @@
 //
-//  CPURayTracer.cpp
+//  SingleCoreRaytracer.cpp
 //  tealtracer
 //
 //  Created by Nikolai Shkurkin on 3/29/16.
 //  Copyright © 2016 Teal Sunset Studios. All rights reserved.
 //
 
-#include "CPURayTracer.hpp"
+#include "SingleCoreRaytracer.hpp"
 
 #include "PhotonKDTree.hpp"
 
-const Eigen::Vector3f CPURayTracer::Up = Eigen::Vector3f(0.0, 1.0, 0.0);
-const Eigen::Vector3f CPURayTracer::Forward = Eigen::Vector3f(0.0, 0.0, -1.0);
-const Eigen::Vector3f CPURayTracer::Right = Eigen::Vector3f(1.0, 0.0, 0.0);
-
-Eigen::Matrix4f lookAt(const Eigen::Vector3f & eye, const Eigen::Vector3f & center, const Eigen::Vector3f & up) {
+///
+Eigen::Matrix4f
+lookAt(const Eigen::Vector3f & eye, const Eigen::Vector3f & center, const Eigen::Vector3f & up) {
     Eigen::Vector3f f = (center - eye).normalized();
     Eigen::Vector3f s = f.cross(up).normalized();
     Eigen::Vector3f u = s.cross(f);
@@ -37,48 +35,27 @@ Eigen::Matrix4f lookAt(const Eigen::Vector3f & eye, const Eigen::Vector3f & cent
     return result;
 }
 
-CPURayTracer::CPURayTracer() {
-    photonMapType = KDTree;
-    photonBounceProbability = 0.5;
-    photonBounceEnergyMultipler = 0.5;
-    maxPhotonGatherDistance = std::numeric_limits<float>::infinity();
-    
-    hashmapCellsize = 2.0;
-    hashmapSpacing = 2;
-    hashmapGridStart = Eigen::Vector3f(-20, -20, -20);
-    hashmapGridEnd = Eigen::Vector3f(20, 20, 20);
-    
-    jobPool = JobPool(1);
-    generator = std::mt19937(randomDevice());
-    distribution = std::uniform_real_distribution<float>(0.0,1.0);
-    
-    usePhotonMappingForDirectIllumination = directIlluminationEnabled = indirectIlluminationEnabled = shadowsEnabled = false;
+///
+SingleCoreRaytracer::SingleCoreRaytracer() {
+    photonMap = nullptr;
+    brdf = nullptr;
 }
 
 ///
-void CPURayTracer::setupDrawingInWindow(TSWindow * window) {
-    ///
-    glClearColor(0.3, 0.3, 0.3, 1.0);
-    glEnable(GLenum(GL_DEPTH_TEST));
-    glDepthFunc(GLenum(GL_LESS));
-    
-    outputImage.setDimensions(renderOutputWidth, renderOutputHeight);
-    target.init(outputImage.width, outputImage.height, outputImage.dataPtr());
-}
+void
+SingleCoreRaytracer::start() {
 
-void CPURayTracer::start() {
-
-    switch (photonMapType) {
-    case KDTree: {
+    switch (config.supportedPhotonMap) {
+    case RaytracingConfig::KDTree: {
         auto * map = new PhotonKDTree();
         photonMap = std::shared_ptr<PhotonMap>(map);
         break;
     }
-    case Hashmap: {
+    case RaytracingConfig::HashGrid: {
         auto * map = new PhotonHashmap();
-        map->cellsize = hashmapCellsize;
-        map->spacing = hashmapSpacing;
-        map->setDimensions(hashmapGridStart, hashmapGridEnd);
+        map->cellsize = config.hashmapCellsize;
+        map->spacing = config.hashmapSpacing;
+        map->setDimensions(config.hashmapGridStart, config.hashmapGridEnd);
         photonMap = std::shared_ptr<PhotonMap>(map);
         break;
     }
@@ -87,12 +64,12 @@ void CPURayTracer::start() {
         break;
     }
     
-    switch (brdfType) {
-    case BlinnPhong: {
+    switch (config.brdfType) {
+    case RaytracingConfig::BlinnPhong: {
         brdf = std::shared_ptr<BRDF>(new BlinnPhongBRDF());
         break;
     }
-    case OrenNayar: {
+    case RaytracingConfig::OrenNayar: {
         brdf = std::shared_ptr<BRDF>(new OrenNayarBRDF());
         break;
     }
@@ -115,7 +92,9 @@ void CPURayTracer::start() {
     }));
 }
 
-void CPURayTracer::enqueRayTrace() {
+///
+void
+SingleCoreRaytracer::enqueRayTrace() {
     jobPool.emplaceJob(JobPool::WorkItem("[CPU] Raytrace", [=](){
 //        TSLoggerLog(std::cout, "Beginning ray trace");
         auto startTime = glfwGetTime();
@@ -132,90 +111,29 @@ void CPURayTracer::enqueRayTrace() {
 }
 
 ///
-void CPURayTracer::drawInWindow(TSWindow * window) {
-    glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    
-    target.draw();
-    jobPool.checkAndUpdateFinishedJobs();
-    
-    float FPS = 0;
-    if (rayTraceElapsedTime > 0.001) {
-        FPS = 1.0 / rayTraceElapsedTime;
-    }
-    window->setTitle(make_string("CPU Ray Tracer (FPS: ", FPS, ", frames: ", framesRendered, ")"));
-}
-
-
-///
-void CPURayTracer::windowResize(TSWindow * window, int w, int h) {
-
-}
-
-///
-void CPURayTracer::framebufferResize(TSWindow * window, int w, int h) {
-    
-}
-
-///
-void CPURayTracer::windowClose(TSWindow * window) {
-
-}
-
-///
-void CPURayTracer::keyDown(TSWindow * window, int key, int scancode, int mods) {
-    
-}
-
-///
-void CPURayTracer::keyUp(TSWindow * window, int key, int scancode, int mods) {
-
-}
-
-///
-void CPURayTracer::mouseUp(TSWindow * window, int button, int mods) {
-
-}
-
-///
-void CPURayTracer::mouseDown(TSWindow * window, int button, int mods) {
-
-}
-
-///
-void CPURayTracer::mouseMoved(TSWindow * window, double x, double y) {
-
-}
-
-///
-void CPURayTracer::mouseScroll(TSWindow * window, double dx, double dy) {
-
-}
-
-///
-void CPURayTracer::buildPhotonMap() {
+void
+SingleCoreRaytracer::buildPhotonMap() {
     assert(photonMap != nullptr);
     photonMap->photons.clear();
     emitPhotons();
     photonMap->buildMap();
 }
 
-std::default_random_engine generator;
-std::uniform_real_distribution<float> distribution;
-
 ///
-void CPURayTracer::emitPhotons() {
+void
+SingleCoreRaytracer::emitPhotons() {
     /// for each light, emit photons into the scene.
-    auto lights = scene_->findElements<PovrayLightSource>();
-    float lumens = lumensPerLight;
-    int numRays = raysPerLight;
+    auto lights = config.scene->findElements<PovrayLightSource>();
+    float lumens = config.lumensPerLight;
+    int numRays = config.raysPerLight;
     float luminosityPerPhoton = lumens/(float)numRays;
     
     for (int photonItr = 0; photonItr < numRays; photonItr++) {
         bool photonStored = false;
         while (!photonStored) {
-            auto light = lights[(int) (distribution(generator) * (float) lights.size()) % lights.size()];
+            auto light = lights[generator.randUInt() % lights.size()];
             
-            float u = distribution(generator), v = distribution(generator);
+            float u = generator.randFloat(), v = generator.randFloat();
             
             Ray ray;
             ray.origin = light->position();
@@ -228,7 +146,9 @@ void CPURayTracer::emitPhotons() {
     TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
 }
 
-void CPURayTracer::processEmittedPhoton(
+///
+void
+SingleCoreRaytracer::processEmittedPhoton(
     ///
     RGBf sourceLightEnergy,
     const Ray & initialRay,
@@ -244,8 +164,8 @@ void CPURayTracer::processEmittedPhoton(
     ray.direction = initialRay.direction;
     RGBf energy = sourceLightEnergy;
     
-    auto hits = scene_->intersections(ray);
-    bool firstHit = !usePhotonMappingForDirectIllumination;
+    auto hits = config.scene->intersections(ray);
+    bool firstHit = !config.usePhotonMappingForDirectIllumination;
 
     while (!*photonStored && hits.size() > 0) {
         struct JensenPhoton photon;
@@ -256,30 +176,19 @@ void CPURayTracer::processEmittedPhoton(
         photon.energy = rgb2rgbe(energy);
         photon.flags.geometryIndex = hit.element->id();
 
-        if (firstHit) {
-            if (mapShadowPhotons) {
-                for (int i = 1; i < hits.size(); i++) {
-                    const auto & hitResult = hits[i];
-                    float value = distribution(generator);
-                    if (value < 0.5) {
-                        photonMap->photons.push_back(JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, RGBf::Zero(), true, false, hitResult.element->id()));
-                    }
-                }
-            }
-        }
-
-        float value = distribution(generator);
-        if (value < photonBounceProbability || firstHit) {
+        float value = generator.randFloat();
+        if (value < config.photonBounceProbability || firstHit) {
 
             Ray reflectedRay;
             reflectedRay.direction = hit.hit.outgoingDirection();
             reflectedRay.origin = hit.hit.locationOfIntersection() + 0.001f * reflectedRay.direction;
             
-            RGBf hitEnergy = computeOutputEnergyForHit(hit, -ray.direction, hit.hit.outgoingDirection(), energy, false) * photonBounceEnergyMultipler;
+            RGBf hitEnergy = computeOutputEnergyForHit(hit, -ray.direction, hit.hit.outgoingDirection(), energy, false)
+             * config.photonBounceEnergyMultipler;
             //////
             
             /// Calculate intersection
-            hits = scene_->intersections(reflectedRay);
+            hits = config.scene->intersections(reflectedRay);
             ray.origin = reflectedRay.origin;
             ray.direction = reflectedRay.direction;
             energy = hitEnergy;
@@ -294,7 +203,8 @@ void CPURayTracer::processEmittedPhoton(
 }
 
 ///
-void CPURayTracer::processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits) {
+void
+SingleCoreRaytracer::processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits) {
     /// Add in shadow photons
     for (int i = 1; i < hits.size(); i++) {
         const auto & hitResult = hits[i];
@@ -306,14 +216,14 @@ void CPURayTracer::processHits(const RGBf & energy, const Ray & ray, const std::
         const auto & hitResult = hits[0];
         JensenPhoton photon = JensenPhoton(hitResult.hit.locationOfIntersection(), hitResult.hit.ray.direction, energy, false, false, hitResult.element->id());
         
-        if (distribution(generator) < photonBounceProbability) {
+        if (generator.randFloat() < config.photonBounceProbability) {
             Ray reflectedRay;
             
             reflectedRay.direction = hitResult.hit.outgoingDirection();
-            reflectedRay.origin = hitResult.hit.locationOfIntersection() + 0.001 * reflectedRay.direction;
+            reflectedRay.origin = hitResult.hit.locationOfIntersection() + 0.001f * reflectedRay.direction;
             
-            auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), energy, false) * photonBounceEnergyMultipler;
-            auto newHits = scene_->intersections(reflectedRay);
+            auto hitEnergy = computeOutputEnergyForHit(hitResult, -ray.direction, hitResult.hit.outgoingDirection(), energy, false) * config.photonBounceEnergyMultipler;
+            auto newHits = config.scene->intersections(reflectedRay);
             
             processHits(hitEnergy, reflectedRay, newHits);
         }
@@ -324,21 +234,21 @@ void CPURayTracer::processHits(const RGBf & energy, const Ray & ray, const std::
 }
 
 ///
-void CPURayTracer::raytraceScene() {
-    assert(scene_ != nullptr);
+void SingleCoreRaytracer::raytraceScene() {
+    assert(config.scene != nullptr);
     
     /// Get the camera
-    auto camera = scene_->camera();
-    auto lights = scene_->findElements<PovrayLightSource>();
+    auto camera = config.scene->camera();
+    auto lights = config.scene->findElements<PovrayLightSource>();
     
     /// TODO: build the photon map
     
     /// Create all of the rays
     auto camPos = camera->location();
     auto viewTransform = lookAt(camera->location(), camera->lookAt(), camera->up());
-    Eigen::Vector3f forward = (viewTransform * Eigen::Vector4f(Forward.x(), Forward.y(), Forward.z(), 0.0)).block<3,1>(0,0);
-    Eigen::Vector3f up = (viewTransform * Eigen::Vector4f(Up.x(), Up.y(), Up.z(), 0.0)).block<3,1>(0,0) * camera->up().norm();
-    Eigen::Vector3f right = (viewTransform * Eigen::Vector4f(Right.x(), Right.y(), Right.z(), 0.0)).block<3,1>(0,0) * camera->right().norm();
+    Eigen::Vector3f forward = (viewTransform * Eigen::Vector4f(config.Forward.x(), config.Forward.y(), config.Forward.z(), 0.0)).block<3,1>(0,0);
+    Eigen::Vector3f up = (viewTransform * Eigen::Vector4f(config.Up.x(), config.Up.y(), config.Up.z(), 0.0)).block<3,1>(0,0) * camera->up().norm();
+    Eigen::Vector3f right = (viewTransform * Eigen::Vector4f(config.Right.x(), config.Right.y(), config.Right.z(), 0.0)).block<3,1>(0,0) * camera->right().norm();
     
     for (int px = 0; px < outputImage.width; px++) {
         for (int py = 0; py < outputImage.height; py++) {
@@ -346,19 +256,19 @@ void CPURayTracer::raytraceScene() {
             ray.origin = camPos;
             ray.direction = (forward - 0.5*up - 0.5*right + right*(0.5+(double)px)/(double)outputImage.width + up*(0.5+(double)py)/(double)outputImage.height).normalized();
             
-            auto hitTest = scene_->closestIntersection(ray);
+            auto hitTest = config.scene->closestIntersection(ray);
             Image<uint8_t>::Vector4 color = Image<uint8_t>::Vector4(0, 0, 0, 255);
             
             if (hitTest.element != nullptr && hitTest.element->pigment() != nullptr) {
                 /// Get indirect lighting
                 RGBf result = RGBf(0,0,0);
                 
-                if (indirectIlluminationEnabled || usePhotonMappingForDirectIllumination) {
+                if (config.indirectIlluminationEnabled || config.usePhotonMappingForDirectIllumination) {
                     result += 255.0 * computeOutputEnergyForHit(hitTest, Eigen::Vector3f::Zero(), -ray.direction, RGBf(1,1,1), true);
                 }
                 
                 /// Get direct lighting
-                if (directIlluminationEnabled && !usePhotonMappingForDirectIllumination) {
+                if (config.directIlluminationEnabled && !config.usePhotonMappingForDirectIllumination) {
                     for (auto lightItr = lights.begin(); lightItr != lights.end(); lightItr++) {
                         auto light = *lightItr;
                         Eigen::Vector3f hitLoc = hitTest.hit.locationOfIntersection();
@@ -367,9 +277,9 @@ void CPURayTracer::raytraceScene() {
                         Ray shadowRay;
                         shadowRay.origin = hitLoc + 0.01f * toLightDir;
                         shadowRay.direction = toLightDir;
-                        auto shadowHitTest = scene_->closestIntersection(shadowRay);
+                        auto shadowHitTest = config.scene->closestIntersection(shadowRay);
                         
-                        bool isShadowed = shadowsEnabled && !(!shadowHitTest.hit.intersected
+                        bool isShadowed = config.shadowsEnabled && !(!shadowHitTest.hit.intersected
                          || (shadowHitTest.hit.intersected && shadowHitTest.hit.timeOfIntersection > toLight.norm()));
                         
                         if (!isShadowed) {
@@ -390,14 +300,16 @@ void CPURayTracer::raytraceScene() {
     }
 }
 
-RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy, bool usePhotonMap) {
+///
+RGBf
+SingleCoreRaytracer::computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy, bool usePhotonMap) {
     
     RGBf output = RGBf::Zero();
     brdf->pigment = *hitResult.element->pigment();
     brdf->finish = *hitResult.element->finish();
     
     if (usePhotonMap) {
-        auto photonInfo = photonMap->gatherPhotonsIndices(numberOfPhotonsToGather, maxPhotonGatherDistance, hitResult.hit.locationOfIntersection());
+        auto photonInfo = photonMap->gatherPhotonsIndices(config.numberOfPhotonsToGather, config.maxPhotonGatherDistance, hitResult.hit.locationOfIntersection());
         
         float maxSqrDist = 0.001;
         //  Accumulate radiance of the K nearest photons
@@ -423,9 +335,4 @@ RGBf CPURayTracer::computeOutputEnergyForHit(const PovrayScene::InstersectionRes
     }
     
     return output;
-}
-
-///
-void CPURayTracer::setScene(std::shared_ptr<PovrayScene> scene) {
-    scene_ = scene;
 }

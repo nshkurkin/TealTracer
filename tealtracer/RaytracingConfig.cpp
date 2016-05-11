@@ -10,6 +10,11 @@
 
     
 RaytracingConfig::RaytracingConfig() {
+
+    enabled = false;
+    title = "";
+    controlsCamera = false;
+
     renderOutputWidth = 0;
     renderOutputHeight = 0;
 
@@ -43,11 +48,17 @@ RaytracingConfig::RaytracingConfig() {
 }
 
 void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
+
+    enabled = config["enabled"].get<bool>();
+    title = config["title"].get<std::string>();
+    controlsCamera = config["controlsCamera"].get<bool>();
+
     renderOutputWidth = config["outputWidth"].get<int>();
     renderOutputHeight = config["outputHeight"].get<int>();
     
     computationDevice = (ComputationDevice) config["computationDevice"].get<int>();
     brdfType = (SupportedBRDF) config["brdfType"].get<int>();
+    supportedPhotonMap = (SupportedPhotonMap) config["supportedPhotonMap"].get<int>();
     
     numberOfPhotonsToGather = config["numberOfPhotonsToGather"].get<int>();
     raysPerLight = config["raysPerLight"].get<int>();
@@ -69,18 +80,8 @@ void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
     indirectIlluminationEnabled = config["indirectIlluminationEnabled"].get<bool>();
     shadowsEnabled = config["shadowsEnabled"].get<bool>();
     
-    auto vec3FromJSON = [](const std::vector<double> & data) {
-        return Eigen::Vector3f(data[0], data[1], data[2]);
-    };
-    
     hashmapCellsize = config["Hashmap_properties"]["cellsize"].get<double>();
     hashmapSpacing = config["Hashmap_properties"]["spacing"].get<int>();
-    hashmapGridStart = vec3FromJSON(config["Hashmap_properties"]["gridStart"].get<std::vector<double>>());
-    hashmapGridEnd << vec3FromJSON(config["Hashmap_properties"]["gridEnd"].get<std::vector<double>>());
-    
-    Up = vec3FromJSON(config["Up"].get<std::vector<double>>());
-    Forward = vec3FromJSON(config["Forward"].get<std::vector<double>>());
-    Right = vec3FromJSON(config["Right"].get<std::vector<double>>());
-    
-    scene = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
+    hashmapGridStart = vec3FromData(config["Hashmap_properties"]["gridStart"].get<std::vector<double>>());
+    hashmapGridEnd << vec3FromData(config["Hashmap_properties"]["gridEnd"].get<std::vector<double>>());
 }

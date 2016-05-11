@@ -12,20 +12,16 @@
 #include "TSApplication.hpp"
 #include "PovrayScene.hpp"
 
-#include <cassert>
-
-#include "gl_include.h"
 #include "Window.hpp"
-#include "GPURayTracer.hpp"
-#include "CPURayTracer.hpp"
+#include "Raytracer.hpp"
 
 class TealTracer : public TSApplication {
 public:
 
     ///
-    std::shared_ptr<TSWindow> gpuWindow();
+    std::shared_ptr<TSWindow> leftWindow();
     ///
-    std::shared_ptr<TSWindow> cpuWindow();
+    std::shared_ptr<TSWindow> rightWindow();
     
 protected:
 
@@ -38,8 +34,8 @@ protected:
     
 private:
 
-    std::shared_ptr<GPURayTracer> gpuRayTracer_;
-    std::shared_ptr<CPURayTracer> cpuRayTracer_;
+    std::shared_ptr<Raytracer> leftRaytracer_;
+    std::shared_ptr<Raytracer> rightRaytracer_;
     std::shared_ptr<PovrayScene> scene_;
 
 };

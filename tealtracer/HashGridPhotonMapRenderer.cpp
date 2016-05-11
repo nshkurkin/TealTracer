@@ -8,8 +8,14 @@
 
 #include "HashGridPhotonMapRenderer.hpp"
 
+#include "TSLogger.hpp"
+#include "stl_extensions.hpp"
+
+#include "CLPovrayElementData.hpp"
+
+
 ///
-HashGridPhotonMapRenderer::HashGridPhotonMapRenderer() {
+HashGridPhotonMapRenderer::HashGridPhotonMapRenderer() : Raytracer() {
     FPSsaved = 0.0;
     realtimeSaved = 0.0;
     
@@ -20,31 +26,10 @@ HashGridPhotonMapRenderer::HashGridPhotonMapRenderer() {
     generator = std::mt19937(randomDevice());
     distribution = std::uniform_real_distribution<float>(0.0,1.0);
     
-    jobPool = JobPool(1);
-    framesRendered = 0;
-    lastRayTraceTime = rayTraceElapsedTime = 0;
-    FPSsaved = realtimeSaved = 0;
+    numSpheres = numPlanes = numLights = 0;
 }
 
 ///
-void HashGridPhotonMapRenderer::setupDrawingInWindow(TSWindow * window) {
-    
-    TSLoggerLog(std::cout, glGetString(GL_VERSION));
-
-    /// OpenGL
-    glClearColor(0.3, 0.3, 0.3, 1.0);
-    glEnable(GLenum(GL_DEPTH_TEST));
-    glDepthFunc(GLenum(GL_LESS));
-    
-    outputImage.setDimensions(config.renderOutputWidth, config.renderOutputHeight);
-    void * imageDataPtr = outputImage.dataPtr();
-    target.init(outputImage.width, outputImage.height, imageDataPtr);
-    
-    ///
-    lastX = std::numeric_limits<float>::infinity();
-    lastY = std::numeric_limits<float>::infinity();
-}
-
 void HashGridPhotonMapRenderer::start() {
 
     useGPU = config.computationDevice == RaytracingConfig::ComputationDevice::GPU;
@@ -67,112 +52,8 @@ void HashGridPhotonMapRenderer::start() {
 }
 
 ///
-void HashGridPhotonMapRenderer::drawInWindow(TSWindow * window) {
-    
-    /// Draw the scene
-    glClear(GLbitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    target.draw();
-    ///
-    
-    jobPool.checkAndUpdateFinishedJobs();
-
-    float FPS = 0;
-    if (rayTraceElapsedTime > 0.0001) {
-        FPS = 1.0 / rayTraceElapsedTime;
-    }
-    
-    if (framesRendered % 5 == 0 || rayTraceElapsedTime > 0.33) {
-        FPSsaved = std::floor(FPS * 100.0) / 100.0;
-        realtimeSaved = std::floor(rayTraceElapsedTime * 10000.0) / 10000.0;
-    }
-    
-    window->setTitle(make_string("GPU Ray Tracer (FPS: ", FPSsaved, ", t: ", realtimeSaved, " frames: ", framesRendered, ")"));
-}
-
-///
-void HashGridPhotonMapRenderer::windowResize(TSWindow * window, int w, int h) {
-    
-}
-
-///
-void HashGridPhotonMapRenderer::framebufferResize(TSWindow * window, int w, int h) {
-    
-}
-
-///
-void HashGridPhotonMapRenderer::windowClose(TSWindow * window) {
-    
-}
-
-///
-void HashGridPhotonMapRenderer::keyDown(TSWindow * window, int key, int scancode, int mods) {
-    float transform = 1.0;
-    switch (key) {
-        case GLFW_KEY_A:
-            config.scene->camera()->orientedTransform(-transform, 0, 0);
-            break;
-        case GLFW_KEY_S:
-            config.scene->camera()->orientedTransform(0, -transform, 0);
-            break;
-        case GLFW_KEY_D:
-            config.scene->camera()->orientedTransform(transform, 0, 0);
-            break;
-        case GLFW_KEY_W:
-            config.scene->camera()->orientedTransform(0, transform, 0);
-            break;
-        case GLFW_KEY_Q:
-            config.scene->camera()->orientedTransform(0, 0, -transform);
-            break;
-        case GLFW_KEY_E:
-            config.scene->camera()->orientedTransform(0, 0, transform);
-            break;
-        case GLFW_KEY_B:
-            TSLoggerLog(std::cout, "Breakpoint!");
-            break;
-        default:
-            break;
-    }
-}
-
-///
-void HashGridPhotonMapRenderer::keyUp(TSWindow * window, int key, int scancode, int mods) {
-
-}
-
-///
-void HashGridPhotonMapRenderer::mouseUp(TSWindow * window, int button, int mods) {
-
-}
-
-///
-void HashGridPhotonMapRenderer::mouseDown(TSWindow * window, int button, int mods) {
-
-}
-
-///
-void HashGridPhotonMapRenderer::mouseMoved(TSWindow * window, double x, double y) {
-    if (lastX != std::numeric_limits<float>::infinity()
-     && lastY != std::numeric_limits<float>::infinity()
-     && window->keyDown(GLFW_KEY_C)) {
-        
-        double transform = 0.1;
-        double dx = x - lastX;
-        double dy = y - lastY;
-        
-        config.scene->camera()->rotate(config.Up, -transform * dy, -transform * dx);
-    }
-    
-    lastX = x;
-    lastY = y;
-}
-
-///
-void HashGridPhotonMapRenderer::mouseScroll(TSWindow * window, double dx, double dy) {
-
-}
-
-///
-void HashGridPhotonMapRenderer::enqueRayTrace() {
+void
+HashGridPhotonMapRenderer::enqueRayTrace() {
 
     jobPool.emplaceJob(JobPool::WorkItem("[GPU] raytrace", [=](){
         auto startTime = glfwGetTime();
@@ -188,7 +69,8 @@ void HashGridPhotonMapRenderer::enqueRayTrace() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_raytraceSetup() {
+void
+HashGridPhotonMapRenderer::ocl_raytraceSetup() {
     
     if (useGPU) {
         computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 2, false);
@@ -233,7 +115,8 @@ void HashGridPhotonMapRenderer::ocl_raytraceSetup() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_buildPhotonMap() {
+void
+HashGridPhotonMapRenderer::ocl_buildPhotonMap() {
     ocl_emitPhotons();
     ocl_sortPhotons();
     ocl_mapPhotonsToGrid();
@@ -241,7 +124,8 @@ void HashGridPhotonMapRenderer::ocl_buildPhotonMap() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_emitPhotons() {
+void
+HashGridPhotonMapRenderer::ocl_emitPhotons() {
     double startTime = glfwGetTime();
     float luminosityPerPhoton = (((float) config.lumensPerLight) / (float) config.raysPerLight);
     float randFloat = distribution(generator);
@@ -276,7 +160,8 @@ void HashGridPhotonMapRenderer::ocl_emitPhotons() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_sortPhotons() {
+void
+HashGridPhotonMapRenderer::ocl_sortPhotons() {
 
     double startTime = glfwGetTime();
     
@@ -300,7 +185,8 @@ void HashGridPhotonMapRenderer::ocl_sortPhotons() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_mapPhotonsToGrid() {
+void
+HashGridPhotonMapRenderer::ocl_mapPhotonsToGrid() {
 
     double startTime = glfwGetTime();
 
@@ -332,7 +218,8 @@ void HashGridPhotonMapRenderer::ocl_mapPhotonsToGrid() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_computeGridFirstIndices() {
+void
+HashGridPhotonMapRenderer::ocl_computeGridFirstIndices() {
 
     double startTime = glfwGetTime();
 
@@ -361,7 +248,8 @@ void HashGridPhotonMapRenderer::ocl_computeGridFirstIndices() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_pushSceneData() {
+void
+HashGridPhotonMapRenderer::ocl_pushSceneData() {
 
     auto spheres = config.scene->findElements<PovraySphere>();
     std::vector<cl_float> sphereData;
@@ -410,7 +298,8 @@ void HashGridPhotonMapRenderer::ocl_pushSceneData() {
 }
 
 ///
-void HashGridPhotonMapRenderer::ocl_raytraceRays() {
+void
+HashGridPhotonMapRenderer::ocl_raytraceRays() {
     
     unsigned int imageWidth = outputImage.width;
     unsigned int imageHeight = outputImage.height;

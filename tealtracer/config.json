@@ -4,61 +4,50 @@
     "windowWidth" : 640,
     "windowHeight" : 480,
     
-    "CPURayTracer" : {
-        "enabled" : true,
-        "initialTitle" : "CPU Ray Tracer",
-        
-        "outputWidth" : 80,
-        "outputHeight" : 60,
-        
-        "usePhotonMappingForDirectIllumination" : true,
-        
-        "directIlluminationEnabled" : false,
-        "indirectIlluminationEnabled" : false,
-        "shadowsEnabled" : false,
-        
-        "numberOfPhotonsToGather" : 100,
-        "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 24000,
-        "lumensPerLight" : 1200,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "mapShadowPhotons" : false,
-        
-        "__enum_photonMapType" : {
-            "KDTree" : 0,
-            "Hashmap" : 1
-        },
-        "photonMapType" : 1,
-        
-        "Hashmap_properties" : {
-            "gridStart" : [-10.0, -10.0, -20.0],
-            "gridEnd" : [10.0, 10.0, 10.0],
-            "spacing" : 5,
-            "cellsize" : 0.5
-        },
-        
-        "__enum_brdfType" : {
-            "BlinnPhong" : 0,
-            "OrenNayar" : 1
-        },
-        "brdfType" : 1
+    "Up" : [0.0, 1.0, 0.0],
+    "Forward" : [0.0, 0.0, -1.0],
+    "Right" : [1.0, 0.0, 0.0],
+    
+    
+    "LeftRaytracer" : {
+        "name" : "HashGridPhotonMapRenderer",
+        "config" : "HashGridPhotonMapRenderer_01"
     },
     
-    "GPURayTracer" : {
+    "RightRaytracer" : {
+        "name" : "SingleCoreRaytracer",
+        "config" : "SingleCoreRaytracer_01"
+    },
+    
+    
+    
+    "__enum_SupportedBRDF_brdfType" : {
+        "BlinnPhong" : 0,
+        "OrenNayar" : 1
+    },
+    "__enum_SupportedPhotonMap_supportedPhotonMap" : {
+        "KDTree" : 0,
+        "HashGrid" : 1,
+        "TileFrustum" : 2
+    },
+    "__enum_ComputationDevice_computationDevice" : {
+        "CPU" : 0,
+        "GPU" : 1
+    },
+    
+    
+    "SingleCoreRaytracer_01" : {
+    
         "enabled" : true,
-        "initialTitle" : "GPU Ray Tracer",
-        "useGPU": true,
+        "title" : "SingleCore CPU",
+        "controlsCamera" : false,
         
         "outputWidth" : 80,
         "outputHeight" : 60,
         
-        "usePhotonMappingForDirectIllumination" : true,
-        
-        "directIlluminationEnabled" : false,
-        "indirectIlluminationEnabled" : false,
-        "shadowsEnabled" : false,
+        "computationDevice" : 0,
+        "brdfType" : 0,
+        "supportedPhotonMap" : 1,
         
         "numberOfPhotonsToGather" : 100,
         "maxPhotonGatherDistance" : -1.0,
@@ -67,22 +56,51 @@
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
+        "usePhotonMappingForDirectIllumination" : true,
+        
+        "directIlluminationEnabled" : false,
+        "indirectIlluminationEnabled" : false,
+        "shadowsEnabled" : false,
+        
         "Hashmap_properties" : {
             "gridStart" : [-10.0, -10.0, -20.0],
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
             "cellsize" : 0.5
-        },
+        }
+    },
+    
+    "HashGridPhotonMapRenderer_01" : {
         
-        "__enum_brdfType" : {
-            "BlinnPhong" : 0,
-            "OrenNayar" : 1
-        },
-        "brdfType" : 1,
+        "enabled" : true,
+        "title" : "HashGrid OpenCL",
+        "controlsCamera" : true,
         
-        "Up" : [0.0, 1.0, 0.0],
-        "Forward" : [0.0, 0.0, -1.0],
-        "Right" : [1.0, 0.0, 0.0]
-
+        "outputWidth" : 80,
+        "outputHeight" : 60,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        "supportedPhotonMap" : 1,
+        
+        "numberOfPhotonsToGather" : 100,
+        "maxPhotonGatherDistance" : -1.0,
+        "raysPerLight" : 24000,
+        "lumensPerLight" : 1200,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "usePhotonMappingForDirectIllumination" : true,
+        
+        "directIlluminationEnabled" : false,
+        "indirectIlluminationEnabled" : false,
+        "shadowsEnabled" : false,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "spacing" : 5,
+            "cellsize" : 0.5
+        }
     }
 }

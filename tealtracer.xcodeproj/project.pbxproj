@@ -22,6 +22,7 @@
 		C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0431CC188690080FC65 /* coloring.cl */; };
 		C05E546A1CE2672A005345C9 /* HashGridPhotonMapRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E54681CE2672A005345C9 /* HashGridPhotonMapRenderer.cpp */; };
 		C05E546D1CE27222005345C9 /* RaytracingConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */; };
+		C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */; };
 		C064A9381CADD94B003A3D8B /* OpenGLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */; };
 		C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */; };
 		C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9441CB05E1F003A3D8B /* compute_engine.cpp */; };
@@ -49,8 +50,8 @@
 		C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125241CAB371A0024DA91 /* TSWindow.cpp */; };
 		C0C125291CAB4A220024DA91 /* Window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125271CAB4A220024DA91 /* Window.cpp */; };
 		C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */; };
-		C0C1252F1CAB5B930024DA91 /* GPURayTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */; };
-		C0C125321CAB5C3F0024DA91 /* CPURayTracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */; };
+		C0C1252F1CAB5B930024DA91 /* Raytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1252D1CAB5B930024DA91 /* Raytracer.cpp */; };
+		C0C125321CAB5C3F0024DA91 /* SingleCoreRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125301CAB5C3F0024DA91 /* SingleCoreRaytracer.cpp */; };
 		C0C1253A1CAC405B0024DA91 /* PovrayScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C125381CAC405B0024DA91 /* PovrayScene.cpp */; };
 		C0C1253D1CAC40AB0024DA91 /* PovraySceneElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */; };
 		C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0C1253E1CAC6CFF0024DA91 /* PovraySceneElement.cpp */; };
@@ -112,6 +113,8 @@
 		C05E54691CE2672A005345C9 /* HashGridPhotonMapRenderer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HashGridPhotonMapRenderer.hpp; sourceTree = "<group>"; };
 		C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RaytracingConfig.cpp; sourceTree = "<group>"; };
 		C05E546C1CE27222005345C9 /* RaytracingConfig.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RaytracingConfig.hpp; sourceTree = "<group>"; };
+		C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSRandomValueGenerator.cpp; sourceTree = "<group>"; };
+		C05E546F1CE3A02C005345C9 /* TSRandomValueGenerator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSRandomValueGenerator.hpp; sourceTree = "<group>"; };
 		C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLShaders.cpp; sourceTree = "<group>"; };
 		C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLShaders.hpp; sourceTree = "<group>"; };
 		C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLDataBuffer.cpp; sourceTree = "<group>"; };
@@ -482,10 +485,10 @@
 		C0C125281CAB4A220024DA91 /* Window.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Window.hpp; sourceTree = "<group>"; };
 		C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TealTracer.cpp; sourceTree = "<group>"; };
 		C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TealTracer.hpp; sourceTree = "<group>"; };
-		C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GPURayTracer.cpp; sourceTree = "<group>"; };
-		C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = GPURayTracer.hpp; sourceTree = "<group>"; };
-		C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CPURayTracer.cpp; sourceTree = "<group>"; };
-		C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CPURayTracer.hpp; sourceTree = "<group>"; };
+		C0C1252D1CAB5B930024DA91 /* Raytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Raytracer.cpp; sourceTree = "<group>"; };
+		C0C1252E1CAB5B930024DA91 /* Raytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Raytracer.hpp; sourceTree = "<group>"; };
+		C0C125301CAB5C3F0024DA91 /* SingleCoreRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SingleCoreRaytracer.cpp; sourceTree = "<group>"; };
+		C0C125311CAB5C3F0024DA91 /* SingleCoreRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SingleCoreRaytracer.hpp; sourceTree = "<group>"; };
 		C0C125371CAB7D940024DA91 /* lab1_simple.pov */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lab1_simple.pov; sourceTree = "<group>"; };
 		C0C125381CAC405B0024DA91 /* PovrayScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovrayScene.cpp; sourceTree = "<group>"; };
 		C0C125391CAC405B0024DA91 /* PovrayScene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovrayScene.hpp; sourceTree = "<group>"; };
@@ -540,8 +543,8 @@
 		C064A95C1CB43282003A3D8B /* cpu raytracer */ = {
 			isa = PBXGroup;
 			children = (
-				C0C125301CAB5C3F0024DA91 /* CPURayTracer.cpp */,
-				C0C125311CAB5C3F0024DA91 /* CPURayTracer.hpp */,
+				C0C125301CAB5C3F0024DA91 /* SingleCoreRaytracer.cpp */,
+				C0C125311CAB5C3F0024DA91 /* SingleCoreRaytracer.hpp */,
 				C064A95D1CB43ABE003A3D8B /* Image.cpp */,
 				C064A95E1CB43ABE003A3D8B /* Image.hpp */,
 				C064A9661CB5BE9A003A3D8B /* JobPool.cpp */,
@@ -564,8 +567,6 @@
 			isa = PBXGroup;
 			children = (
 				C064A9741CB6FF71003A3D8B /* kernels */,
-				C0C1252D1CAB5B930024DA91 /* GPURayTracer.cpp */,
-				C0C1252E1CAB5B930024DA91 /* GPURayTracer.hpp */,
 				C01416E81CB904DF0040D4C6 /* CLPovrayElementData.hpp */,
 				C05E54681CE2672A005345C9 /* HashGridPhotonMapRenderer.cpp */,
 				C05E54691CE2672A005345C9 /* HashGridPhotonMapRenderer.hpp */,
@@ -624,6 +625,8 @@
 				C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */,
 				C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */,
 				C05E546C1CE27222005345C9 /* RaytracingConfig.hpp */,
+				C0C1252D1CAB5B930024DA91 /* Raytracer.cpp */,
+				C0C1252E1CAB5B930024DA91 /* Raytracer.hpp */,
 				C064A96D1CB5CE5B003A3D8B /* config.json */,
 				C0C125271CAB4A220024DA91 /* Window.cpp */,
 				C0C125281CAB4A220024DA91 /* Window.hpp */,
@@ -1287,6 +1290,8 @@
 				C0C125221CAB35D10024DA91 /* TSApplication.hpp */,
 				C0C125241CAB371A0024DA91 /* TSWindow.cpp */,
 				C0C125251CAB371A0024DA91 /* TSWindow.hpp */,
+				C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */,
+				C05E546F1CE3A02C005345C9 /* TSRandomValueGenerator.hpp */,
 			);
 			name = Helpers;
 			sourceTree = "<group>";
@@ -1393,13 +1398,13 @@
 				C0C1251E1CAB337F0024DA91 /* TSValue.cpp in Sources */,
 				C0C125231CAB35D10024DA91 /* TSApplication.cpp in Sources */,
 				C064A94D1CB05E2D003A3D8B /* data_loader.c in Sources */,
-				C0C1252F1CAB5B930024DA91 /* GPURayTracer.cpp in Sources */,
+				C0C1252F1CAB5B930024DA91 /* Raytracer.cpp in Sources */,
 				C01416F01CBB4FFB0040D4C6 /* PhotonMap.cpp in Sources */,
 				C0C125401CAC6CFF0024DA91 /* PovraySceneElement.cpp in Sources */,
 				C0C125491CAC743E0024DA91 /* opengl_errors.cpp in Sources */,
 				C05E546A1CE2672A005345C9 /* HashGridPhotonMapRenderer.cpp in Sources */,
 				C0C1252C1CAB4A5C0024DA91 /* TealTracer.cpp in Sources */,
-				C0C125321CAB5C3F0024DA91 /* CPURayTracer.cpp in Sources */,
+				C0C125321CAB5C3F0024DA91 /* SingleCoreRaytracer.cpp in Sources */,
 				C01416ED1CBB3F500040D4C6 /* JensenPhoton.cpp in Sources */,
 				C0C125461CAC70460024DA91 /* OpenGLObject.cpp in Sources */,
 				C0C1251D1CAB337F0024DA91 /* TSManagedObject.cpp in Sources */,
@@ -1411,6 +1416,7 @@
 				C01416F31CBCCC700040D4C6 /* PhotonHashmap.cpp in Sources */,
 				C064A9711CB61694003A3D8B /* TextureRenderTarget.cpp in Sources */,
 				C064A9761CB6FF8A003A3D8B /* sample_square.cl in Sources */,
+				C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */,
 				C064A9681CB5BE9A003A3D8B /* JobPool.cpp in Sources */,
 				C064A9791CB70DC0003A3D8B /* raytrace.cl in Sources */,
 				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,

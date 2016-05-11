@@ -9,28 +9,37 @@
 #include "TealTracer.hpp"
 #include "TSLogger.hpp"
 
+#include <cassert>
+
+#include "json.hpp"
+using json = nlohmann::json;
+
+#include "gl_include.h"
+#include "RaytracingConfig.hpp"
+
+#include "SingleCoreRaytracer.hpp"
+#include "HashGridPhotonMapRenderer.hpp"
+
+
 
 ///
 enum WindowName {
-    CPUWindow = 0,
-    GPUWindow,
+    RightWindow = 0,
+    LeftWindow,
     NumWindows
 };
 
 ///
 std::shared_ptr<TSWindow>
-TealTracer::gpuWindow() {
-    return this->getWindow(GPUWindow);
+TealTracer::leftWindow() {
+    return this->getWindow(LeftWindow);
 }
 
 ///
 std::shared_ptr<TSWindow>
-TealTracer::cpuWindow() {
-    return this->getWindow(CPUWindow);
+TealTracer::rightWindow() {
+    return this->getWindow(RightWindow);
 }
-
-#include "json.hpp"
-using json = nlohmann::json;
 
 ///
 int
@@ -59,93 +68,59 @@ TealTracer::run(const std::vector<std::string> & args) {
     auto videoMode = glfwGetVideoMode(monitor);
     json config = json::parse(content);
     
+    Eigen::Vector3f Up, Forward, Right;
+    Up = RaytracingConfig::vec3FromData(config["Up"].get<std::vector<double>>());
+    Forward = RaytracingConfig::vec3FromData(config["Forward"].get<std::vector<double>>());
+    Right = RaytracingConfig::vec3FromData(config["Right"].get<std::vector<double>>());
+    
+    std::map<std::string, std::shared_ptr<Raytracer>> availableRaytracers;
+    availableRaytracers["SingleCoreRaytracer"] = std::shared_ptr<SingleCoreRaytracer>(new SingleCoreRaytracer());
+    availableRaytracers["HashGridPhotonMapRenderer"] = std::shared_ptr<HashGridPhotonMapRenderer>(new HashGridPhotonMapRenderer());
+    
+    std::string leftRaytracerName = config["LeftRaytracer"]["name"].get<std::string>();
+    std::string leftRaytracerConfigName = config["LeftRaytracer"]["config"].get<std::string>();
+    std::string rightRaytracerName = config["RightRaytracer"]["name"].get<std::string>();
+    std::string rightRaytracerConfigName = config["RightRaytracer"]["config"].get<std::string>();
+    
+    leftRaytracer_ = availableRaytracers[leftRaytracerName];
+    rightRaytracer_ = availableRaytracers[rightRaytracerName];
+    
+    leftRaytracer_->config.loadFromJSON(config[leftRaytracerConfigName]);
+    rightRaytracer_->config.loadFromJSON(config[rightRaytracerConfigName]);
+    
     scene_ = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
+    leftRaytracer_->config.Up = Up;
+    leftRaytracer_->config.Forward = Forward;
+    leftRaytracer_->config.Right = Right;
+    leftRaytracer_->config.scene = scene_;
     
-//    scene_->writeOut(std::cout);
+    rightRaytracer_->config.Up = Up;
+    rightRaytracer_->config.Forward = Forward;
+    rightRaytracer_->config.Right = Right;
+    rightRaytracer_->config.scene = scene_;
     
-    gpuRayTracer_ = std::shared_ptr<GPURayTracer>(new GPURayTracer());
+    leftWindow()->setTitle(leftRaytracer_->config.title);
+    leftWindow()->setWidth(config["windowWidth"].get<int>());
+    leftWindow()->setHeight(config["windowHeight"].get<int>());
+    leftWindow()->setPosX(videoMode->width/2 - leftWindow()->width() + 10);
+    leftWindow()->setDrawingDelegate(leftRaytracer_);
+    leftWindow()->setEventListener(leftRaytracer_);
     
-    gpuRayTracer_->setScene(scene_);
-    gpuRayTracer_->renderOutputWidth = config["GPURayTracer"]["outputWidth"].get<int>();
-    gpuRayTracer_->renderOutputHeight = config["GPURayTracer"]["outputHeight"].get<int>();
-    gpuRayTracer_->useGPU = config["GPURayTracer"]["useGPU"].get<bool>();
-    gpuRayTracer_->brdfType = (GPURayTracer::SupportedBRDF) config["GPURayTracer"]["brdfType"].get<int>();
-    gpuRayTracer_->numberOfPhotonsToGather = config["GPURayTracer"]["numberOfPhotonsToGather"].get<int>();
-    gpuRayTracer_->raysPerLight = config["GPURayTracer"]["raysPerLight"].get<int>();
-    gpuRayTracer_->lumensPerLight = config["GPURayTracer"]["lumensPerLight"].get<int>();
-    gpuRayTracer_->photonBounceProbability = config["GPURayTracer"]["photonBounceProbability"].get<double>();
-    gpuRayTracer_->photonBounceEnergyMultipler = config["GPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
-    float gpuMaxPhotonGatherDistance = config["GPURayTracer"]["maxPhotonGatherDistance"].get<double>();
-    if (gpuMaxPhotonGatherDistance != -1.0f) {
-        gpuRayTracer_->maxPhotonGatherDistance = gpuMaxPhotonGatherDistance;
+    rightWindow()->setTitle(rightRaytracer_->config.title);
+    rightWindow()->setWidth(config["windowWidth"].get<int>());
+    rightWindow()->setHeight(config["windowHeight"].get<int>());
+    rightWindow()->setPosX(leftWindow()->posX() + leftWindow()->width() + 20);
+    rightWindow()->setDrawingDelegate(rightRaytracer_);
+    rightWindow()->setEventListener(rightRaytracer_);
+    
+    if (leftRaytracer_->config.enabled) {
+        leftRaytracer_->start();
+    }
+    if (rightRaytracer_->config.enabled) {
+        rightRaytracer_->start();
     }
     
-    gpuRayTracer_->usePhotonMappingForDirectIllumination = config["GPURayTracer"]["usePhotonMappingForDirectIllumination"].get<bool>();
-    
-    gpuRayTracer_->directIlluminationEnabled = config["GPURayTracer"]["directIlluminationEnabled"].get<bool>();
-    gpuRayTracer_->indirectIlluminationEnabled = config["GPURayTracer"]["indirectIlluminationEnabled"].get<bool>();
-    gpuRayTracer_->shadowsEnabled = config["GPURayTracer"]["shadowsEnabled"].get<bool>();
-    
-    gpuRayTracer_->hashmapCellsize = config["GPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
-    gpuRayTracer_->hashmapSpacing = config["GPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();
-    auto gpuGridStart = config["GPURayTracer"]["Hashmap_properties"]["gridStart"].get<std::vector<double>>();
-    auto gpuGridEnd = config["GPURayTracer"]["Hashmap_properties"]["gridEnd"].get<std::vector<double>>();
-    gpuRayTracer_->hashmapGridStart << gpuGridStart[0], gpuGridStart[1], gpuGridStart[2];
-    gpuRayTracer_->hashmapGridEnd << gpuGridEnd[0], gpuGridEnd[1], gpuGridEnd[2];
-    
-    gpuWindow()->setTitle(config["GPURayTracer"]["initialTitle"].get<std::string>());
-    gpuWindow()->setWidth(config["windowWidth"].get<int>());
-    gpuWindow()->setHeight(config["windowHeight"].get<int>());
-    gpuWindow()->setPosX(videoMode->width/2 - gpuWindow()->width() + 10);
-    gpuWindow()->setDrawingDelegate(gpuRayTracer_);
-    gpuWindow()->setEventListener(gpuRayTracer_);
-    
-    cpuRayTracer_ = std::shared_ptr<CPURayTracer>(new CPURayTracer());
-    
-    cpuRayTracer_->setScene(scene_);
-    cpuRayTracer_->renderOutputWidth = config["CPURayTracer"]["outputWidth"].get<int>();
-    cpuRayTracer_->renderOutputHeight = config["CPURayTracer"]["outputHeight"].get<int>();
-    cpuRayTracer_->numberOfPhotonsToGather = config["CPURayTracer"]["numberOfPhotonsToGather"].get<int>();
-    cpuRayTracer_->raysPerLight = config["CPURayTracer"]["raysPerLight"].get<int>();
-    cpuRayTracer_->lumensPerLight = config["CPURayTracer"]["lumensPerLight"].get<int>();
-    cpuRayTracer_->photonMapType = (CPURayTracer::SupportedPhotonMap) config["CPURayTracer"]["photonMapType"].get<int>();
-    cpuRayTracer_->brdfType = (CPURayTracer::SupportedBRDF) config["CPURayTracer"]["brdfType"].get<int>();
-    cpuRayTracer_->photonBounceProbability = config["CPURayTracer"]["photonBounceProbability"].get<double>();
-    cpuRayTracer_->photonBounceEnergyMultipler = config["CPURayTracer"]["photonBounceEnergyMultipler"].get<double>();
-    cpuRayTracer_->mapShadowPhotons = config["CPURayTracer"]["mapShadowPhotons"].get<bool>();
-    float cpuMaxPhotonGatherDistance = config["CPURayTracer"]["maxPhotonGatherDistance"].get<double>();
-    if (cpuMaxPhotonGatherDistance != -1.0f) {
-        cpuRayTracer_->maxPhotonGatherDistance = cpuMaxPhotonGatherDistance;
-    }
-    
-    cpuRayTracer_->usePhotonMappingForDirectIllumination = config["CPURayTracer"]["usePhotonMappingForDirectIllumination"].get<bool>();
-    
-    cpuRayTracer_->directIlluminationEnabled = config["CPURayTracer"]["directIlluminationEnabled"].get<bool>();
-    cpuRayTracer_->indirectIlluminationEnabled = config["CPURayTracer"]["indirectIlluminationEnabled"].get<bool>();
-    cpuRayTracer_->shadowsEnabled = config["CPURayTracer"]["shadowsEnabled"].get<bool>();
-    
-    cpuRayTracer_->hashmapCellsize = config["CPURayTracer"]["Hashmap_properties"]["cellsize"].get<double>();
-    cpuRayTracer_->hashmapSpacing = config["CPURayTracer"]["Hashmap_properties"]["spacing"].get<int>();
-    auto cpuGridStart = config["CPURayTracer"]["Hashmap_properties"]["gridStart"].get<std::vector<double>>();
-    auto cpuGridEnd = config["CPURayTracer"]["Hashmap_properties"]["gridEnd"].get<std::vector<double>>();
-    cpuRayTracer_->hashmapGridStart << cpuGridStart[0], cpuGridStart[1], cpuGridStart[2];
-    cpuRayTracer_->hashmapGridEnd << cpuGridEnd[0], cpuGridEnd[1], cpuGridEnd[2];
-    
-    cpuWindow()->setTitle(config["CPURayTracer"]["initialTitle"].get<std::string>());
-    cpuWindow()->setWidth(config["windowWidth"].get<int>());
-    cpuWindow()->setHeight(config["windowHeight"].get<int>());
-    cpuWindow()->setPosX(gpuWindow()->posX() + gpuWindow()->width() + 20);
-    cpuWindow()->setDrawingDelegate(cpuRayTracer_);
-    cpuWindow()->setEventListener(cpuRayTracer_);
-    
-    if (config["GPURayTracer"]["enabled"].get<bool>()) {
-        gpuRayTracer_->start();
-    }
-    if (config["CPURayTracer"]["enabled"].get<bool>()) {
-        cpuRayTracer_->start();
-    }
-    
-    while (gpuWindow()->opened() && cpuWindow()->opened()) {
+    while (leftWindow()->opened() && rightWindow()->opened()) {
         double startTime = glfwGetTime();
 //        TSLoggerLog(std::cout, "Starting iteration");
         glfwPollEvents();
@@ -176,5 +151,5 @@ TealTracer::newWindow() {
 ///
 void
 TealTracer::quit() {
-    gpuWindow()->close();
+    leftWindow()->close();
 }
