@@ -120,6 +120,8 @@ TealTracer::run(const std::vector<std::string> & args) {
         rightRaytracer_->start();
     }
     
+    TSLoggerLog(std::cout, glGetString(GL_VERSION));
+    
     while (leftWindow()->opened() && rightWindow()->opened()) {
         double startTime = glfwGetTime();
 //        TSLoggerLog(std::cout, "Starting iteration");

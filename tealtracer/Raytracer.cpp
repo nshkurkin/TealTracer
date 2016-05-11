@@ -34,8 +34,6 @@ Raytracer::Raytracer() {
 ///
 void
 Raytracer::setupDrawingInWindow(TSWindow * window) {
-    
-    TSLoggerLog(std::cout, glGetString(GL_VERSION));
 
     /// OpenGL
     glClearColor(0.3, 0.3, 0.3, 1.0);
