@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "lab1_simple.pov",
+    "povrayScene" : "GIRefScene1.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -52,7 +52,7 @@
         "numberOfPhotonsToGather" : 100,
         "maxPhotonGatherDistance" : -1.0,
         "raysPerLight" : 24000,
-        "lumensPerLight" : 1200,
+        "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
@@ -86,7 +86,7 @@
         "numberOfPhotonsToGather" : 100,
         "maxPhotonGatherDistance" : -1.0,
         "raysPerLight" : 24000,
-        "lumensPerLight" : 1200,
+        "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         

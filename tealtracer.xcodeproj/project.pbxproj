@@ -23,6 +23,7 @@
 		C05E546A1CE2672A005345C9 /* HashGridPhotonMapRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E54681CE2672A005345C9 /* HashGridPhotonMapRenderer.cpp */; };
 		C05E546D1CE27222005345C9 /* RaytracingConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */; };
 		C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */; };
+		C05E54731CE500A6005345C9 /* PhotonTiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E54711CE500A6005345C9 /* PhotonTiler.cpp */; };
 		C064A9381CADD94B003A3D8B /* OpenGLShaders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */; };
 		C064A93B1CB0135C003A3D8B /* OpenGLDataBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */; };
 		C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A9441CB05E1F003A3D8B /* compute_engine.cpp */; };
@@ -38,8 +39,6 @@
 		C064A96E1CB5D23C003A3D8B /* config.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A96D1CB5CE5B003A3D8B /* config.json */; };
 		C064A9711CB61694003A3D8B /* TextureRenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A96F1CB61694003A3D8B /* TextureRenderTarget.cpp */; };
 		C064A9731CB6FE3D003A3D8B /* spheres.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9721CB6FD39003A3D8B /* spheres.pov */; };
-		C064A9761CB6FF8A003A3D8B /* sample_square.cl in Sources */ = {isa = PBXBuildFile; fileRef = C064A9751CB6FF8A003A3D8B /* sample_square.cl */; };
-		C064A9771CB70055003A3D8B /* sample_square.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9751CB6FF8A003A3D8B /* sample_square.cl */; };
 		C064A9791CB70DC0003A3D8B /* raytrace.cl in Sources */ = {isa = PBXBuildFile; fileRef = C064A9781CB70DC0003A3D8B /* raytrace.cl */; };
 		C066EE8E1CDC03FA002030DD /* GIRefScene1.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */; };
 		C0B860591CC6D51D00A3941B /* random.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0461CC19F770080FC65 /* random.cl */; };
@@ -76,7 +75,6 @@
 				C01416FA1CBEE82D0040D4C6 /* simple_cam.pov in CopyFiles */,
 				C01416F81CBEE60F0040D4C6 /* planes.pov in CopyFiles */,
 				C01416E61CB83A2C0040D4C6 /* raytrace.cl in CopyFiles */,
-				C064A9771CB70055003A3D8B /* sample_square.cl in CopyFiles */,
 				C064A9731CB6FE3D003A3D8B /* spheres.pov in CopyFiles */,
 				C064A96E1CB5D23C003A3D8B /* config.json in CopyFiles */,
 				C064A9631CB489AE003A3D8B /* texture.frag.glsl in CopyFiles */,
@@ -115,6 +113,8 @@
 		C05E546C1CE27222005345C9 /* RaytracingConfig.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RaytracingConfig.hpp; sourceTree = "<group>"; };
 		C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TSRandomValueGenerator.cpp; sourceTree = "<group>"; };
 		C05E546F1CE3A02C005345C9 /* TSRandomValueGenerator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TSRandomValueGenerator.hpp; sourceTree = "<group>"; };
+		C05E54711CE500A6005345C9 /* PhotonTiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PhotonTiler.cpp; sourceTree = "<group>"; };
+		C05E54721CE500A6005345C9 /* PhotonTiler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PhotonTiler.hpp; sourceTree = "<group>"; };
 		C064A9361CADD94B003A3D8B /* OpenGLShaders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLShaders.cpp; sourceTree = "<group>"; };
 		C064A9371CADD94B003A3D8B /* OpenGLShaders.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OpenGLShaders.hpp; sourceTree = "<group>"; };
 		C064A9391CB0135C003A3D8B /* OpenGLDataBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpenGLDataBuffer.cpp; sourceTree = "<group>"; };
@@ -140,7 +140,6 @@
 		C064A96F1CB61694003A3D8B /* TextureRenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureRenderTarget.cpp; sourceTree = "<group>"; };
 		C064A9701CB61694003A3D8B /* TextureRenderTarget.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TextureRenderTarget.hpp; sourceTree = "<group>"; };
 		C064A9721CB6FD39003A3D8B /* spheres.pov */ = {isa = PBXFileReference; lastKnownFileType = text; path = spheres.pov; sourceTree = "<group>"; };
-		C064A9751CB6FF8A003A3D8B /* sample_square.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = sample_square.cl; sourceTree = "<group>"; };
 		C064A9781CB70DC0003A3D8B /* raytrace.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = raytrace.cl; sourceTree = "<group>"; };
 		C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */ = {isa = PBXFileReference; lastKnownFileType = text; path = GIRefScene1.pov; sourceTree = "<group>"; };
 		C0C123171CAB20790024DA91 /* tealtracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = tealtracer; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -553,10 +552,12 @@
 				C01416EC1CBB3F500040D4C6 /* JensenPhoton.hpp */,
 				C01416EE1CBB4FFB0040D4C6 /* PhotonMap.cpp */,
 				C01416EF1CBB4FFB0040D4C6 /* PhotonMap.hpp */,
-				C01416F11CBCCC700040D4C6 /* PhotonHashmap.cpp */,
-				C01416F21CBCCC700040D4C6 /* PhotonHashmap.hpp */,
 				C01416F41CBD61AD0040D4C6 /* PhotonKDTree.cpp */,
 				C01416F51CBD61AD0040D4C6 /* PhotonKDTree.hpp */,
+				C01416F11CBCCC700040D4C6 /* PhotonHashmap.cpp */,
+				C01416F21CBCCC700040D4C6 /* PhotonHashmap.hpp */,
+				C05E54711CE500A6005345C9 /* PhotonTiler.cpp */,
+				C05E54721CE500A6005345C9 /* PhotonTiler.hpp */,
 				C01416FB1CBEFD6B0040D4C6 /* BRDF.cpp */,
 				C01416FC1CBEFD6B0040D4C6 /* BRDF.hpp */,
 			);
@@ -585,7 +586,6 @@
 		C064A9741CB6FF71003A3D8B /* kernels */ = {
 			isa = PBXGroup;
 			children = (
-				C064A9751CB6FF8A003A3D8B /* sample_square.cl */,
 				C01EB03C1CC184920080FC65 /* matrix_math.cl */,
 				C01EB0461CC19F770080FC65 /* random.cl */,
 				C01EB03A1CC182DE0080FC65 /* scene_objects.cl */,
@@ -1415,9 +1415,9 @@
 				C01416FD1CBEFD6B0040D4C6 /* BRDF.cpp in Sources */,
 				C01416F31CBCCC700040D4C6 /* PhotonHashmap.cpp in Sources */,
 				C064A9711CB61694003A3D8B /* TextureRenderTarget.cpp in Sources */,
-				C064A9761CB6FF8A003A3D8B /* sample_square.cl in Sources */,
 				C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */,
 				C064A9681CB5BE9A003A3D8B /* JobPool.cpp in Sources */,
+				C05E54731CE500A6005345C9 /* PhotonTiler.cpp in Sources */,
 				C064A9791CB70DC0003A3D8B /* raytrace.cl in Sources */,
 				C0C125261CAB371A0024DA91 /* TSWindow.cpp in Sources */,
 				C01416F61CBD61AD0040D4C6 /* PhotonKDTree.cpp in Sources */,
