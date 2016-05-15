@@ -561,28 +561,9 @@
 				C0C125311CAB5C3F0024DA91 /* SingleCoreRaytracer.hpp */,
 				C0B1BAFA1CE8D511005C8C51 /* SCMonteCarloRaytracer.cpp */,
 				C0B1BAFB1CE8D511005C8C51 /* SCMonteCarloRaytracer.hpp */,
-				C0B1BAFD1CE8D523005C8C51 /* SCPhotonMapper.cpp */,
-				C0B1BAFE1CE8D523005C8C51 /* SCPhotonMapper.hpp */,
-				C0B1BAF71CE8D4E8005C8C51 /* SCTiledPhotonRaytracer.cpp */,
-				C0B1BAF81CE8D4E8005C8C51 /* SCTiledPhotonRaytracer.hpp */,
-				C064A95D1CB43ABE003A3D8B /* Image.cpp */,
-				C064A95E1CB43ABE003A3D8B /* Image.hpp */,
-				C064A9661CB5BE9A003A3D8B /* JobPool.cpp */,
-				C064A9671CB5BE9A003A3D8B /* JobPool.hpp */,
-				C01416EB1CBB3F500040D4C6 /* JensenPhoton.cpp */,
-				C01416EC1CBB3F500040D4C6 /* JensenPhoton.hpp */,
-				C01416EE1CBB4FFB0040D4C6 /* PhotonMap.cpp */,
-				C01416EF1CBB4FFB0040D4C6 /* PhotonMap.hpp */,
-				C01416F41CBD61AD0040D4C6 /* PhotonKDTree.cpp */,
-				C01416F51CBD61AD0040D4C6 /* PhotonKDTree.hpp */,
-				C01416F11CBCCC700040D4C6 /* PhotonHashmap.cpp */,
-				C01416F21CBCCC700040D4C6 /* PhotonHashmap.hpp */,
-				C05E54711CE500A6005345C9 /* PhotonTiler.cpp */,
-				C05E54721CE500A6005345C9 /* PhotonTiler.hpp */,
 				C01416FB1CBEFD6B0040D4C6 /* BRDF.cpp */,
 				C01416FC1CBEFD6B0040D4C6 /* BRDF.hpp */,
-				C0B1BB001CE8DD28005C8C51 /* Ray.cpp */,
-				C0B1BB011CE8DD28005C8C51 /* Ray.hpp */,
+				C0B1BB071CE9115F005C8C51 /* photon mapping */,
 			);
 			name = "cpu raytracer";
 			sourceTree = "<group>";
@@ -622,10 +603,69 @@
 			name = kernels;
 			sourceTree = "<group>";
 		};
+		C0B1BB061CE9112A005C8C51 /* shared code */ = {
+			isa = PBXGroup;
+			children = (
+				C064A9501CB06E6F003A3D8B /* stl_extensions.hpp */,
+				C064A95D1CB43ABE003A3D8B /* Image.cpp */,
+				C064A95E1CB43ABE003A3D8B /* Image.hpp */,
+				C064A9661CB5BE9A003A3D8B /* JobPool.cpp */,
+				C064A9671CB5BE9A003A3D8B /* JobPool.hpp */,
+				C0B1BB001CE8DD28005C8C51 /* Ray.cpp */,
+				C0B1BB011CE8DD28005C8C51 /* Ray.hpp */,
+				C0C125431CAC70240024DA91 /* opengl */,
+				C0C1251F1CAB33DB0024DA91 /* helpers */,
+				C0C125411CAC6F850024DA91 /* povray */,
+			);
+			name = "shared code";
+			sourceTree = "<group>";
+		};
+		C0B1BB071CE9115F005C8C51 /* photon mapping */ = {
+			isa = PBXGroup;
+			children = (
+				C01416EB1CBB3F500040D4C6 /* JensenPhoton.cpp */,
+				C01416EC1CBB3F500040D4C6 /* JensenPhoton.hpp */,
+				C0B1BAFD1CE8D523005C8C51 /* SCPhotonMapper.cpp */,
+				C0B1BAFE1CE8D523005C8C51 /* SCPhotonMapper.hpp */,
+				C0B1BAF71CE8D4E8005C8C51 /* SCTiledPhotonRaytracer.cpp */,
+				C0B1BAF81CE8D4E8005C8C51 /* SCTiledPhotonRaytracer.hpp */,
+				C0B1BB081CE91169005C8C51 /* maps */,
+			);
+			name = "photon mapping";
+			sourceTree = "<group>";
+		};
+		C0B1BB081CE91169005C8C51 /* maps */ = {
+			isa = PBXGroup;
+			children = (
+				C01416EE1CBB4FFB0040D4C6 /* PhotonMap.cpp */,
+				C01416EF1CBB4FFB0040D4C6 /* PhotonMap.hpp */,
+				C01416F41CBD61AD0040D4C6 /* PhotonKDTree.cpp */,
+				C01416F51CBD61AD0040D4C6 /* PhotonKDTree.hpp */,
+				C01416F11CBCCC700040D4C6 /* PhotonHashmap.cpp */,
+				C01416F21CBCCC700040D4C6 /* PhotonHashmap.hpp */,
+				C05E54711CE500A6005345C9 /* PhotonTiler.cpp */,
+				C05E54721CE500A6005345C9 /* PhotonTiler.hpp */,
+			);
+			name = maps;
+			sourceTree = "<group>";
+		};
+		C0B1BB091CE91203005C8C51 /* raytracing */ = {
+			isa = PBXGroup;
+			children = (
+				C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */,
+				C05E546C1CE27222005345C9 /* RaytracingConfig.hpp */,
+				C0C1252D1CAB5B930024DA91 /* Raytracer.cpp */,
+				C0C1252E1CAB5B930024DA91 /* Raytracer.hpp */,
+				C064A95C1CB43282003A3D8B /* cpu raytracer */,
+				C064A9601CB43EE9003A3D8B /* gpu raytracer */,
+			);
+			name = raytracing;
+			sourceTree = "<group>";
+		};
 		C0C1230E1CAB20790024DA91 = {
 			isa = PBXGroup;
 			children = (
-				C0C123231CAB20A80024DA91 /* include */,
+				C0C123231CAB20A80024DA91 /* external include */,
 				C0C123191CAB20790024DA91 /* tealtracer */,
 				C0C123181CAB20790024DA91 /* Products */,
 			);
@@ -642,37 +682,29 @@
 		C0C123191CAB20790024DA91 /* tealtracer */ = {
 			isa = PBXGroup;
 			children = (
-				C064A9521CB07BE6003A3D8B /* shared shaders */,
-				C0C125361CAB7D710024DA91 /* scenes */,
 				C0C1231A1CAB20790024DA91 /* main.cpp */,
-				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
 				C0C1252A1CAB4A5C0024DA91 /* TealTracer.cpp */,
 				C0C1252B1CAB4A5C0024DA91 /* TealTracer.hpp */,
-				C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */,
-				C05E546C1CE27222005345C9 /* RaytracingConfig.hpp */,
-				C0C1252D1CAB5B930024DA91 /* Raytracer.cpp */,
-				C0C1252E1CAB5B930024DA91 /* Raytracer.hpp */,
 				C064A96D1CB5CE5B003A3D8B /* config.json */,
+				C064A9521CB07BE6003A3D8B /* shared shaders */,
+				C0C125361CAB7D710024DA91 /* scenes */,
+				C0B1BB061CE9112A005C8C51 /* shared code */,
 				C0C125271CAB4A220024DA91 /* Window.cpp */,
 				C0C125281CAB4A220024DA91 /* Window.hpp */,
-				C064A9501CB06E6F003A3D8B /* stl_extensions.hpp */,
-				C064A9601CB43EE9003A3D8B /* gpu raytracer */,
-				C064A95C1CB43282003A3D8B /* cpu raytracer */,
-				C0C125431CAC70240024DA91 /* opengl */,
-				C0C125411CAC6F850024DA91 /* povray */,
-				C0C1251F1CAB33DB0024DA91 /* Helpers */,
+				C0C1231C1CAB20790024DA91 /* tealtracer.1 */,
+				C0B1BB091CE91203005C8C51 /* raytracing */,
 			);
 			path = tealtracer;
 			sourceTree = "<group>";
 		};
-		C0C123231CAB20A80024DA91 /* include */ = {
+		C0C123231CAB20A80024DA91 /* external include */ = {
 			isa = PBXGroup;
 			children = (
 				C064A9691CB5CD75003A3D8B /* nlohmann */,
 				C064A9431CB05E0D003A3D8B /* compute_engine */,
 				C0C123241CAB20B50024DA91 /* Eigen */,
 			);
-			name = include;
+			name = "external include";
 			sourceTree = "<group>";
 		};
 		C0C123241CAB20B50024DA91 /* Eigen */ = {
@@ -1302,7 +1334,7 @@
 			path = UmfPackSupport;
 			sourceTree = "<group>";
 		};
-		C0C1251F1CAB33DB0024DA91 /* Helpers */ = {
+		C0C1251F1CAB33DB0024DA91 /* helpers */ = {
 			isa = PBXGroup;
 			children = (
 				C0C125161CAB337F0024DA91 /* TSDoubleBufferedValue.hpp */,
@@ -1318,7 +1350,7 @@
 				C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */,
 				C05E546F1CE3A02C005345C9 /* TSRandomValueGenerator.hpp */,
 			);
-			name = Helpers;
+			name = helpers;
 			sourceTree = "<group>";
 		};
 		C0C125361CAB7D710024DA91 /* scenes */ = {
