@@ -1,12 +1,12 @@
 //
-//  HashGridPhotonMapRenderer.cpp
+//  OCLPhotonHashGridRaytracer.cpp
 //  tealtracer
 //
 //  Created by Nikolai Shkurkin on 5/10/16.
 //  Copyright © 2016 Teal Sunset Studios. All rights reserved.
 //
 
-#include "HashGridPhotonMapRenderer.hpp"
+#include "OCLPhotonHashGridRaytracer.hpp"
 
 #include "TSLogger.hpp"
 #include "stl_extensions.hpp"
@@ -15,69 +15,43 @@
 
 
 ///
-HashGridPhotonMapRenderer::HashGridPhotonMapRenderer() : Raytracer() {
-    FPSsaved = 0.0;
-    realtimeSaved = 0.0;
-    
-    useGPU = false;
-    config = RaytracingConfig();
+OCLPhotonHashGridRaytracer::OCLPhotonHashGridRaytracer() : OpenCLRaytracer() {
     photonHashmap = std::shared_ptr<PhotonHashmap>(new PhotonHashmap());
-    
-    generator = std::mt19937(randomDevice());
-    distribution = std::uniform_real_distribution<float>(0.0,1.0);
-    
-    numSpheres = numPlanes = numLights = 0;
-}
-
-///
-void HashGridPhotonMapRenderer::start() {
-
-    useGPU = config.computationDevice == RaytracingConfig::ComputationDevice::GPU;
-    photonHashmap->cellsize = config.hashmapCellsize;
-    photonHashmap->spacing = config.hashmapSpacing;
-    photonHashmap->setDimensions(config.hashmapGridStart, config.hashmapGridEnd);
-
-    jobPool.emplaceJob(JobPool::WorkItem("[GPU] setup ray trace", [=](){
-        ocl_raytraceSetup();
-    }, [=]() {
-        this->jobPool.emplaceJob(JobPool::WorkItem("[GPU] build photon map", [=](){
-            double t0 = glfwGetTime();
-            this->ocl_buildPhotonMap();
-            double tf = glfwGetTime();
-            TSLoggerLog(std::cout, "Done mapping photons: ", tf - t0);
-        }, [=](){
-            this->enqueRayTrace();
-        }));
-    }));
 }
 
 ///
 void
-HashGridPhotonMapRenderer::enqueRayTrace() {
+OCLPhotonHashGridRaytracer::configure() {
 
-    jobPool.emplaceJob(JobPool::WorkItem("[GPU] raytrace", [=](){
-        auto startTime = glfwGetTime();
-        this->ocl_raytraceRays();
-        auto endTime = glfwGetTime();
-        lastRayTraceTime = endTime - startTime;
-    }, [=](){
-        rayTraceElapsedTime = lastRayTraceTime;
-        framesRendered++;
-        this->target.outputTexture->setNeedsUpdate();
+    OpenCLRaytracer::configure();
+
+    photonHashmap->cellsize = config.hashmapCellsize;
+    photonHashmap->spacing = config.hashmapSpacing;
+    photonHashmap->setDimensions(config.hashmapGridStart, config.hashmapGridEnd);
+}
+
+///
+void OCLPhotonHashGridRaytracer::start() {
+
+    configure();
+
+    jobPool.emplaceJob(JobPool::WorkItem("[GPU] setup ray trace", [=](){
+        ocl_raytraceSetup();
+        double t0 = glfwGetTime();
+        this->ocl_buildPhotonMap();
+        double tf = glfwGetTime();
+        TSLoggerLog(std::cout, "Done mapping photons: ", tf - t0);
+        
+    }, [=]() {
         this->enqueRayTrace();
     }));
 }
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_raytraceSetup() {
+OCLPhotonHashGridRaytracer::ocl_raytraceSetup() {
     
-    if (useGPU) {
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 2, false);
-    }
-    else {
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_CPU, 1, false);
-    }
+    OpenCLRaytracer::ocl_raytraceSetup();
     
     computeEngine.createProgramFromFile("raytrace_prog", "raytrace.cl");
     computeEngine.createKernel("raytrace_prog", "raytrace_one_ray");
@@ -89,8 +63,6 @@ HashGridPhotonMapRenderer::ocl_raytraceSetup() {
     computeEngine.createKernel("raytrace_prog", "photonmap_computeGridFirstPhoton");
     
     auto camera = config.scene->camera();
-    
-    ocl_pushSceneData();
     
     //////
     /// Photon map
@@ -110,13 +82,11 @@ HashGridPhotonMapRenderer::ocl_raytraceSetup() {
     
     int photonAccumBufferSize = config.numberOfPhotonsToGather * outputImage.width * outputImage.height;
     computeEngine.createBuffer("photon_index_array", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * photonAccumBufferSize);
-    
-    computeEngine.createImage2D("image_output", ComputeEngine::MemFlags::MEM_WRITE_ONLY, ComputeEngine::ChannelOrder::RGBA, ComputeEngine::ChannelType::UNORM_INT8, outputImage.width, outputImage.height);
 }
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_buildPhotonMap() {
+OCLPhotonHashGridRaytracer::ocl_buildPhotonMap() {
     ocl_emitPhotons();
     ocl_sortPhotons();
     ocl_mapPhotonsToGrid();
@@ -125,10 +95,10 @@ HashGridPhotonMapRenderer::ocl_buildPhotonMap() {
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_emitPhotons() {
+OCLPhotonHashGridRaytracer::ocl_emitPhotons() {
     double startTime = glfwGetTime();
     float luminosityPerPhoton = (((float) config.lumensPerLight) / (float) config.raysPerLight);
-    float randFloat = distribution(generator);
+    float randFloat = generator.randFloat();
     unsigned int randVal = (int) (100000.0f * randFloat);
 
     TSLoggerLog(std::cout, "Seeding GPU with value=", randVal, " float=", randFloat);
@@ -161,7 +131,7 @@ HashGridPhotonMapRenderer::ocl_emitPhotons() {
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_sortPhotons() {
+OCLPhotonHashGridRaytracer::ocl_sortPhotons() {
 
     double startTime = glfwGetTime();
     
@@ -186,7 +156,7 @@ HashGridPhotonMapRenderer::ocl_sortPhotons() {
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_mapPhotonsToGrid() {
+OCLPhotonHashGridRaytracer::ocl_mapPhotonsToGrid() {
 
     double startTime = glfwGetTime();
 
@@ -219,7 +189,7 @@ HashGridPhotonMapRenderer::ocl_mapPhotonsToGrid() {
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_computeGridFirstIndices() {
+OCLPhotonHashGridRaytracer::ocl_computeGridFirstIndices() {
 
     double startTime = glfwGetTime();
 
@@ -249,7 +219,7 @@ HashGridPhotonMapRenderer::ocl_computeGridFirstIndices() {
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_pushSceneData() {
+OCLPhotonHashGridRaytracer::ocl_pushSceneData() {
 
     auto spheres = config.scene->findElements<PovraySphere>();
     std::vector<cl_float> sphereData;
@@ -299,7 +269,7 @@ HashGridPhotonMapRenderer::ocl_pushSceneData() {
 
 ///
 void
-HashGridPhotonMapRenderer::ocl_raytraceRays() {
+OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
     
     unsigned int imageWidth = outputImage.width;
     unsigned int imageHeight = outputImage.height;
@@ -369,5 +339,4 @@ HashGridPhotonMapRenderer::ocl_raytraceRays() {
     computeEngine.finish(0);
     
     computeEngine.readImage("image_output", 0, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);
-    target.outputTexture->setNeedsUpdate();
 }

@@ -7,7 +7,7 @@
 //
 
 #include "RaytracingConfig.hpp"
-
+#include "stl_extensions.hpp"
     
 RaytracingConfig::RaytracingConfig() {
 
@@ -49,39 +49,41 @@ RaytracingConfig::RaytracingConfig() {
 
 void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
 
-    enabled = config["enabled"].get<bool>();
-    title = config["title"].get<std::string>();
-    controlsCamera = config["controlsCamera"].get<bool>();
+    enabled = config.get<bool>("enabled");
+    title = config.get<std::string>("title");
+    controlsCamera = config.get<bool>("controlsCamera");
 
-    renderOutputWidth = config["outputWidth"].get<int>();
-    renderOutputHeight = config["outputHeight"].get<int>();
+    renderOutputWidth = config.get<int>("outputWidth");
+    renderOutputHeight = config.get<int>("outputHeight");
     
-    computationDevice = (ComputationDevice) config["computationDevice"].get<int>();
-    brdfType = (SupportedBRDF) config["brdfType"].get<int>();
-    supportedPhotonMap = (SupportedPhotonMap) config["supportedPhotonMap"].get<int>();
+    computationDevice = (ComputationDevice) config.get<int>("computationDevice");
+    brdfType = (SupportedBRDF) config.get<int>("brdfType");
+    supportedPhotonMap = (SupportedPhotonMap) config.get<int>("supportedPhotonMap");
     
-    numberOfPhotonsToGather = config["numberOfPhotonsToGather"].get<int>();
-    raysPerLight = config["raysPerLight"].get<int>();
-    float maxPhotonGatherDistance = config["maxPhotonGatherDistance"].get<double>();
+    numberOfPhotonsToGather = config.get<int>("numberOfPhotonsToGather");
+    raysPerLight = config.get<int>("raysPerLight");
+    float maxPhotonGatherDistance = config.get<double>("maxPhotonGatherDistance");
     if (maxPhotonGatherDistance != -1.0f) {
         this->maxPhotonGatherDistance = maxPhotonGatherDistance;
     }
     else {
         this->maxPhotonGatherDistance = std::numeric_limits<float>::infinity();
     }
-    lumensPerLight = config["lumensPerLight"].get<int>();
+    lumensPerLight = config.get<int>("lumensPerLight");
     
-    photonBounceProbability = config["photonBounceProbability"].get<double>();
-    photonBounceEnergyMultipler = config["photonBounceEnergyMultipler"].get<double>();
+    photonBounceProbability = config.get<double>("photonBounceProbability");
+    photonBounceEnergyMultipler = config.get<double>("photonBounceEnergyMultipler");
     
-    usePhotonMappingForDirectIllumination = config["usePhotonMappingForDirectIllumination"].get<bool>();
+    usePhotonMappingForDirectIllumination = config.get<bool>("usePhotonMappingForDirectIllumination");
     
-    directIlluminationEnabled = config["directIlluminationEnabled"].get<bool>();
-    indirectIlluminationEnabled = config["indirectIlluminationEnabled"].get<bool>();
-    shadowsEnabled = config["shadowsEnabled"].get<bool>();
+    directIlluminationEnabled = config.get<bool>("directIlluminationEnabled");
+    indirectIlluminationEnabled = config.get<bool>("indirectIlluminationEnabled");
+    shadowsEnabled = config.get<bool>("shadowsEnabled");
     
-    hashmapCellsize = config["Hashmap_properties"]["cellsize"].get<double>();
-    hashmapSpacing = config["Hashmap_properties"]["spacing"].get<int>();
-    hashmapGridStart = vec3FromData(config["Hashmap_properties"]["gridStart"].get<std::vector<double>>());
-    hashmapGridEnd << vec3FromData(config["Hashmap_properties"]["gridEnd"].get<std::vector<double>>());
+    if (config.has("Hashmap_properties")) {
+        hashmapCellsize = config["Hashmap_properties"].get<double>("cellsize");
+        hashmapSpacing = config["Hashmap_properties"].get<int>("spacing");
+        hashmapGridStart = vec3FromData(config["Hashmap_properties"].get<std::vector<double>>("gridStart", make_vector<double>(0,0,0)));
+        hashmapGridEnd = vec3FromData(config["Hashmap_properties"].get<std::vector<double>>("gridEnd", make_vector<double>(0,0,0)));
+    }
 }

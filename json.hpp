@@ -3664,6 +3664,21 @@ class basic_json
     {
         return value(key, string_t(default_value));
     }
+    
+    template <typename KeyType>
+    bool has(KeyType * key) const {
+        return is_object() && m_value.object->find(key) != m_value.object->end();
+    }
+    
+    template<typename ValueType, typename KeyType>
+    ValueType get(KeyType * key, const ValueType & defaultValue = ValueType()) const {
+        if (!is_object() || m_value.object->find(key) == m_value.object->end()) {
+            return defaultValue;
+        }
+        else {
+            return (*this)[key].template get<ValueType>();
+        }
+    }
 
     /*!
     @brief access the first element

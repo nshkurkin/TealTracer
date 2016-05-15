@@ -480,3 +480,112 @@ kernel void raytrace_one_ray(
     });
 }
 
+////////////////////////////////////////////////////////////////////////////
+///
+/// KERNEL: raytrace_one_ray
+///
+/// SYNOPSIS: Used to cast a single ray into the scene. It calculates the ray
+///     based on the global thread ID. Rays are then intersected with elements
+///     in the scene and the closest found object will be used as the color
+///     sample source. The resulting color is placed in the output texture buffer.
+///
+
+kernel void raytrace_one_ray_direct(
+    /// input
+    const float3 camera_location,
+    const float3 camera_up,
+    const float3 camera_right,
+    const float3 camera_lookAt,
+    
+    const unsigned int brdf, // one of (enum BRDFType)
+    const int shadowsEnabled,
+    
+    __global float * sphereData,
+    const unsigned int numSpheres,
+
+    __global float * planeData,
+    const unsigned int numPlanes,
+    
+    __global float * lightData,
+    const unsigned int numLights,
+    
+    /// output
+    __write_only image2d_t image_output,
+    const unsigned int imageWidth,
+    const unsigned int imageHeight
+    ) {
+    
+    /// Create the ray for this given pixel
+    struct mat4x4 viewTransform;
+
+    mat4x4_loadLookAt(&viewTransform, camera_location, camera_lookAt, camera_up);
+
+    float3 forward = mat4x4_mult4x1(&viewTransform, (float4){Forward.x, Forward.y, Forward.z, 0.0f}).xyz;
+    float3 up = mat4x4_mult4x1(&viewTransform, (float4){Up.x, Up.y, Up.z, 0.0f}).xyz * length(camera_up);
+    float3 right = mat4x4_mult4x1(&viewTransform, (float4){Right.x, Right.y, Right.z, 0.0f}).xyz * length(camera_right);
+    
+    unsigned int threadId = (unsigned int) get_global_id(0);
+    
+    if (threadId >= imageWidth * imageHeight) {
+        return;
+    }
+    
+    int px = threadId % imageWidth;
+    int py = threadId / imageWidth;
+    
+    float3 rayOrigin = camera_location;
+    float3 rayDirection = normalize(forward - 0.5f*up - 0.5f*right
+        + right * ((0.5f+(float)px)/(float)imageWidth)
+        + up * ((0.5f+(float)py)/(float)imageHeight));
+    
+    struct SceneConfig scene;
+    scene.brdf = brdf;
+    scene.sphereData = sphereData;
+    scene.numSpheres = numSpheres;
+    scene.planeData = planeData;
+    scene.numPlanes = numPlanes;
+    scene.lightData = lightData;
+    scene.numLights = numLights;
+    
+    struct RayIntersectionResult bestIntersection = SceneConfig_findClosestIntersection(&scene, rayOrigin, rayDirection);
+    
+    RGBf energy = (RGBf) {0, 0, 0};
+    /// Calculate color
+    if (bestIntersection.intersected) {
+    
+        /// Get direct lighting
+        for (unsigned int lightItr = 0; lightItr < scene.numLights; lightItr++) {
+            
+            struct PovrayLightSourceData light = PovrayLightSourceData_fromData(&scene.lightData[kPovrayLightSourceStride * lightItr]);
+            float3 hitLoc = RayIntersectionResult_locationOfIntersection(&bestIntersection);
+            float3 toLight = light.position - hitLoc;
+            float3 toLightDir = normalize(toLight);
+            
+            if (shadowsEnabled) {
+                float3 shadowRay_origin = hitLoc + 0.01f * toLightDir;
+                float3 shadowRay_direction = toLightDir;
+                
+                struct RayIntersectionResult shadowHitTest = SceneConfig_findClosestIntersection(&scene, shadowRay_origin, shadowRay_direction);
+                                            
+                bool isShadowed = !(!shadowHitTest.intersected
+                 || (shadowHitTest.intersected && shadowHitTest.timeOfIntersection > length(toLight)));
+                        
+                if (!isShadowed) {
+                    energy += computeOutputEnergyForHit(brdf, bestIntersection, light.color.xyz, toLightDir, normalize(camera_location - hitLoc));
+                }
+            }
+            else {
+                energy += computeOutputEnergyForHit(brdf, bestIntersection, light.color.xyz, toLightDir, normalize(camera_location - hitLoc));
+            }
+        }
+    }
+    
+    write_imagef(image_output, (int2) {px, py}, (float4) {
+        min(energy.x, 1.0f),
+        min(energy.y, 1.0f),
+        min(energy.z, 1.0f),
+        1.0f
+    });
+}
+
+

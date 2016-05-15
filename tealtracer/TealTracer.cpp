@@ -17,8 +17,11 @@ using json = nlohmann::json;
 #include "gl_include.h"
 #include "RaytracingConfig.hpp"
 
-#include "SingleCoreRaytracer.hpp"
-#include "HashGridPhotonMapRenderer.hpp"
+#include "SCMonteCarloRaytracer.hpp" // Single Core: Direct
+#include "SCPhotonMapper.hpp" // Single Core: KDTree and HashGrid
+
+
+#include "OCLPhotonHashGridRaytracer.hpp" // OpenCL: HashGrid
 
 
 
@@ -74,8 +77,9 @@ TealTracer::run(const std::vector<std::string> & args) {
     Right = RaytracingConfig::vec3FromData(config["Right"].get<std::vector<double>>());
     
     std::map<std::string, std::shared_ptr<Raytracer>> availableRaytracers;
-    availableRaytracers["SingleCoreRaytracer"] = std::shared_ptr<SingleCoreRaytracer>(new SingleCoreRaytracer());
-    availableRaytracers["HashGridPhotonMapRenderer"] = std::shared_ptr<HashGridPhotonMapRenderer>(new HashGridPhotonMapRenderer());
+    availableRaytracers["SCMonteCarloRaytracer"] = std::shared_ptr<SCMonteCarloRaytracer>(new SCMonteCarloRaytracer());
+    availableRaytracers["SCPhotonMapper"] = std::shared_ptr<SCPhotonMapper>(new SCPhotonMapper());
+    availableRaytracers["OCLPhotonHashGridRaytracer"] = std::shared_ptr<OCLPhotonHashGridRaytracer>(new OCLPhotonHashGridRaytracer());
     
     std::string leftRaytracerName = config["LeftRaytracer"]["name"].get<std::string>();
     std::string leftRaytracerConfigName = config["LeftRaytracer"]["config"].get<std::string>();

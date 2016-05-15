@@ -10,13 +10,13 @@
     
     
     "LeftRaytracer" : {
-        "name" : "HashGridPhotonMapRenderer",
-        "config" : "HashGridPhotonMapRenderer_01"
+        "name" : "OCLPhotonHashGridRaytracer",
+        "config" : "OCLPhotonHashGridRaytracer_01"
     },
     
     "RightRaytracer" : {
-        "name" : "SingleCoreRaytracer",
-        "config" : "SingleCoreRaytracer_01"
+        "name" : "SCMonteCarloRaytracer",
+        "config" : "SCMonteCarloRaytracer_01"
     },
     
     
@@ -36,44 +36,23 @@
     },
     
     
-    "SingleCoreRaytracer_01" : {
+    "SCMonteCarloRaytracer_01" : {
     
         "enabled" : true,
         "title" : "SingleCore CPU",
         "controlsCamera" : false,
         
-        "outputWidth" : 80,
-        "outputHeight" : 60,
+        "outputWidth" : 320,
+        "outputHeight" : 240,
         
-        "computationDevice" : 0,
         "brdfType" : 0,
-        "supportedPhotonMap" : 1,
-        
-        "numberOfPhotonsToGather" : 100,
-        "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 24000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "usePhotonMappingForDirectIllumination" : true,
-        
-        "directIlluminationEnabled" : false,
-        "indirectIlluminationEnabled" : false,
-        "shadowsEnabled" : false,
-        
-        "Hashmap_properties" : {
-            "gridStart" : [-10.0, -10.0, -20.0],
-            "gridEnd" : [10.0, 10.0, 10.0],
-            "spacing" : 5,
-            "cellsize" : 0.5
-        }
+        "shadowsEnabled" : true
     },
     
-    "HashGridPhotonMapRenderer_01" : {
+    "OCLPhotonHashGridRaytracer_01" : {
         
         "enabled" : true,
-        "title" : "HashGrid OpenCL",
+        "title" : "HashGrid OpenCL (GPU)",
         "controlsCamera" : true,
         
         "outputWidth" : 80,
@@ -100,7 +79,7 @@
             "gridStart" : [-10.0, -10.0, -20.0],
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
-            "cellsize" : 0.5
+            "cellsize" : 0.25
         }
     }
 }

@@ -16,8 +16,8 @@
 #include "PovrayScene.hpp"
 #include "json.hpp"
 
-struct RaytracingConfig {
-    
+class RaytracingConfig {
+public:
     bool enabled;
     std::string title;
     bool controlsCamera;

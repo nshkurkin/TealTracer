@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "JensenPhoton.hpp"
+#include "Ray.hpp"
 
 class PhotonTiler {
 public:
@@ -99,6 +100,12 @@ public:
             
             return !sphereCompletelyOutside;
         }
+        
+        ///
+        void setPlanesFromRayCast(const Ray & ray, const Eigen::Vector3f & up, const Eigen::Vector3f & forward, const Eigen::Vector3f & right, float boxWidth, float boxHeight) {
+            
+            
+        }
     };
     
     ///
@@ -111,6 +118,9 @@ public:
     
     std::vector<struct Tile> tiles;
     std::vector<std::vector<JensenPhoton>> tilePhotons;
+    
+    ///
+    int tileHeight, tileWidth;
     float globalEffectSphereRadiusOfPhotons;
     
     ///

@@ -9,27 +9,10 @@
 #ifndef SingleCoreRaytracer_hpp
 #define SingleCoreRaytracer_hpp
 
-#include "TSWindow.hpp"
-#include "gl_include.h"
-#include "opengl_errors.hpp"
-#include "compute_engine.hpp"
-#include "stl_extensions.hpp"
-
-#include "OpenGLShaders.hpp"
-#include "PovrayScene.hpp"
-#include "TSLogger.hpp"
-#include "Image.hpp"
-#include "JobPool.hpp"
-#include "TextureRenderTarget.hpp"
-
-#include "BRDF.hpp"
-
-#include "PhotonMap.hpp"
-#include "PhotonHashmap.hpp"
-
 #include <random>
 #include <memory>
 
+#include "BRDF.hpp"
 #include "Raytracer.hpp"
 
 /// From Lab 1:
@@ -50,32 +33,23 @@ public:
     ///
     SingleCoreRaytracer();
 
-    ///
+    /// Puts "raytraceScene" into the ".jobPool" and then updates any view
+    ///     parameters on the main thread.
     void enqueRayTrace();
     
     ///
-    void raytraceScene();
+    virtual void raytraceScene() = 0;
     
     ///
-    RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy, bool usePhotonMap);
-    
-    ///
-    void buildPhotonMap();
-    
-    ///
-    void emitPhotons();
-    ///
-    void processEmittedPhoton(RGBf sourceLightEnergy, const Ray & initialRay, bool * photonStored);
-    ///
-    void processHits(const RGBf & energy, const Ray & ray, const std::vector<PovrayScene::InstersectionResult> & hits);
+    virtual RGBf computeOutputEnergyForHit(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toLight, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy);
     
     /// call this to begin the ray-tracing
     virtual void start();
+    /// called in "start" to setup parameters from ".config"
+    virtual void configure();
     
-private:
+protected:
 
-    ///
-    std::shared_ptr<PhotonMap> photonMap;
     std::shared_ptr<BRDF> brdf;
     
 };
