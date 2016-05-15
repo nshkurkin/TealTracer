@@ -62,7 +62,7 @@ void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
     
     numberOfPhotonsToGather = config.get<int>("numberOfPhotonsToGather");
     raysPerLight = config.get<int>("raysPerLight");
-    float maxPhotonGatherDistance = config.get<double>("maxPhotonGatherDistance");
+    float maxPhotonGatherDistance = config.get<double>("maxPhotonGatherDistance", -1.0);
     if (maxPhotonGatherDistance != -1.0f) {
         this->maxPhotonGatherDistance = maxPhotonGatherDistance;
     }

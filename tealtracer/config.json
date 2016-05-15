@@ -15,8 +15,8 @@
     },
     
     "RightRaytracer" : {
-        "name" : "SCMonteCarloRaytracer",
-        "config" : "SCMonteCarloRaytracer_01"
+        "name" : "SCPhotonMapper",
+        "config" : "SingleCore_KDTree_MED_01"
     },
     
     
@@ -36,17 +36,60 @@
     },
     
     
-    "SCMonteCarloRaytracer_01" : {
+    "SingleCore_Direct_MED_01" : {
     
         "enabled" : true,
-        "title" : "SingleCore CPU",
-        "controlsCamera" : false,
+        "title" : "SingleCore Direct",
         
         "outputWidth" : 320,
         "outputHeight" : 240,
         
         "brdfType" : 0,
         "shadowsEnabled" : true
+    },
+    
+    "SingleCore_KDTree_MED_01" : {
+        
+        "enabled" : true,
+        "title" : "SingleCore KDTree",
+        
+        "outputWidth" : 80,
+        "outputHeight" : 60,
+        
+        "brdfType" : 0,
+        "supportedPhotonMap" : 0,
+        
+        "numberOfPhotonsToGather" : 100,
+        "raysPerLight" : 24000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00
+    },
+    
+    "SingleCore_HashGrid_MED_01" : {
+        
+        "enabled" : true,
+        "title" : "SingleCore HashGrid",
+        
+        "outputWidth" : 80,
+        "outputHeight" : 60,
+        
+        "brdfType" : 0,
+        "supportedPhotonMap" : 1,
+        
+        "numberOfPhotonsToGather" : 100,
+        "maxPhotonGatherDistance" : -1.0,
+        "raysPerLight" : 24000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "spacing" : 5,
+            "cellsize" : 0.25
+        }
     },
     
     "OCLPhotonHashGridRaytracer_01" : {

@@ -66,7 +66,6 @@ SCPhotonMapper::processEmittedPhoton(
     RGBf energy = sourceLightEnergy;
     
     auto hits = config.scene->intersections(ray);
-    bool firstHit = !config.usePhotonMappingForDirectIllumination;
 
     while (!*photonStored && hits.size() > 0) {
         struct JensenPhoton photon;
@@ -78,7 +77,7 @@ SCPhotonMapper::processEmittedPhoton(
         photon.flags.geometryIndex = hit.element->id();
 
         float value = generator.randFloat();
-        if (value < config.photonBounceProbability || firstHit) {
+        if (value < config.photonBounceProbability) {
 
             Ray reflectedRay;
             reflectedRay.direction = hit.hit.outgoingDirection();
@@ -93,8 +92,6 @@ SCPhotonMapper::processEmittedPhoton(
             ray.origin = reflectedRay.origin;
             ray.direction = reflectedRay.direction;
             energy = hitEnergy;
-            
-            firstHit = false;
         }
         else {
             photonMap->photons.push_back(photon);

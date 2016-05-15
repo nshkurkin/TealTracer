@@ -11,6 +11,7 @@
 
 #include "PhotonMap.hpp"
 #include <functional>
+#include <queue>
 
 struct Range {
     /// "end" is one after the valid index
@@ -24,13 +25,11 @@ struct Range {
 class PhotonKDTree : public PhotonMap {
 public:
 
-    PhotonKDTree() {}
-    virtual ~PhotonKDTree() {}
+    PhotonKDTree();
+    virtual ~PhotonKDTree();
     
     /// Call this after filling "photons" with the relevant content.
-    virtual void buildMap() {
-        transformIntoKDTree();
-    }
+    virtual void buildMap();
     
     /// Call this after building the spatial hash.
     ///
@@ -38,41 +37,26 @@ public:
     virtual std::vector<PhotonIndexInfo> gatherPhotonsIndices(
         int maxNumPhotonsToGather,
         float maxPhotonDistance,
-        const Eigen::Vector3f & intersection) {
-    
-        return findClosestNPhotonIndices(intersection, maxNumPhotonsToGather, maxPhotonDistance);
-    }
+        const Eigen::Vector3f & intersection);
 
-    int rootIdx() const {
-        return middleIdx(Range(0,(int) photons.size()));
-    }
+    int rootIdx() const;
     /// Returns the last valid index of photons
-    int lastIdx() const {
-        return (int) photons.size() - 1;
-    }
+    int lastIdx() const;
     
     /// Returns the "middle" of a given range, used for finding the nodes of 
     /// the tree. In practice the "middle" is favorited towards the end of
     /// the range.
-    static int middleIdx(const Range & range) {
-        return range.begin + ((range.end - 1) - range.begin + 1) / 2;
-    }
+    static int middleIdx(const Range & range);
     
     /// Returns the lower partition of a node that overlooks `range`, not including the middle node.
-    static Range lowerRange(const Range & range) {
-        return Range(range.begin, middleIdx(range));
-    }
+    static Range lowerRange(const Range & range);
     
     /// Returns the upper partition of a node that overlooks `range`, not including the middle node.
-    static Range upperRange(const Range & range) {
-        return Range(middleIdx(range)+1, range.end);
-    }
+    static Range upperRange(const Range & range);
     
     /// Returns the next "axis" after `axis`, which is a value between 0 and
     /// JensenPhoton.kNumPositionComps.
-    static int nextAxis(int axis) {
-        return (axis+1) % 3;
-    }
+    static int nextAxis(int axis);
 
 
     /// Curries function that returns the compartor function that compares the
@@ -92,11 +76,7 @@ public:
     /// before this indx in descreasing `y`, and increasing in `y` up until the root.
     ///
     /// Implementation gleaned from: http://graphics.ucsd.edu/~henrik/papers/rendering_caustics/rendering_caustics_gi96.pdf
-    void transformIntoKDTree() {
-        transformIntoKDTree<JensenPhoton>(photons, [](int axis, const JensenPhoton & lhs, const JensenPhoton & rhs) {
-            return sparseless(axis)(lhs.position,rhs.position);
-        }, nextAxis);
-    }
+    void transformIntoKDTree();
     
     ///
     template <typename T>
@@ -128,29 +108,11 @@ private:
                 nextAxis(axis));
         }
     }
-
-public:
-    ///
-    typedef PhotonIndexInfo SearchResult;
-
-    /// Consider a point x at which we are interested in the irradiance. Around x we create a sphere. The radius of this sphere is extendeded unitl the sphere contains n photons and has radius r.
-    std::vector<SearchResult> findClosestNPhotonIndices(const Eigen::Vector3f & position, int N, float maxSquareDistance) {
-         std::vector<SearchResult> candidates, result;
-        
-        _knnOnPhtonKDTree(position, N, candidates, 0, lastIdx(), 0);
-        
-        int n = 0;
-        while (n < N
-         && n < (int) candidates.size()
-         && candidates[n].squareDistance <= maxSquareDistance) {
-            result.push_back(candidates[n]);
-            n++;
-        }
-        
-        return result;
-    }
     
 private:
+
+    ///
+    typedef PhotonIndexInfo SearchResult;
 
     ///
     class CompareSearchResult {
@@ -163,57 +125,20 @@ private:
             return cmp(a, b);
         }
     };
+    
+    typedef std::priority_queue<SearchResult, std::vector<SearchResult>, CompareSearchResult> search_queue;
+
+public:
+
+    /// Consider a point x at which we are interested in the irradiance. Around x we create a sphere. The radius of this sphere is extendeded unitl the sphere contains n photons and has radius r.
+    std::vector<SearchResult> findClosestNPhotonIndices(const Eigen::Vector3f & position, int N, float maxSquareDistance);
+    
+private:
 
     /// Recursive definition for `findClosestNPhotonIndices`
     ///
     /// Gleaned From: http://web.stanford.edu/class/cs106l/handouts/assignment-3-kdtree.pdf
-    void _knnOnPhtonKDTree(const Eigen::Vector3f & position, int N, std::vector<SearchResult> & candidates, int startIdx, int lastIdx, int axis) {
-    
-        if (startIdx <= lastIdx) {
-            auto currIdx = middleIdx(Range(startIdx, lastIdx + 1));
-            auto photonPos = photons[currIdx].position;
-            Eigen::Vector3f dp = photonPos - position;
-            float sqrdist = dp.dot(dp);
-            
-            auto insertionIndex = std::lower_bound(candidates.begin(), candidates.end(), SearchResult(currIdx, sqrdist), CompareSearchResult());
-            candidates.insert(insertionIndex, SearchResult(currIdx, sqrdist));
-            
-            auto searchLeft = [&](){
-                auto newRange = lowerRange(Range(startIdx, lastIdx + 1));
-                this->_knnOnPhtonKDTree(position, N, candidates, newRange.begin, newRange.end - 1, nextAxis(axis));
-            };
-            auto searchRight = [&](){
-                auto newRange = upperRange(Range(startIdx, lastIdx + 1));
-                this->_knnOnPhtonKDTree(position, N, candidates, newRange.begin, newRange.end - 1, nextAxis(axis));
-            };
-            
-            bool searchedLeft = true;
-            if (sparseless(axis)(position, photonPos)) {
-                searchLeft();
-            }
-            else {
-                searchRight();
-                searchedLeft = false;
-            }
-            
-            /// If the candidate hypersphere crosses the splitting plane, then 
-            /// look "on the other side of the plane by examining the other subtree"
-            float farthestDist = candidates[candidates.size() - 1].squareDistance;
-            if (candidates.size() >= N) {
-                farthestDist = candidates[N-1].squareDistance;
-            }
-            
-            float diff = photonPos(axis) - position(axis);
-            if (candidates.size() < N || diff * diff < farthestDist) {
-                if (searchedLeft) {
-                    searchRight();
-                }
-                else {
-                    searchLeft();
-                }
-            }
-        }
-    }
+    void _knnOnPhtonKDTree(const Eigen::Vector3f & position, int N, search_queue & candidates, int startIdx, int lastIdx, int axis);
 
 };
 
