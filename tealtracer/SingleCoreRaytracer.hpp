@@ -14,17 +14,7 @@
 
 #include "BRDF.hpp"
 #include "Raytracer.hpp"
-
-/// From Lab 1:
-///
-///     *) Parse the scne description file
-///     *) Computing ray-object intersections
-///     *) Shading
-///     *) Recursive Tracing (reflection, refraction, shadows)
-///     *) Write out resulting image
-///
-
-Eigen::Matrix4f lookAt(const Eigen::Vector3f & eye, const Eigen::Vector3f & center, const Eigen::Vector3f & up);
+#include "MatrixMath.hpp"
 
 ///
 class SingleCoreRaytracer : public Raytracer {

@@ -10,7 +10,10 @@
 #define PhotonTiler_hpp
 
 #include <vector>
+#include <cassert>
+#include <memory>
 
+#include "PovraySceneElements.hpp"
 #include "JensenPhoton.hpp"
 #include "Ray.hpp"
 
@@ -92,25 +95,43 @@ public:
         
         ///
         bool intersectsOrContainsSphere(const Eigen::Vector3f & sphereCenter, float sphereRadius) {
-            bool sphereCompletelyOutside = true;
-            for (size_t planeItr = 0; planeItr < planes.size() && sphereCompletelyOutside; planeItr++) {
+            bool sphereCompletelyOutside = false;
+            for (size_t planeItr = 0; planeItr < planes.size() && !sphereCompletelyOutside; planeItr++) {
                 float distance = planes[planeItr].distanceToPoint(sphereCenter);
-                sphereCompletelyOutside = (distance < -sphereRadius);
+                sphereCompletelyOutside = (distance + sphereRadius < 0);
             }
             
             return !sphereCompletelyOutside;
         }
         
         ///
-        void setPlanesFromRayCast(const Ray & ray, const Eigen::Vector3f & up, const Eigen::Vector3f & forward, const Eigen::Vector3f & right, float boxWidth, float boxHeight) {
+        void setPlanesFromRayCast(const Ray & ray, const Eigen::Vector3f & camera_up, const Eigen::Vector3f & camera_right, float boxWidth, float boxHeight) {
             
+            planes.clear();
             
+            Eigen::Vector3f rayTip = ray.origin + ray.direction;
+            std::vector<Eigen::Vector3f> offsets = make_vector<Eigen::Vector3f>(
+                rayTip + (boxWidth/2.0f)*camera_right + (boxHeight/2.0f)*camera_up,
+                rayTip + (boxWidth/2.0f)*camera_right - (boxHeight/2.0f)*camera_up,
+                rayTip - (boxWidth/2.0f)*camera_right - (boxHeight/2.0f)*camera_up,
+                rayTip - (boxWidth/2.0f)*camera_right + (boxHeight/2.0f)*camera_up
+            );
+            
+            /// Prevent photon gather behind ray by placing a plane with a normal
+            ///     along its casting direction.
+            planes.push_back(Plane(ray.direction, -ray.direction.dot(ray.origin)));
+            for (size_t itr = 0; itr < offsets.size(); itr++) {
+                Eigen::Vector3f corner = rayTip + offsets[itr], nextCorner = rayTip + offsets[(itr+1) % offsets.size()];
+                Eigen::Vector3f originToCorner = corner - ray.origin, originToNextCorner = nextCorner - ray.origin;
+                Eigen::Vector3f planeNormal = originToCorner.cross(originToNextCorner).normalized();
+                
+                planes.push_back(Plane(planeNormal, -planeNormal.dot(corner)));
+            }
         }
     };
     
     ///
     struct Tile {
-        std::vector<JensenPhoton> savedPhotons;
         struct Frustum frustum;
         
         Tile() {}
@@ -120,11 +141,41 @@ public:
     std::vector<std::vector<JensenPhoton>> tilePhotons;
     
     ///
-    int tileHeight, tileWidth;
-    float globalEffectSphereRadiusOfPhotons;
+    virtual void generateTiles(
+        const int imageWidth, const int imageHeight,
+        const int tileWidth, const int tileHeight,
+        const Eigen::Vector3f & cameraPosition,
+        const FrenetFrame & viewFrame) {
+        
+        tiles.clear();
+        tilePhotons.clear();
+        
+        for (int py = 0; py < imageHeight; py += tileHeight) {
+            for (int px = 0; px < imageWidth; px += tileWidth) {
+                Tile tile = Tile();
+                
+                Ray ray;
+                ray.origin = cameraPosition;
+                ray.direction = (viewFrame.forward - 0.5*viewFrame.up - 0.5*viewFrame.right + viewFrame.right*(0.5+(double)(px+tileWidth/2))/(double)imageWidth + viewFrame.up*(0.5+(double)(py + tileHeight/2))/(double)imageHeight).normalized();
+                
+                tile.frustum.setPlanesFromRayCast(ray, viewFrame.up, viewFrame.right, ((double)tileWidth)/((double)imageWidth), ((double)tileHeight)/((double)imageHeight));
+                
+                tiles.push_back(tile);
+            }
+        }
+    }
     
     ///
-    virtual void buildMap() {
+    int tileIndexForPixel(
+        const int imageWidth, const int imageHeight,
+        const int tileWidth, const int tileHeight,
+        const int px, const int py) const {
+        
+        return (px/tileWidth) + (py/tileHeight)*(imageWidth/tileWidth);
+    }
+    
+    /// Before "buildMap" is called, the tiles must be configured with the current camera
+    virtual void buildMap(float photonEffectRadius) {
         int numberOfTiles = (int) tiles.size();
         std::vector<int> photonCount(numberOfTiles, 0), nextPhotonIndex(numberOfTiles, 0);
         tilePhotons = std::vector<std::vector<JensenPhoton>>(numberOfTiles, std::vector<JensenPhoton>());
@@ -132,7 +183,7 @@ public:
         /// Counting pass
         for (size_t photonItr = 0; photonItr < photons.size(); photonItr++) {
             for (size_t tileItr = 0; tileItr < tiles.size(); tileItr++) {
-                if (tiles[tileItr].frustum.intersectsOrContainsSphere(photons[photonItr].position, globalEffectSphereRadiusOfPhotons)) {
+                if (tiles[tileItr].frustum.intersectsOrContainsSphere(photons[photonItr].position, photonEffectRadius)) {
                     photonCount[tileItr] += 1;
                 }
             }
@@ -141,12 +192,13 @@ public:
         /// Allocation pass
         for (size_t tileItr = 0; tileItr < tiles.size(); tileItr++) {
             tilePhotons[tileItr] = std::vector<JensenPhoton>(photonCount[tileItr], JensenPhoton());
+//            TSLoggerLog(std::cout, "tilePhotons[", tileItr, "] has ", photonCount[tileItr], " photons");
         }
         
         /// Copy pass
         for (size_t photonItr = 0; photonItr < photons.size(); photonItr++) {
             for (size_t tileItr = 0; tileItr < tiles.size(); tileItr++) {
-                if (tiles[tileItr].frustum.intersectsOrContainsSphere(photons[photonItr].position, globalEffectSphereRadiusOfPhotons)) {
+                if (tiles[tileItr].frustum.intersectsOrContainsSphere(photons[photonItr].position, photonEffectRadius)) {
                 
                     int tilePhotonIdx = nextPhotonIndex[tileItr]++;
                     tilePhotons[tileItr][tilePhotonIdx] = photons[photonItr];

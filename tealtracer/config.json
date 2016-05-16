@@ -15,8 +15,8 @@
     },
     
     "RightRaytracer" : {
-        "name" : "SCPhotonMapper",
-        "config" : "SingleCore_KDTree_MED_01"
+        "name" : "SCTilePhotonRaytracer",
+        "config" : "SingleCore_Tiled_LOW_01"
     },
     
     
@@ -90,6 +90,22 @@
             "spacing" : 5,
             "cellsize" : 0.25
         }
+    },
+    
+    "SingleCore_Tiled_LOW_01" : {
+        "enabled" : true,
+        "title" : "SingleCore Tiled",
+        
+        "outputWidth" : 20,
+        "outputHeight" : 15,
+        
+        "brdfType" : 0,
+        "supportedPhotonMap" : 2,
+        
+        "raysPerLight" : 4000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00
     },
     
     "OCLPhotonHashGridRaytracer_01" : {

@@ -30,6 +30,7 @@ public:
     ///
 
     RaytracingConfig config;
+    TSRandomValueGenerator generator;
 
     Raytracer();
 
@@ -54,7 +55,6 @@ public:
 protected:
 
     JobPool jobPool;
-    TSRandomValueGenerator generator;
     
     TextureRenderTarget target;
     Image<uint8_t> outputImage;

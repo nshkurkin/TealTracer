@@ -10,95 +10,7 @@
 
 #include "PhotonHashmap.hpp"
 #include "PhotonKDTree.hpp"
-
-///
-void
-SCPhotonMapper::buildPhotonMap() {
-    assert(photonMap != nullptr);
-    photonMap->photons.clear();
-    emitPhotons();
-    photonMap->buildMap();
-}
-
-///
-void
-SCPhotonMapper::emitPhotons() {
-    /// for each light, emit photons into the scene.
-    auto lights = config.scene->findElements<PovrayLightSource>();
-    float lumens = config.lumensPerLight;
-    int numRays = config.raysPerLight;
-    float luminosityPerPhoton = lumens/(float)numRays;
-    
-    for (int photonItr = 0; photonItr < numRays; photonItr++) {
-        bool photonStored = false;
-        while (!photonStored) {
-            auto light = lights[generator.randUInt() % lights.size()];
-            
-            float u = generator.randFloat(), v = generator.randFloat();
-            
-            Ray ray;
-            ray.origin = light->position();
-            ray.direction = light->getSampleDirection(u, v);
-            
-            processEmittedPhoton(light->color().block<3,1>(0,0) * luminosityPerPhoton, ray, &photonStored);
-        }
-    }
-    
-    TSLoggerLog(std::cout, "Photons=", photonMap->photons.size());
-}
-
-///
-void
-SCPhotonMapper::processEmittedPhoton(
-    ///
-    RGBf sourceLightEnergy,
-    const Ray & initialRay,
-    
-    ///
-    bool * photonStored
-    ) {
-
-    *photonStored = false;
-    
-    Ray ray;
-    ray.origin = initialRay.origin;
-    ray.direction = initialRay.direction;
-    RGBf energy = sourceLightEnergy;
-    
-    auto hits = config.scene->intersections(ray);
-
-    while (!*photonStored && hits.size() > 0) {
-        struct JensenPhoton photon;
-        auto hit = hits[0];
-        
-        photon.position = hit.hit.locationOfIntersection();
-        photon.incomingDirection = CompressedNormalVector3(ray.direction);
-        photon.energy = rgb2rgbe(energy);
-        photon.flags.geometryIndex = hit.element->id();
-
-        float value = generator.randFloat();
-        if (value < config.photonBounceProbability) {
-
-            Ray reflectedRay;
-            reflectedRay.direction = hit.hit.outgoingDirection();
-            reflectedRay.origin = hit.hit.locationOfIntersection() + 0.001f * reflectedRay.direction;
-            
-            RGBf hitEnergy = computeOutputEnergyForHit(hit, -ray.direction, hit.hit.outgoingDirection(), energy)
-             * config.photonBounceEnergyMultipler;
-            //////
-            
-            /// Calculate intersection
-            hits = config.scene->intersections(reflectedRay);
-            ray.origin = reflectedRay.origin;
-            ray.direction = reflectedRay.direction;
-            energy = hitEnergy;
-        }
-        else {
-            photonMap->photons.push_back(photon);
-            *photonStored = true;
-        }
-    }
-}
+#include "PhotonEmitter.hpp"
 
 ///
 void
@@ -134,7 +46,9 @@ SCPhotonMapper::start() {
     
     jobPool.emplaceJob(JobPool::WorkItem("[CPU] Build photon map", [=]() {
         TSLoggerLog(std::cout, "[", glfwGetTime(), "] Started building photon map");
-        buildPhotonMap();
+        assert(photonMap != nullptr);
+        PhotonEmitter().emitPhotons(this, photonMap->photons);
+        photonMap->buildMap();
         TSLoggerLog(std::cout, "Done emplacing");
     }, [=]() {
         TSLoggerLog(std::cout, "[", glfwGetTime(), "] Finished building photon map");
@@ -153,17 +67,14 @@ SCPhotonMapper::raytraceScene() {
     auto lights = config.scene->findElements<PovrayLightSource>();
     
     /// Create all of the rays
-    auto camPos = camera->location();
-    auto viewTransform = lookAt(camera->location(), camera->lookAt(), camera->up());
-    Eigen::Vector3f forward = (viewTransform * Eigen::Vector4f(config.Forward.x(), config.Forward.y(), config.Forward.z(), 0.0)).block<3,1>(0,0);
-    Eigen::Vector3f up = (viewTransform * Eigen::Vector4f(config.Up.x(), config.Up.y(), config.Up.z(), 0.0)).block<3,1>(0,0) * camera->up().norm();
-    Eigen::Vector3f right = (viewTransform * Eigen::Vector4f(config.Right.x(), config.Right.y(), config.Right.z(), 0.0)).block<3,1>(0,0) * camera->right().norm();
+    auto camPos = camera->location();    
+    auto frame = camera->basisVectors();
     
     for (int px = 0; px < outputImage.width; px++) {
         for (int py = 0; py < outputImage.height; py++) {
             Ray ray;
             ray.origin = camPos;
-            ray.direction = (forward - 0.5*up - 0.5*right + right*(0.5+(double)px)/(double)outputImage.width + up*(0.5+(double)py)/(double)outputImage.height).normalized();
+            ray.direction = (frame.forward - 0.5*frame.up - 0.5*frame.right + frame.right*(0.5+(double)px)/(double)outputImage.width + frame.up*(0.5+(double)py)/(double)outputImage.height).normalized();
             
             auto hitTest = config.scene->closestIntersection(ray);
             Image<uint8_t>::Vector4 color = Image<uint8_t>::Vector4(0, 0, 0, 255);

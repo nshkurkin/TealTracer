@@ -16,6 +16,8 @@
 #include <Eigen/Geometry>
 
 #include "PovraySceneElement.hpp"
+#include "FrenetFrame.hpp"
+#include "MatrixMath.hpp"
 
 ///
 struct PovrayCameraData {
@@ -112,7 +114,8 @@ public:
     void rotate(const Eigen::Vector3f & up, float tilt, float twist) {
         // here we assume "right" never leaves its plane
         
-        Eigen::Quaternionf tiltRotation = Eigen::Quaternionf(Eigen::AngleAxisf(tilt, right_));
+        Eigen::Vector3f right = right_.normalized();
+        Eigen::Quaternionf tiltRotation = Eigen::Quaternionf(Eigen::AngleAxisf(tilt, right));
         Eigen::Quaternionf twistRotation = Eigen::Quaternionf(Eigen::AngleAxisf(twist, up));
         
         Eigen::Matrix3f rotation = (tiltRotation * twistRotation).matrix().block<3,3>(0,0);
@@ -120,8 +123,13 @@ public:
         Eigen::Vector3f look = (lookAt_ - location_);
         
         lookAt_ = location_ + look.norm() * (rotation * look.normalized());
-        up_ = rotation * up_;
-        right_ = rotation * right_;
+        up_ = up_.norm() * rotation * up_.normalized();
+        right_ = right_.norm() * rotation * right;
+    }
+    
+    ///
+    FrenetFrame basisVectors() const {
+        return FrenetFrame((lookAt_ - location_).normalized(), up_.normalized(), right_.normalized());
     }
 
 private:

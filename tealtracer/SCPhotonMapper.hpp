@@ -28,23 +28,12 @@ public:
     virtual void raytraceScene();
     
     ///
-    virtual void buildPhotonMap();
-    
-    ///
     virtual RGBf computeOutputEnergyForHitUsingPhotonMap(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy);
     
 protected:
     
     ///
-    void emitPhotons();
-    
-    ///
     std::shared_ptr<PhotonMap> photonMap;
-    
-private:
-    
-    ///
-    void processEmittedPhoton(RGBf sourceLightEnergy, const Ray & initialRay, bool * photonStored);
 };
 
 #endif /* SCPhotonMapper_hpp */
