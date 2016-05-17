@@ -62,6 +62,10 @@ public:
     Eigen::Vector3f hashmapGridStart, hashmapGridEnd;
     float hashmapSpacing, hashmapCellsize;
     
+    int tile_height, tile_width;
+    float tile_photonEffectRadius;
+    float tile_photonSampleRate;
+    
     Eigen::Vector3f Up;
     Eigen::Vector3f Forward;
     Eigen::Vector3f Right;

@@ -8,6 +8,14 @@
     "Forward" : [0.0, 0.0, -1.0],
     "Right" : [1.0, 0.0, 0.0],
     
+    "available raytracers" : [
+        "SCMonteCarloRaytracer",
+        "SCPhotonMapper",
+        "SCTilePhotonRaytracer",
+
+        "OCLPhotonHashGridRaytracer"
+    ],
+    
     
     "LeftRaytracer" : {
         "name" : "OCLPhotonHashGridRaytracer",
@@ -16,7 +24,7 @@
     
     "RightRaytracer" : {
         "name" : "SCTilePhotonRaytracer",
-        "config" : "SingleCore_Tiled_LOW_01"
+        "config" : "SingleCore_Tiled_MED_01"
     },
     
     
@@ -60,7 +68,7 @@
         "supportedPhotonMap" : 0,
         
         "numberOfPhotonsToGather" : 100,
-        "raysPerLight" : 24000,
+        "raysPerLight" : 12000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00
@@ -79,7 +87,7 @@
         
         "numberOfPhotonsToGather" : 100,
         "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 24000,
+        "raysPerLight" : 12000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -92,20 +100,27 @@
         }
     },
     
-    "SingleCore_Tiled_LOW_01" : {
+    "SingleCore_Tiled_MED_01" : {
         "enabled" : true,
         "title" : "SingleCore Tiled",
         
-        "outputWidth" : 20,
-        "outputHeight" : 15,
+        "outputWidth" : 80,
+        "outputHeight" : 60,
         
         "brdfType" : 0,
         "supportedPhotonMap" : 2,
         
-        "raysPerLight" : 4000,
+        "raysPerLight" : 12000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileHeight" : 5,
+            "tileWidth" : 5,
+            "photonEffectRadius" : 0.8,
+            "photonSampleRate" : 1.0
+        }
     },
     
     "OCLPhotonHashGridRaytracer_01" : {

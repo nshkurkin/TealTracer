@@ -39,6 +39,11 @@ RaytracingConfig::RaytracingConfig() {
     hashmapGridEnd = Eigen::Vector3f::Zero();
     hashmapSpacing = 0.0f;
     hashmapCellsize = 0.0f;
+    
+    tile_height = 0;
+    tile_width = 0;
+    tile_photonEffectRadius = 0.0;
+    tile_photonSampleRate = 0.0;
 
     Up = Eigen::Vector3f::Zero();
     Forward = Eigen::Vector3f::Zero();
@@ -85,5 +90,13 @@ void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
         hashmapSpacing = config["Hashmap_properties"].get<int>("spacing");
         hashmapGridStart = vec3FromData(config["Hashmap_properties"].get<std::vector<double>>("gridStart", make_vector<double>(0,0,0)));
         hashmapGridEnd = vec3FromData(config["Hashmap_properties"].get<std::vector<double>>("gridEnd", make_vector<double>(0,0,0)));
+    }
+    
+    if (config.has("Tile_properties")) {
+        tile_width = config["Tile_properties"].get<int>("tileHeight");
+        tile_height = config["Tile_properties"].get<int>("tileWidth");
+        
+        tile_photonEffectRadius = config["Tile_properties"].get<double>("photonEffectRadius");
+        tile_photonSampleRate = config["Tile_properties"].get<double>("photonSampleRate");
     }
 }
