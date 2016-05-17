@@ -104,8 +104,8 @@
         "enabled" : true,
         "title" : "SingleCore Tiled",
         
-        "outputWidth" : 80,
-        "outputHeight" : 60,
+        "outputWidth" : 160,
+        "outputHeight" : 120,
         
         "brdfType" : 0,
         "supportedPhotonMap" : 2,
@@ -116,9 +116,9 @@
         "photonBounceEnergyMultipler" : 1.00,
         
         "Tile_properties" : {
-            "tileHeight" : 5,
-            "tileWidth" : 5,
-            "photonEffectRadius" : 0.8,
+            "tileHeight" : 10,
+            "tileWidth" : 10,
+            "photonEffectRadius" : 1.0,
             "photonSampleRate" : 1.0
         }
     },

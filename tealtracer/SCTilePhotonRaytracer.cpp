@@ -65,6 +65,8 @@ SCTilePhotonRaytracer::raytraceScene() {
             
             auto hitTest = config.scene->closestIntersection(ray);
             
+            RGBf totalEnergy = RGBf::Zero();
+            
             if (hitTest.hit.intersected) {
             
                 Eigen::Vector3f intersection = hitTest.hit.locationOfIntersection();
@@ -77,7 +79,6 @@ SCTilePhotonRaytracer::raytraceScene() {
                 
                 int i = step(photonSampleRate) - 1;
                 int numPhotonsSampled = 0;
-                RGBf totalEnergy = RGBf::Zero();
                 float maxDistanceSqd = -std::numeric_limits<float>::infinity();
                 
                 /// Sample the collection of photons
@@ -100,9 +101,9 @@ SCTilePhotonRaytracer::raytraceScene() {
                         totalEnergy(i) = std::min<float>(255.0, totalEnergy(i));
                     }
                 }
-                
-                outputImage.pixel(px, py).block<3,1>(0,0) = totalEnergy.cast<uint8_t>();
             }
+            
+            outputImage.pixel(px, py).block<3,1>(0,0) = totalEnergy.cast<uint8_t>();
         }
     }
     

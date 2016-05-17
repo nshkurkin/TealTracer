@@ -129,7 +129,7 @@ public:
     
     ///
     FrenetFrame basisVectors() const {
-        return FrenetFrame((lookAt_ - location_).normalized(), up_.normalized(), right_.normalized());
+        return FrenetFrame((lookAt_ - location_).normalized(), up_, right_);
     }
 
 private:
