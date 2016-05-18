@@ -169,16 +169,16 @@ kernel void photonmap_mapPhotonToGrid(
     PHOTON_HASHMAP_PHOTON_PARAMS,
     PHOTON_HASHMAP_META_PARAMS
 ) {
-
+    
+    int index = (int) get_global_id(0);
+    if (index >= map_numPhotons) {
+        return;
+    }
+    
     struct PhotonHashmap map;
     PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
     PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
     PHOTON_HASHMAP_SET_META_PARAMS((&map));
-    
-    int index = (int) get_global_id(0);
-    if (index >= map.numPhotons) {
-        return;
-    }
     
     struct JensenPhoton photon = JensenPhoton_fromData(map.photon_data, index);
     map.gridIndices[index] = PhotonHashmap_clampedCellIndexHash(&map, photon.position);
