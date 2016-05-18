@@ -15,7 +15,9 @@ kernel void emit_photon(
     ///
     const unsigned int generatorSeed,
     const unsigned int brdf, // one of (enum BRDFType)
-        
+    
+    const int _arg_buffer_, // for some reason mis-aligned data causes weird errors?
+    
     /// scene elements
     __global float * sphereData,
     const unsigned int numSpheres,
@@ -158,6 +160,67 @@ kernel void raytrace_one_ray_direct(
     });
 }
 
+/// SYNOPSIS: Called after sorting all of the photon data.
+/// NOTE: Called over "photons.size()" photons
+///
+kernel void photonmap_mapPhotonToGrid(
+    // Grid specification
+    PHOTON_HASHMAP_BASIC_PARAMS,
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS
+) {
+
+    struct PhotonHashmap map;
+    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    int index = (int) get_global_id(0);
+    if (index >= map.numPhotons) {
+        return;
+    }
+    
+    struct JensenPhoton photon = JensenPhoton_fromData(map.photon_data, index);
+    map.gridIndices[index] = PhotonHashmap_clampedCellIndexHash(&map, photon.position);
+}
+
+/// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.
+/// NOTE: Called over "map->xdim * map->ydim * map->zdim"
+///
+kernel void photonmap_initGridFirstPhoton(
+    const int map_xdim,
+    const int map_ydim,
+    const int map_zdim,
+    global int * map_gridFirstPhotonIndices
+) {
+    
+    int index = (int) get_global_id(0);
+    
+    if (index > map_xdim * map_ydim * map_zdim) {
+        return;
+    }
+    
+    map_gridFirstPhotonIndices[index] = -1;
+}
+
+/// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.
+/// NOTE: Called over "photons.size()" photons
+///
+kernel void photonmap_computeGridFirstPhoton(
+    // Grid specification
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS
+) {
+
+    struct PhotonHashmap map;
+    
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    int index = (int) get_global_id(0);
+    
+    PhotonHashmap_computeGridFirstPhoton(&map, index);
+}
 
 /// NOTE: called over imageWidth * imageHeight pixels
 ///

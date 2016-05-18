@@ -104,6 +104,7 @@ OCLPhotonHashGridRaytracer::ocl_emitPhotons() {
     computeEngine.setKernelArgs("emit_photon",
         (cl_uint) randVal,
         (cl_uint) config.brdfType,
+        (cl_int) true, // dummy field
         
         computeEngine.getBuffer("spheres"),
         (cl_uint) numSpheres,
