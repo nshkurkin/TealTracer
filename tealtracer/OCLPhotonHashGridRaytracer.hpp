@@ -27,9 +27,6 @@ public:
     ///
     virtual void ocl_raytraceSetup();
     ///
-    virtual void ocl_pushSceneData();
-    
-    ///
     virtual void ocl_raytraceRays();
 
 private:

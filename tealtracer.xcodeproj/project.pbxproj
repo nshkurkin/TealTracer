@@ -21,6 +21,10 @@
 		C01EB0411CC186660080FC65 /* photon_hashmap.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */; };
 		C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0431CC188690080FC65 /* coloring.cl */; };
 		C02E2B361CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B341CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp */; };
+		C02E2B391CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B371CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp */; };
+		C02E2B3F1CEBF67800B5BFDC /* photon_tiling.cl in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */; };
+		C02E2B411CEC0C4B00B5BFDC /* photons.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C02E2B401CEC02FC00B5BFDC /* photons.cl */; };
+		C02E2B421CEC0C4B00B5BFDC /* photon_tiling.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */; };
 		C05E546A1CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E54681CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp */; };
 		C05E546D1CE27222005345C9 /* RaytracingConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */; };
 		C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */; };
@@ -73,6 +77,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C02E2B411CEC0C4B00B5BFDC /* photons.cl in CopyFiles */,
+				C02E2B421CEC0C4B00B5BFDC /* photon_tiling.cl in CopyFiles */,
 				C066EE8E1CDC03FA002030DD /* GIRefScene1.pov in CopyFiles */,
 				C0B860591CC6D51D00A3941B /* random.cl in CopyFiles */,
 				C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */,
@@ -116,6 +122,10 @@
 		C01EB0461CC19F770080FC65 /* random.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = random.cl; sourceTree = "<group>"; };
 		C02E2B341CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OCLMonteCarloRaytracer.cpp; sourceTree = "<group>"; };
 		C02E2B351CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OCLMonteCarloRaytracer.hpp; sourceTree = "<group>"; };
+		C02E2B371CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OCLTiledPhotonRaytracer.cpp; sourceTree = "<group>"; };
+		C02E2B381CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OCLTiledPhotonRaytracer.hpp; sourceTree = "<group>"; };
+		C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = photon_tiling.cl; sourceTree = "<group>"; };
+		C02E2B401CEC02FC00B5BFDC /* photons.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = photons.cl; sourceTree = "<group>"; };
 		C05E54681CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OCLPhotonHashGridRaytracer.cpp; sourceTree = "<group>"; };
 		C05E54691CE2672A005345C9 /* OCLPhotonHashGridRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OCLPhotonHashGridRaytracer.hpp; sourceTree = "<group>"; };
 		C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RaytracingConfig.cpp; sourceTree = "<group>"; };
@@ -536,6 +546,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C02E2B3D1CEBF00800B5BFDC /* photon mapping */ = {
+			isa = PBXGroup;
+			children = (
+				C05E54681CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp */,
+				C05E54691CE2672A005345C9 /* OCLPhotonHashGridRaytracer.hpp */,
+				C02E2B371CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp */,
+				C02E2B381CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.hpp */,
+			);
+			name = "photon mapping";
+			sourceTree = "<group>";
+		};
 		C064A9431CB05E0D003A3D8B /* compute_engine */ = {
 			isa = PBXGroup;
 			children = (
@@ -586,8 +607,7 @@
 				C0B1BB041CE8FF90005C8C51 /* OpenCLRaytracer.hpp */,
 				C02E2B341CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp */,
 				C02E2B351CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.hpp */,
-				C05E54681CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp */,
-				C05E54691CE2672A005345C9 /* OCLPhotonHashGridRaytracer.hpp */,
+				C02E2B3D1CEBF00800B5BFDC /* photon mapping */,
 			);
 			name = "gpu raytracer";
 			sourceTree = "<group>";
@@ -607,7 +627,9 @@
 				C01EB0461CC19F770080FC65 /* random.cl */,
 				C01EB03A1CC182DE0080FC65 /* scene_objects.cl */,
 				C01EB03E1CC185410080FC65 /* intersection.cl */,
+				C02E2B401CEC02FC00B5BFDC /* photons.cl */,
 				C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */,
+				C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */,
 				C01EB0431CC188690080FC65 /* coloring.cl */,
 				C064A9781CB70DC0003A3D8B /* raytrace.cl */,
 			);
@@ -1490,7 +1512,9 @@
 				C064A9491CB05E1F003A3D8B /* compute_engine.cpp in Sources */,
 				C01416FD1CBEFD6B0040D4C6 /* BRDF.cpp in Sources */,
 				C0B1BAFF1CE8D523005C8C51 /* SCPhotonMapper.cpp in Sources */,
+				C02E2B3F1CEBF67800B5BFDC /* photon_tiling.cl in Sources */,
 				C01416F31CBCCC700040D4C6 /* PhotonHashmap.cpp in Sources */,
+				C02E2B391CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp in Sources */,
 				C064A9711CB61694003A3D8B /* TextureRenderTarget.cpp in Sources */,
 				C0B1BB0C1CE98E6C005C8C51 /* FrenetFrame.cpp in Sources */,
 				C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */,

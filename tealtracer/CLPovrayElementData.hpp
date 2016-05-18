@@ -11,6 +11,7 @@
 
 #include "compute_engine.hpp"
 #include "PovraySceneElements.hpp"
+#include "stl_extensions.hpp"
 
 #include <vector>
 
@@ -119,6 +120,15 @@ struct CLPovrayPlaneData {
         finish.writeOutData(data);
     }
 };
+
+///
+packed_struct CLPackedPhoton {
+    cl_float pos_x, pos_y, pos_z;
+    cl_float dir_x, dir_y, dir_z;
+    cl_float ene_x, ene_y, ene_z;
+};
+
+const size_t CLPackedPhoton_kNumFloats = sizeof(CLPackedPhoton{}) / sizeof(cl_float);
 
 #endif /* CLPovrayElementData_hpp */
 

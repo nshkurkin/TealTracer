@@ -69,9 +69,9 @@ OCLPhotonHashGridRaytracer::ocl_raytraceSetup() {
     //////
     
     if (config.raysPerLight > 0) {
-        const int kNumFloatsInOCLPhoton = 9;
+        const int kNumFloatsInOCLPhoton = CLPackedPhoton_kNumFloats;
         //! TODO: We might need to multiply the number of lights
-        computeEngine.createBuffer("map_photon_data", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * kNumFloatsInOCLPhoton * config.raysPerLight);
+        computeEngine.createBuffer("photon_data", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * kNumFloatsInOCLPhoton * config.raysPerLight);
         computeEngine.createBuffer("map_gridIndices", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * config.raysPerLight);
     }
     
@@ -116,7 +116,7 @@ OCLPhotonHashGridRaytracer::ocl_emitPhotons() {
         (cl_float) config.photonBounceProbability,
         (cl_float) config.photonBounceEnergyMultipler,
         
-        computeEngine.getBuffer("map_photon_data"),
+        computeEngine.getBuffer("photon_data"),
         (cl_int) config.raysPerLight
     );
 
@@ -133,19 +133,12 @@ OCLPhotonHashGridRaytracer::ocl_sortPhotons() {
 
     double startTime = glfwGetTime();
     
-    ///
-    packed_struct PackedPhoton {
-        cl_float pos_x, pos_y, pos_z;
-        cl_float dir_x, dir_y, dir_z;
-        cl_float ene_x, ene_y, ene_z;
-    };
-    
-    std::vector<PackedPhoton> photons(config.raysPerLight, PackedPhoton());
-    computeEngine.readBuffer("map_photon_data", 0, 0, sizeof(PackedPhoton) * config.raysPerLight, &photons[0]);
-    std::sort(photons.begin(), photons.end(), [&](const PackedPhoton & a, const PackedPhoton & b) {
+    std::vector<CLPackedPhoton> photons(config.raysPerLight, CLPackedPhoton());
+    computeEngine.readBuffer("photon_data", 0, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
+    std::sort(photons.begin(), photons.end(), [&](const CLPackedPhoton & a, const CLPackedPhoton & b) {
         return photonHashmap->getCellIndexHash(Eigen::Vector3f(a.pos_x, a.pos_y, a.pos_z)) < photonHashmap->getCellIndexHash(Eigen::Vector3f(b.pos_x, b.pos_y, b.pos_z));
     });
-    computeEngine.writeBuffer("map_photon_data", 0, 0, sizeof(PackedPhoton) * config.raysPerLight, &photons[0]);
+    computeEngine.writeBuffer("photon_data", 0, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
     ///
     
     double endTime = glfwGetTime();
@@ -171,7 +164,7 @@ OCLPhotonHashGridRaytracer::ocl_mapPhotonsToGrid() {
         (cl_int) photonHashmap->zdim,
         (cl_float) photonHashmap->cellsize,
     
-        computeEngine.getBuffer("map_photon_data"),
+        computeEngine.getBuffer("photon_data"),
         (cl_int) config.raysPerLight, // num_photons
 
         computeEngine.getBuffer("map_gridIndices"),
@@ -201,7 +194,7 @@ OCLPhotonHashGridRaytracer::ocl_computeGridFirstIndices() {
     computeEngine.executeKernel("photonmap_initGridFirstPhoton", 0, photonHashmap->xdim * photonHashmap->ydim * photonHashmap->zdim);
 
     computeEngine.setKernelArgs("photonmap_computeGridFirstPhoton",
-        computeEngine.getBuffer("map_photon_data"),
+        computeEngine.getBuffer("photon_data"),
         (cl_int) config.raysPerLight,
         
         computeEngine.getBuffer("map_gridIndices"),
@@ -213,56 +206,6 @@ OCLPhotonHashGridRaytracer::ocl_computeGridFirstIndices() {
     
     double endTime = glfwGetTime();
     TSLoggerLog(std::cout, "elapsed first index time: ", endTime - startTime);
-}
-
-///
-void
-OCLPhotonHashGridRaytracer::ocl_pushSceneData() {
-
-    auto spheres = config.scene->findElements<PovraySphere>();
-    std::vector<cl_float> sphereData;
-    for (auto itr = spheres.begin(); itr != spheres.end(); itr++) {
-        CLPovraySphereData((*itr)->data()).writeOutData(sphereData);
-    }
-    
-    auto planes = config.scene->findElements<PovrayPlane>();
-    std::vector<cl_float> planeData;
-    for (auto itr = planes.begin(); itr != planes.end(); itr++) {
-        CLPovrayPlaneData((*itr)->data()).writeOutData(planeData);
-    }
-    
-    auto lights = config.scene->findElements<PovrayLightSource>();
-    std::vector<cl_float> lightData;
-    for (auto itr = lights.begin(); itr != lights.end(); itr++) {
-        CLPovrayLightSourceData((*itr)->data()).writeOutData(lightData);
-    }
-
-    numSpheres = (unsigned int) spheres.size();
-    numPlanes = (unsigned int) planes.size();
-    numLights = (unsigned int) lights.size();
-    
-    /// Fill the buffers
-    if (spheres.size() > 0) {
-        if (computeEngine.getBuffer("spheres") == nullptr) {
-            computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
-        }
-    
-        computeEngine.writeBuffer("spheres", 0, 0, sizeof(cl_float) * sphereData.size(), &sphereData[0]);
-    }
-    if (planes.size() > 0) {
-         if (computeEngine.getBuffer("planes") == nullptr) {
-            computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
-        }
-    
-        computeEngine.writeBuffer("planes", 0, 0, sizeof(cl_float) * planeData.size(), &planeData[0]);
-    }
-    if (lights.size() > 0) {
-        if (computeEngine.getBuffer("lights") == nullptr) {
-            computeEngine.createBuffer("lights", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * lightData.size());
-        }
-    
-        computeEngine.writeBuffer("lights", 0, 0, sizeof(cl_float) * lightData.size(), &lightData[0]);
-    }
 }
 
 ///
@@ -311,7 +254,7 @@ OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
         (cl_int) photonHashmap->zdim,
         (cl_float) photonHashmap->cellsize,
     
-        computeEngine.getBuffer("map_photon_data"),
+        computeEngine.getBuffer("photon_data"),
         (cl_int) config.raysPerLight, // num_photons
 
         computeEngine.getBuffer("map_gridIndices"),

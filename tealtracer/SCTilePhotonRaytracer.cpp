@@ -108,9 +108,3 @@ SCTilePhotonRaytracer::raytraceScene() {
     }
     
 }
-
-///
-void
-SCTilePhotonRaytracer::configure() {
-    SingleCoreRaytracer::configure();
-}

@@ -25,8 +25,6 @@ public:
     
     ///
     virtual void start();
-    /// called in "start" to setup parameters from ".config"
-    virtual void configure();
     
     ///
     virtual void raytraceScene();
