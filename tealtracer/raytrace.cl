@@ -335,7 +335,7 @@ kernel void countPhotonsInTile(
         Tile_fromData(&tile, tiles, tileItr);
     
         if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
-            atomic_add(photonCount + tileItr, 1);
+            atomic_add(&photonCount[tileItr], 1);
         }
     }
 }
@@ -352,8 +352,8 @@ kernel void copyPhotonsIntoTile(
     const float photonEffectRadius,
     const global int * photonCount, // a "tiles_size" number of photon counts
     
-    volatile global int * nextPhotonIndex,
-    global float * tilePhotons, // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
+    volatile global int * nextPhotonIndex, // a "tile_size" number of indices
+    global float * tilePhotons, // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photon float slots
     const global int * tilePhotonStarts // points to the starts in "tilePhotons" (there are "tiles_size" of these)
 ) {
 
@@ -370,8 +370,8 @@ kernel void copyPhotonsIntoTile(
         Tile_fromData(&tile, tiles, tileItr);
     
         if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
-            int tilePhotonIdx = atomic_add(nextPhotonIndex + tileItr, 1);
-            JensenPhoton_setData(&photon, &tilePhotons[tilePhotonStarts[tileItr]], tilePhotonIdx);
+            int tilePhotonIdx = atomic_add(&nextPhotonIndex[tileItr], 1);
+            JensenPhoton_setData(&photon, &tilePhotons[tilePhotonStarts[tileItr] * kJensenPhoton_floatStride], tilePhotonIdx);
         }
     }
 }

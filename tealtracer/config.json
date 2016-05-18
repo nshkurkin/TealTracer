@@ -14,13 +14,14 @@
         "SCTilePhotonRaytracer",
 
         "OCLMonteCarloRaytracer",
-        "OCLPhotonHashGridRaytracer"
+        "OCLPhotonHashGridRaytracer",
+        "OCLTiledPhotonRaytracer"
     ],
     
     
     "LeftRaytracer" : {
-        "name" : "OCLPhotonHashGridRaytracer",
-        "config" : "OCLPhotonHashGridRaytracer_MED_01"
+        "name" : "OCLTiledPhotonRaytracer",
+        "config" : "OCLTiledPhotonRaytracer_LOW_01"
     },
     
     "RightRaytracer" : {
@@ -160,6 +161,30 @@
             "gridEnd" : [10.0, 10.0, 10.0],
             "spacing" : 5,
             "cellsize" : 0.25
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_LOW_01" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 640,
+        "outputHeight" : 480,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileHeight" : 40,
+            "tileWidth" : 40,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
         }
     }
 }

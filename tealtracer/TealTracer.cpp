@@ -23,7 +23,9 @@ using json = nlohmann::json;
 
 
 #include "OCLMonteCarloRaytracer.hpp" // OpenCL: Direct
+/// No OpenCL KDTree implementation
 #include "OCLPhotonHashGridRaytracer.hpp" // OpenCL: HashGrid
+#include "OCLTiledPhotonRaytracer.hpp" // OpenCL: Tiled
 
 
 
@@ -86,6 +88,7 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     availableRaytracers["OCLMonteCarloRaytracer"] = std::shared_ptr<OCLMonteCarloRaytracer>(new OCLMonteCarloRaytracer());
     availableRaytracers["OCLPhotonHashGridRaytracer"] = std::shared_ptr<OCLPhotonHashGridRaytracer>(new OCLPhotonHashGridRaytracer());
+    availableRaytracers["OCLTiledPhotonRaytracer"] = std::shared_ptr<OCLTiledPhotonRaytracer>(new OCLTiledPhotonRaytracer());
     
     std::string leftRaytracerName = config["LeftRaytracer"]["name"].get<std::string>();
     std::string leftRaytracerConfigName = config["LeftRaytracer"]["config"].get<std::string>();

@@ -210,8 +210,9 @@ RGBf PhotonTiler_computeOutputEnergyForHit(
         }
     }
     
-    int photonCount;
-    const global float * photons = PhotonTiler_getTilePhotonArrayInfoForPixel(tiler, imageWidth, imageHeight, px, py, &photonCount);
+    int tileIndex = PhotonTiler_tileIndexForPixel(tiler, imageWidth, imageHeight, px, py);
+    int photonCount = tiler->tilePhotonCount[tileIndex];
+    const global float * photons = &tiler->tilePhotons[tiler->tilePhotonStarts[tileIndex] * kJensenPhoton_floatStride];
 
     float3 intersection = RayIntersectionResult_locationOfIntersection(hitResult);
     
@@ -223,8 +224,7 @@ RGBf PhotonTiler_computeOutputEnergyForHit(
     while (i < photonCount) {
         struct JensenPhoton photon = JensenPhoton_fromData(photons, i);
         float distanceSqrd = dot(photon.position - intersection, photon.position - intersection);
-        if (/*hitTest.element->id() == photon.flags.geometryIndex
-         &&*/ distanceSqrd <= tiler->photonEffectRadius * tiler->photonEffectRadius) {
+        if (distanceSqrd <= tiler->photonEffectRadius * tiler->photonEffectRadius) {
             ++numPhotonsSampled;
             output += computeOutputEnergyForBRDF(brdf, pigment, finish, photon.energy, -photon.incomingDirection, -hitResult->rayDirection, hitResult->surfaceNormal);
             maxDistanceSqd = max(maxDistanceSqd, distanceSqrd);

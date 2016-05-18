@@ -51,9 +51,20 @@ public:
     }
     
     ///
-    std::shared_ptr<PovrayCamera> camera() const {
-        return findElements<PovrayCamera>()[0];
+    std::shared_ptr<PovrayCamera> camera() {
+    
+        if (cachedCamera == nullptr) {
+            cachedCamera = findElements<PovrayCamera>()[0];
+        }
+    
+        return cachedCamera;
     }
+    
+private:
+
+    std::shared_ptr<PovrayCamera> cachedCamera;
+
+public:
     
     struct InstersectionResult {
         std::shared_ptr<PovraySceneElement> element;
