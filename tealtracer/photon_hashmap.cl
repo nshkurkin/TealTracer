@@ -22,12 +22,12 @@ struct PhotonHashmap {
     float cellsize;
     
     /// Photon heap data
-    __global float * photon_data;
+    global float * photon_data;
     int numPhotons;
     
     /// Photon metadata
-    __global int * gridIndices; // size: numPhotons
-    __global int * gridFirstPhotonIndices; // size: xdim * ydim * zdim
+    global int * gridIndices; // size: numPhotons
+    global int * gridFirstPhotonIndices; // size: xdim * ydim * zdim
 };
 
 int PhotonHashmap_photonHashIJK(struct PhotonHashmap * map, int i, int j, int k);
@@ -50,12 +50,12 @@ int3 PhotonHashmap_cellIndex(struct PhotonHashmap * map, float3 position);
     const float map_cellsize
 
 #define PHOTON_HASHMAP_PHOTON_PARAMS \
-    __global float * map_photon_data, \
+    global float * map_photon_data, \
     const int map_numPhotons
 
 #define PHOTON_HASHMAP_META_PARAMS \
-    __global int * map_gridIndices, \
-    __global int * map_gridFirstPhotonIndices
+    global int * map_gridIndices, \
+    global int * map_gridFirstPhotonIndices
 
 #define PHOTON_HASHMAP_SET_BASIC_PARAMS(map) \
     map->spacing = map_spacing; \
@@ -161,25 +161,25 @@ void PhotonHashmap_gatherPhotonIndices(
     const float maxPhotonDistance,
     const float3 intersection,
     // output
-    __global float * photon_indices,
+    global float * photon_indices,
     int * photonsFound
-    );
+);
 void PhotonHashmap_gatherPhotonIndices_v2(
     struct PhotonHashmap * map,
     const int maxNumPhotonsToGather,
     const float maxPhotonDistance,
     const float3 intersection,
     // output
-    __global float * photon_indices,
+    global float * photon_indices,
     int * photonsFound
-    );
+);
 
 int findMaxDistancePhotonIndex(
     struct PhotonHashmap * map,
     float3 intersection,
-    __global float * photon_indices,
+    global float * photon_indices,
     int numPhotons
-    );
+);
 void PhotonHashmap_gatherClosestPhotonsForGridIndex(
     struct PhotonHashmap * map,
     const int maxNumPhotonsToGather,
@@ -189,9 +189,10 @@ void PhotonHashmap_gatherClosestPhotonsForGridIndex(
     int i, int j, int k,
     
     // output
-    __global float * photon_indices,
+    global float * photon_indices,
     int * photonsFound,
-    float * maxRadiusSqd);
+    float * maxRadiusSqd
+);
 
 ///
 void PhotonHashmap_gatherClosestPhotonsForGridIndex(
@@ -203,7 +204,7 @@ void PhotonHashmap_gatherClosestPhotonsForGridIndex(
     int i, int j, int k,
     
     // output
-    __global float * photon_indices,
+    global float * photon_indices,
     int * photonsFound,
     float * maxRadiusSqd
 ) {
@@ -251,24 +252,28 @@ bool pointInsideCube(
     float3 point,
     
     float3 cube_start,
-    float3 cube_end);
+    float3 cube_end
+);
 bool sphereInsideCube(
     float3 sphere_position,
     float sphere_radius_sqd,
     
     float3 cube_center,
-    float cube_halfwidth_sqd);
+    float cube_halfwidth_sqd
+);
 float3 PhotonHashmap_getCellBoxStart(
     struct PhotonHashmap * map,
     /// which cell
-    int i, int j, int k);
+    int i, int j, int k
+);
 
 ///
 bool pointInsideCube(
     float3 point,
     
     float3 cube_start,
-    float3 cube_end) {
+    float3 cube_end
+) {
 
     return cube_start.x <= point.x && point.x <= cube_end.x
      && cube_start.y <= point.y && point.y <= cube_end.y
@@ -281,7 +286,8 @@ bool sphereInsideCube(
     float sphere_radius_sqd,
     
     float3 cube_center,
-    float cube_halfwidth_sqd) {
+    float cube_halfwidth_sqd
+) {
 
     float3 cube_start = cube_center + (float3) {-cube_halfwidth_sqd, -cube_halfwidth_sqd, -cube_halfwidth_sqd};
     float3 cube_end = cube_center + (float3) {cube_halfwidth_sqd, cube_halfwidth_sqd, cube_halfwidth_sqd};
@@ -293,7 +299,8 @@ bool sphereInsideCube(
 float3 PhotonHashmap_getCellBoxStart(
     struct PhotonHashmap * map,
     /// which cell
-    int i, int j, int k) {
+    int i, int j, int k
+) {
     
     float3 start;
     
@@ -311,9 +318,9 @@ void PhotonHashmap_gatherPhotonIndices(
     const float maxPhotonDistance,
     const float3 intersection,
     // output
-    __global float * photon_indices,
+    global float * photon_indices,
     int * photonsFound
-    ) {
+) {
     
     int3 gridIndex = PhotonHashmap_cellIndex(map, intersection);
     int px = gridIndex.x, py = gridIndex.y, pz = gridIndex.z;
@@ -381,9 +388,9 @@ void PhotonHashmap_gatherPhotonIndices_v2(
     const float maxPhotonDistance,
     const float3 intersection,
     // output
-    __global float * photon_indices,
+    global float * photon_indices,
     int * photonsFound
-    ) {
+) {
     
     int3 gridIndex = PhotonHashmap_cellIndex(map, intersection);
     int px = gridIndex.x, py = gridIndex.y, pz = gridIndex.z;
@@ -411,9 +418,9 @@ void PhotonHashmap_gatherPhotonIndices_v2(
 int findMaxDistancePhotonIndex(
     struct PhotonHashmap * map,
     float3 intersection,
-    __global float * photon_indices,
+    global float * photon_indices,
     int numPhotons
-    ) {
+) {
     
     int index = -1;
     float squareDistance = -1.0f;
@@ -430,5 +437,156 @@ int findMaxDistancePhotonIndex(
     return index;
 }
 
+///////////////////////////////////////////////////////////////////////////
+///
+/// KERNEL: photonmap_mapPhotonToGrid
+///
+/// SYNOPSIS: Called after sorting all of the photon data.
+///
+/// NOTE: Called over "photons.size()" photons
+///
+
+kernel void photonmap_mapPhotonToGrid(
+    // Grid specification
+    PHOTON_HASHMAP_BASIC_PARAMS,
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS
+) {
+
+    struct PhotonHashmap map;
+    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    int index = (int) get_global_id(0);
+    if (index >= map.numPhotons) {
+        return;
+    }
+    
+    struct JensenPhoton photon = JensenPhoton_fromData(map.photon_data, index);
+    map.gridIndices[index] = PhotonHashmap_clampedCellIndexHash(&map, photon.position);
+}
+
+///////////////////////////////////////////////////////////////////////////
+///
+/// KERNEL: photonmap_initGridFirstPhoton
+///
+/// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.
+///
+/// NOTE: Called over "map->xdim * map->ydim * map->zdim"
+///
+kernel void photonmap_initGridFirstPhoton(
+    const int map_xdim,
+    const int map_ydim,
+    const int map_zdim,
+    global int * map_gridFirstPhotonIndices
+) {
+    
+    int index = (int) get_global_id(0);
+    
+    if (index > map_xdim * map_ydim * map_zdim) {
+        return;
+    }
+    
+    map_gridFirstPhotonIndices[index] = -1;
+}
+
+///////////////////////////////////////////////////////////////////////////
+///
+/// KERNEL: photonmap_computeGridFirstPhoton
+///
+/// SYNOPSIS: Called after "mapPhotonToGrid" has been run on the hashmap data.
+///
+/// NOTE: Called over "photons.size()" photons
+///
+
+kernel void photonmap_computeGridFirstPhoton(
+    // Grid specification
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS
+) {
+
+    struct PhotonHashmap map;
+    
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    int index = (int) get_global_id(0);
+    
+    PhotonHashmap_computeGridFirstPhoton(&map, index);
+}
+
+///
+RGBf computeOutputEnergyForHitWithPhotonMap(
+    enum BRDFType brdf,
+    struct RayIntersectionResult hitResult,
+    struct PhotonHashmap * map,
+    int maxNumPhotonsToGather,
+    float maxGatherDistance,
+    float3 toViewer,
+    global float * photon_indices
+);
+
+///
+RGBf computeOutputEnergyForHitWithPhotonMap(
+    enum BRDFType brdf,
+    struct RayIntersectionResult hitResult,
+    struct PhotonHashmap * map,
+    int maxNumPhotonsToGather,
+    float maxGatherDistance,
+    float3 toViewer,
+    global float * photon_indices
+) {
+    
+    RGBf output = (RGBf) {0,0,0};
+    struct PovrayPigment pigment;
+    struct PovrayFinish finish;
+    
+    switch (hitResult.type) {
+        case SphereObjectType: {
+            struct PovraySphereData data = PovraySphereData_fromData(hitResult.dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        }
+        case PlaneObjectType: {
+            struct PovrayPlaneData data = PovrayPlaneData_fromData(hitResult.dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        };
+        default: {
+            break;
+        }
+    }
+    
+    int numPhotonsFound;
+    float3 intersection = RayIntersectionResult_locationOfIntersection(&hitResult);
+    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, maxGatherDistance, intersection, photon_indices, &numPhotonsFound);
+    
+    float maxSqrDist = 0.001f;
+    
+    //  Accumulate radiance of the K nearest photons
+    for (int i = 0; i < numPhotonsFound; ++i) {
+        
+        struct JensenPhoton p = PhotonHashmap_getPhoton(map, photon_indices[i]);
+        RGBf photonEnergy = (RGBf) {0,0,0};
+        float distSqd = dot(p.position - intersection, p.position - intersection);
+        
+        if (distSqd > maxSqrDist) {
+            maxSqrDist = distSqd;
+        }
+        
+        photonEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, p.energy, -p.incomingDirection, toViewer, hitResult.surfaceNormal);
+        
+        output += photonEnergy;
+    }
+    
+    if (numPhotonsFound > 0) {
+        output = output / (float) (M_PI * maxSqrDist);
+    }
+    
+    return output;
+}
 
 #endif /* photon_hashmap_h */

@@ -25,6 +25,7 @@
 		C02E2B3F1CEBF67800B5BFDC /* photon_tiling.cl in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */; };
 		C02E2B411CEC0C4B00B5BFDC /* photons.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C02E2B401CEC02FC00B5BFDC /* photons.cl */; };
 		C02E2B421CEC0C4B00B5BFDC /* photon_tiling.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */; };
+		C02E2B441CEC168600B5BFDC /* scene_config.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C02E2B431CEC11C100B5BFDC /* scene_config.cl */; };
 		C05E546A1CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E54681CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp */; };
 		C05E546D1CE27222005345C9 /* RaytracingConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */; };
 		C05E54701CE3A02C005345C9 /* TSRandomValueGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C05E546E1CE3A02C005345C9 /* TSRandomValueGenerator.cpp */; };
@@ -77,6 +78,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C02E2B441CEC168600B5BFDC /* scene_config.cl in CopyFiles */,
 				C02E2B411CEC0C4B00B5BFDC /* photons.cl in CopyFiles */,
 				C02E2B421CEC0C4B00B5BFDC /* photon_tiling.cl in CopyFiles */,
 				C066EE8E1CDC03FA002030DD /* GIRefScene1.pov in CopyFiles */,
@@ -126,6 +128,7 @@
 		C02E2B381CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OCLTiledPhotonRaytracer.hpp; sourceTree = "<group>"; };
 		C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = photon_tiling.cl; sourceTree = "<group>"; };
 		C02E2B401CEC02FC00B5BFDC /* photons.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = photons.cl; sourceTree = "<group>"; };
+		C02E2B431CEC11C100B5BFDC /* scene_config.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = scene_config.cl; sourceTree = "<group>"; };
 		C05E54681CE2672A005345C9 /* OCLPhotonHashGridRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OCLPhotonHashGridRaytracer.cpp; sourceTree = "<group>"; };
 		C05E54691CE2672A005345C9 /* OCLPhotonHashGridRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OCLPhotonHashGridRaytracer.hpp; sourceTree = "<group>"; };
 		C05E546B1CE27222005345C9 /* RaytracingConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RaytracingConfig.cpp; sourceTree = "<group>"; };
@@ -627,6 +630,7 @@
 				C01EB0461CC19F770080FC65 /* random.cl */,
 				C01EB03A1CC182DE0080FC65 /* scene_objects.cl */,
 				C01EB03E1CC185410080FC65 /* intersection.cl */,
+				C02E2B431CEC11C100B5BFDC /* scene_config.cl */,
 				C02E2B401CEC02FC00B5BFDC /* photons.cl */,
 				C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */,
 				C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */,
@@ -1623,6 +1627,8 @@
 		C0C123211CAB20790024DA91 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OPENCL_COMPILER_VERSION = CL1.2;
+				OPENCL_OPTIMIZATION_LEVEL = 0;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-I$(SRCROOT)",
@@ -1646,6 +1652,8 @@
 		C0C123221CAB20790024DA91 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OPENCL_COMPILER_VERSION = CL1.2;
+				OPENCL_OPTIMIZATION_LEVEL = s;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-I$(SRCROOT)",

@@ -54,7 +54,7 @@ OCLPhotonHashGridRaytracer::ocl_raytraceSetup() {
     OpenCLRaytracer::ocl_raytraceSetup();
     
     computeEngine.createProgramFromFile("raytrace_prog", "raytrace.cl");
-    computeEngine.createKernel("raytrace_prog", "raytrace_one_ray");
+    computeEngine.createKernel("raytrace_prog", "raytrace_one_ray_hashgrid");
     
     /// Photon mapping kernels
     computeEngine.createKernel("raytrace_prog", "emit_photon");
@@ -221,7 +221,7 @@ OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
     auto camera = config.scene->camera();
     auto cameraData = CLPovrayCameraData(camera->data());
 
-    computeEngine.setKernelArgs("raytrace_one_ray",
+    computeEngine.setKernelArgs("raytrace_one_ray_hashgrid",
         cameraData.location,
         cameraData.up,
         cameraData.right,
@@ -265,7 +265,7 @@ OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
        (cl_uint) imageHeight
     );
     
-    computeEngine.executeKernel("raytrace_one_ray", 0, rayCount);
+    computeEngine.executeKernel("raytrace_one_ray_hashgrid", 0, rayCount);
     computeEngine.finish(0);
     
     computeEngine.readImage("image_output", 0, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);

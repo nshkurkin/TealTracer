@@ -19,8 +19,8 @@
     
     
     "LeftRaytracer" : {
-        "name" : "OCLMonteCarloRaytracer",
-        "config" : "OCLMonteCarloRaytracer_MED_01"
+        "name" : "OCLPhotonHashGridRaytracer",
+        "config" : "OCLPhotonHashGridRaytracer_MED_01"
     },
     
     "RightRaytracer" : {

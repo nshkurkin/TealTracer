@@ -11,7 +11,8 @@
 
 #include "scene_objects.cl"
 #include "intersection.cl"
-#include "photon_hashmap.cl"
+
+typedef float3 RGBf;
 
 enum BRDFType {
     BlinnPhong = 0,
@@ -35,15 +36,6 @@ RGBf computeBlinnPhongOutputEnergy(
 RGBf computeOrenNayarOutputEnergy(
     struct PovrayPigment pigment, struct PovrayFinish finish,
     RGBf source, float3 toLight, float3 toViewer, float3 surfaceNormal);
-///
-RGBf computeOutputEnergyForHitWithPhotonMap(
-    enum BRDFType brdf,
-    struct RayIntersectionResult hitResult,
-    struct PhotonHashmap * map,
-    int maxNumPhotonsToGather,
-    float maxGatherDistance,
-    float3 toViewer,
-    __global float * photon_indices);
 
 ///
 RGBf computeBlinnPhongOutputEnergy(
@@ -161,67 +153,5 @@ RGBf computeOutputEnergyForHit(
     
     return output;
 }
-
-RGBf computeOutputEnergyForHitWithPhotonMap(
-    enum BRDFType brdf,
-    struct RayIntersectionResult hitResult,
-    struct PhotonHashmap * map,
-    int maxNumPhotonsToGather,
-    float maxGatherDistance,
-    float3 toViewer,
-    __global float * photon_indices
-) {
-    
-    RGBf output = (RGBf) {0,0,0};
-    struct PovrayPigment pigment;
-    struct PovrayFinish finish;
-    
-    switch (hitResult.type) {
-        case SphereObjectType: {
-            struct PovraySphereData data = PovraySphereData_fromData(hitResult.dataPtr);
-            pigment = data.pigment;
-            finish = data.finish;
-            break;
-        }
-        case PlaneObjectType: {
-            struct PovrayPlaneData data = PovrayPlaneData_fromData(hitResult.dataPtr);
-            pigment = data.pigment;
-            finish = data.finish;
-            break;
-        };
-        default: {
-            break;
-        }
-    }
-    
-    int numPhotonsFound;
-    float3 intersection = RayIntersectionResult_locationOfIntersection(&hitResult);
-    PhotonHashmap_gatherPhotonIndices(map, maxNumPhotonsToGather, maxGatherDistance, intersection, photon_indices, &numPhotonsFound);
-    
-    float maxSqrDist = 0.001f;
-    
-    //  Accumulate radiance of the K nearest photons
-    for (int i = 0; i < numPhotonsFound; ++i) {
-        
-        struct JensenPhoton p = PhotonHashmap_getPhoton(map, photon_indices[i]);
-        RGBf photonEnergy = (RGBf) {0,0,0};
-        float distSqd = dot(p.position - intersection, p.position - intersection);
-        
-        if (distSqd > maxSqrDist) {
-            maxSqrDist = distSqd;
-        }
-        
-        photonEnergy = computeOutputEnergyForBRDF(brdf, pigment, finish, p.energy, -p.incomingDirection, toViewer, hitResult.surfaceNormal);
-        
-        output += photonEnergy;
-    }
-    
-    if (numPhotonsFound > 0) {
-        output = output / (float) (M_PI * maxSqrDist);
-    }
-    
-    return output;
-}
-
 
 #endif /* coloring_h */

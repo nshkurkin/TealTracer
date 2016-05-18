@@ -88,11 +88,12 @@ public:
     ///
     PovrayCameraData data() const {
         PovrayCameraData dat;
+        auto vectors = basisVectors();
         
         dat.location = location_;
-        dat.up = up_;
-        dat.right = right_;
-        dat.lookAt = lookAt_;
+        dat.up = vectors.up;
+        dat.right = vectors.right;
+        dat.lookAt = vectors.forward;
         
         return dat;
     }
