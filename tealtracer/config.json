@@ -13,13 +13,14 @@
         "SCPhotonMapper",
         "SCTilePhotonRaytracer",
 
+        "OCLMonteCarloRaytracer",
         "OCLPhotonHashGridRaytracer"
     ],
     
     
     "LeftRaytracer" : {
-        "name" : "OCLPhotonHashGridRaytracer",
-        "config" : "OCLPhotonHashGridRaytracer_01"
+        "name" : "OCLMonteCarloRaytracer",
+        "config" : "OCLMonteCarloRaytracer_MED_01"
     },
     
     "RightRaytracer" : {
@@ -108,7 +109,6 @@
         "outputHeight" : 120,
         
         "brdfType" : 0,
-        "supportedPhotonMap" : 2,
         
         "raysPerLight" : 12000,
         "lumensPerLight" : 600,
@@ -123,7 +123,20 @@
         }
     },
     
-    "OCLPhotonHashGridRaytracer_01" : {
+    "OCLMonteCarloRaytracer_MED_01" : {
+        
+        "enabled" : true,
+        "title" : "Direct OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 640,
+        "outputHeight" : 480,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0
+    },
+    
+    "OCLPhotonHashGridRaytracer_MED_01" : {
         
         "enabled" : true,
         "title" : "HashGrid OpenCL (GPU)",
@@ -134,7 +147,6 @@
         
         "computationDevice" : 1,
         "brdfType" : 0,
-        "supportedPhotonMap" : 1,
         
         "numberOfPhotonsToGather" : 100,
         "maxPhotonGatherDistance" : -1.0,
@@ -142,12 +154,6 @@
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
-        
-        "usePhotonMappingForDirectIllumination" : true,
-        
-        "directIlluminationEnabled" : false,
-        "indirectIlluminationEnabled" : false,
-        "shadowsEnabled" : false,
         
         "Hashmap_properties" : {
             "gridStart" : [-10.0, -10.0, -20.0],

@@ -101,11 +101,9 @@ OCLPhotonHashGridRaytracer::ocl_emitPhotons() {
     float randFloat = generator.randFloat();
     unsigned int randVal = (int) (100000.0f * randFloat);
 
-    TSLoggerLog(std::cout, "Seeding GPU with value=", randVal, " float=", randFloat);
     computeEngine.setKernelArgs("emit_photon",
         (cl_uint) randVal,
         (cl_uint) config.brdfType,
-        (cl_int) config.usePhotonMappingForDirectIllumination,
         
         computeEngine.getBuffer("spheres"),
         (cl_uint) numSpheres,
@@ -280,11 +278,6 @@ OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
     auto camera = config.scene->camera();
     auto cameraData = CLPovrayCameraData(camera->data());
 
-    computeEngine.setKernelArg("raytrace_one_ray", 0, cameraData.location);
-    computeEngine.setKernelArg("raytrace_one_ray", 1, cameraData.up);
-    computeEngine.setKernelArg("raytrace_one_ray", 2, cameraData.right);
-    computeEngine.setKernelArg("raytrace_one_ray", 3, cameraData.lookAt);
-
     computeEngine.setKernelArgs("raytrace_one_ray",
         cameraData.location,
         cameraData.up,
@@ -292,12 +285,6 @@ OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
         cameraData.lookAt,
        
         (cl_uint) config.brdfType,
-        
-        (cl_int) config.usePhotonMappingForDirectIllumination,
-        
-        (cl_int) config.directIlluminationEnabled,
-        (cl_int) config.indirectIlluminationEnabled,
-        (cl_int) config.shadowsEnabled,
         
         computeEngine.getBuffer("spheres"),
         (cl_uint) numSpheres,
