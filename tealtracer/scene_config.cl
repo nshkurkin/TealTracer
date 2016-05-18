@@ -35,14 +35,11 @@ struct SceneConfig {
     float photonBounceEnergyMultipler;
     
     /// miscellaneous
-    struct mwc64x_state_t generator;
+    struct RandomGenerator generator;
 };
 
 ///
 struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneConfig * config, float3 rayOrigin, float3 rayDirection);
-void SceneConfig_initGenerator(struct SceneConfig * config, unsigned int generatorSeed);
-float SceneConfig_randomNormalizedFloat(struct SceneConfig * config);
-int SceneConfig_randomInt(struct SceneConfig * config);
 
 ///
 struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneConfig * config, float3 rayOrigin, float3 rayDirection) {
@@ -68,21 +65,6 @@ struct RayIntersectionResult SceneConfig_findClosestIntersection(struct SceneCon
     }
     
     return bestIntersection;
-}
-
-///
-void SceneConfig_initGenerator(struct SceneConfig * config, unsigned int generatorSeed) {
-    MWC64X_SeedStreams(&(config->generator), (ulong) get_global_id(0) + generatorSeed, (ulong) get_global_size(0) + generatorSeed);
-}
-
-///
-float SceneConfig_randomNormalizedFloat(struct SceneConfig * config) {
-    return ((float) (MWC64X_NextUint(&(config->generator)) % 100000)) / 100000.0f;
-}
-
-///
-int SceneConfig_randomInt(struct SceneConfig * config) {
-    return (int) MWC64X_NextUint(&(config->generator));
 }
 
 #endif /* scene_config_h */

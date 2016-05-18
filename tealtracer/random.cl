@@ -136,4 +136,32 @@ uint MWC64X_NextUint(mwc64x_state_t *s)
 	return res;
 }
 
+///
+///
+
+struct RandomGenerator {
+    /// miscellaneous
+    struct mwc64x_state_t state;
+};
+
+void RandomGenerator_seed(struct RandomGenerator * generator, unsigned int generatorSeed);
+float RandomGenerator_randomNormalizedFloat(struct RandomGenerator * generator);
+int RandomGenerator_randomInt(struct RandomGenerator * generator);
+
+///
+void RandomGenerator_seed(struct RandomGenerator * generator, unsigned int generatorSeed) {
+    MWC64X_SeedStreams(&(generator->state), (ulong) get_global_id(0) + generatorSeed, (ulong) get_global_size(0) + generatorSeed);
+}
+
+///
+float RandomGenerator_randomNormalizedFloat(struct RandomGenerator * generator) {
+    return ((float) (MWC64X_NextUint(&(generator->state)) % 100000)) / 100000.0f;
+}
+
+///
+int RandomGenerator_randomInt(struct RandomGenerator * generator) {
+    return (int) MWC64X_NextUint(&(generator->state));
+}
+
+
 #endif /* random_h */

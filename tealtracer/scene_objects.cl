@@ -9,10 +9,6 @@
 #ifndef scene_objects_h
 #define scene_objects_h
 
-__constant float3 Up = (float3){0.0f, 1.0f, 0.0f};
-__constant float3 Forward = (float3){0.0f, 0.0f, -1.0f};
-__constant float3 Right = (float3){1.0f, 0.0f, 0.0f};
-
 ///
 struct PovrayCameraData {
     float3 location;

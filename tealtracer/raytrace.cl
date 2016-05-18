@@ -6,8 +6,10 @@
 //  Copyright © 2016 Teal Sunset Studios. All rights reserved.
 //
 
+#include "random.cl"
 #include "scene_config.cl"
 #include "photon_hashmap.cl"
+#include "photon_tiling.cl"
 
 /// NOTE: called over "numPhotons"
 ///
@@ -57,16 +59,17 @@ kernel void emit_photon(
     config.photonBounceProbability = photonBounceProbability;
     config.photonBounceEnergyMultipler = photonBounceEnergyMultipler;
     
-    SceneConfig_initGenerator(&config, generatorSeed);
+    RandomGenerator_seed(&config.generator, generatorSeed);
     
     /// choose a random light and direction
-    int whichLight = SceneConfig_randomInt(&config) % numLights;
+    int whichLight = RandomGenerator_randomInt(&config.generator) % numLights;
     struct PovrayLightSourceData light = PovrayLightSourceData_fromData(&lightData[kPovrayLightSourceStride * whichLight]);
     
     bool photonStored = false;
     
     while (!photonStored) {
-        float u = SceneConfig_randomNormalizedFloat(&config), v = SceneConfig_randomNormalizedFloat(&config);
+        float u = RandomGenerator_randomNormalizedFloat(&config.generator);
+        float v = RandomGenerator_randomNormalizedFloat(&config.generator);
         
         float3 rayOrigin = light.position;
         float3 rayDirection = uniformSampleSphere(u, v).xyz;
@@ -295,6 +298,162 @@ kernel void raytrace_one_ray_hashgrid(
     if (bestIntersection.intersected) {
         __global float * photon_indices = &photon_index_array[threadId * maxNumPhotonsToGather];
         energy = computeOutputEnergyForHitWithPhotonMap(brdf, bestIntersection, &map, maxNumPhotonsToGather, maxPhotonGatherDistance, -bestIntersection.rayDirection, photon_indices);
+    }
+    
+    write_imagef(image_output, (int2) {px, py}, (float4) {
+        min(energy.x, 1.0f),
+        min(energy.y, 1.0f),
+        min(energy.z, 1.0f),
+        1.0f
+    });
+}
+
+/// NOTE: Instanced over every photon
+///
+kernel void countPhotonsInTile(
+    global const float * photons,
+    const int photons_size,
+    
+    global const float * tiles,
+    const int tiles_size,
+    
+    const float photonEffectRadius,
+    
+    volatile global int * photonCount // a "tiles_size" number of photon counts
+) {
+
+    int threadId = (int) get_global_id(0);
+    if (threadId >= photons_size) {
+        return;
+    }
+
+    size_t photonIdx = threadId;
+    struct JensenPhoton photon = JensenPhoton_fromData(photons, photonIdx);
+
+    for (int tileItr = 0; tileItr < tiles_size; tileItr++) {
+        struct Tile tile;
+        Tile_fromData(&tile, tiles, tileItr);
+    
+        if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
+            atomic_add(photonCount + tileItr, 1);
+        }
+    }
+}
+
+/// NOTE: Instanced over every photon
+///
+kernel void copyPhotonsIntoTile(
+    global const float * photons,
+    const int photons_size,
+    
+    global const float * tiles,
+    const int tiles_size,
+    
+    const float photonEffectRadius,
+    const global int * photonCount, // a "tiles_size" number of photon counts
+    
+    volatile global int * nextPhotonIndex,
+    global float * tilePhotons, // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
+    const global int * tilePhotonStarts // points to the starts in "tilePhotons" (there are "tiles_size" of these)
+) {
+
+    int threadId = (int) get_global_id(0);
+    if (threadId >= photons_size) {
+        return;
+    }
+
+    size_t photonIdx = threadId;
+    struct JensenPhoton photon = JensenPhoton_fromData(photons, photonIdx);
+
+    for (int tileItr = 0; tileItr < tiles_size; tileItr++) {
+        struct Tile tile;
+        Tile_fromData(&tile, tiles, tileItr);
+    
+        if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
+            int tilePhotonIdx = atomic_add(nextPhotonIndex + tileItr, 1);
+            JensenPhoton_setData(&photon, &tilePhotons[tilePhotonStarts[tileItr]], tilePhotonIdx);
+        }
+    }
+}
+
+/// NOTE: called over imageWidth * imageHeight pixels
+///
+kernel void raytrace_one_ray_tiled(
+    /// input
+    const float3 camera_location,
+    const float3 camera_up,
+    const float3 camera_right,
+    const float3 camera_forward,
+    
+    const unsigned int brdf, // one of (enum BRDFType)
+    const unsigned int generatorSeed,
+    
+    __global float * sphereData,
+    const unsigned int numSpheres,
+
+    __global float * planeData,
+    const unsigned int numPlanes,
+    
+    __global float * lightData,
+    const unsigned int numLights,
+    
+    ///
+    const int tileWidth,
+    const int tileHeight,
+    const float photonEffectRadius,
+    const float photonSampleRate,
+    const global float * tilePhotons, // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
+    const global int * tilePhotonCount, // a "tiles_size" number of photon counts
+    const global int * tilePhotonStarts, // points to the starts in "tilePhotons" (there are "tiles_size" of these)
+    
+    /// output
+    __write_only image2d_t image_output,
+    const unsigned int imageWidth,
+    const unsigned int imageHeight
+    ) {
+    
+    unsigned int threadId = (unsigned int) get_global_id(0);
+    if (threadId >= imageWidth * imageHeight) {
+        return;
+    }
+       
+    /// Create the ray for this given pixel
+    int px = threadId % imageWidth;
+    int py = threadId / imageWidth;
+    
+    float3 rayOrigin = camera_location;
+    float3 rayDirection = normalize(camera_forward - 0.5f*camera_up - 0.5f*camera_right
+        + camera_right * ((0.5f+(float)px)/(float)imageWidth)
+        + camera_up * ((0.5f+(float)py)/(float)imageHeight));
+    
+    struct SceneConfig scene;
+    scene.brdf = brdf;
+    scene.sphereData = sphereData;
+    scene.numSpheres = numSpheres;
+    scene.planeData = planeData;
+    scene.numPlanes = numPlanes;
+    scene.lightData = lightData;
+    scene.numLights = numLights;
+    
+    RandomGenerator_seed(&scene.generator, generatorSeed);
+    
+    struct RayIntersectionResult bestIntersection = SceneConfig_findClosestIntersection(&scene, rayOrigin, rayDirection);
+    
+    RGBf energy = (RGBf) {0, 0, 0};
+    /// Calculate color
+    if (bestIntersection.intersected) {
+    
+        struct PhotonTiler tiler;
+        
+        tiler.tileWidth = tileWidth;
+        tiler.tileHeight = tileHeight;
+        tiler.photonEffectRadius = photonEffectRadius;
+        tiler.photonSampleRate = photonSampleRate;
+        tiler.tilePhotons = tilePhotons;
+        tiler.tilePhotonCount = tilePhotonCount;
+        tiler.tilePhotonStarts = tilePhotonStarts;
+        
+        energy = PhotonTiler_computeOutputEnergyForHit(&tiler, &scene.generator, imageWidth, imageHeight, px, py, brdf, &bestIntersection);
     }
     
     write_imagef(image_output, (int2) {px, py}, (float4) {

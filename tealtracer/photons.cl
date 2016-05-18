@@ -23,6 +23,8 @@ struct JensenPhoton {
     RGBf energy;
 };
 
+__constant const unsigned int kJensenPhoton_floatStride = 9;
+
 struct JensenPhoton JensenPhoton_fromData(
     global const float * photon_data,
     int whichPhoton);
@@ -40,7 +42,7 @@ struct JensenPhoton JensenPhoton_fromData(
  
     struct JensenPhoton photon;
     
-    global const float * photon_floats_start = &(photon_data[whichPhoton * 9]);
+    global const float * photon_floats_start = &(photon_data[whichPhoton * kJensenPhoton_floatStride]);
     
     photon.position = (float3) {
         photon_floats_start[0],
@@ -151,7 +153,7 @@ void processEmittedPhoton(
         photon.incomingDirection = rayDirection;
         photon.energy = energy;
         
-        float value = SceneConfig_randomNormalizedFloat(config);
+        float value = RandomGenerator_randomNormalizedFloat(&config->generator);
 
         if (value < config->photonBounceProbability) {
 

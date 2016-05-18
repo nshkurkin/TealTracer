@@ -9,6 +9,7 @@
 #ifndef photon_tiling_h
 #define photon_tiling_h
 
+#include "random.cl"
 #include "photons.cl"
 
 /// Data structures
@@ -91,72 +92,151 @@ float Plane_distanceToPoint(
     return dot(plane->normal, point - plane->distance * plane->normal);
 }
 
-/// NOTE: Instanced over every photon
 ///
-kernel void countPhotonsInTile(
-    global const float * photons,
-    const int photons_size,
+struct PhotonTiler {
+    int tileWidth;
+    int tileHeight;
+    float photonEffectRadius;
+    float photonSampleRate;
+    const global float * tilePhotons; // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
+    const global int * tilePhotonCount; // a "tiles_size" number of photon counts
+    const global int * tilePhotonStarts; // points to the starts in "tilePhotons" (there are "tiles_size" of these)
+};
+
+///
+int PhotonTiler_tileIndexForPixel(
+    struct PhotonTiler * photonTiler,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py
+);
+///
+const global float * PhotonTiler_getTilePhotonArrayInfoForPixel(
+    struct PhotonTiler * photonTiler,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py,
     
-    global const float * tiles,
-    const int tiles_size,
+    ///
+    int * tilePhotonCount
+);
+
+///
+int bernoulliStepper(
+    struct RandomGenerator * generator,
+    float x
+);
+
+///
+RGBf PhotonTiler_computeOutputEnergyForHit(
+    struct PhotonTiler * tiler,
+    struct RandomGenerator * generator,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py,
     
-    const float photonEffectRadius,
-    
-    volatile global int * photonCount // a "tiles_size" number of photon counts
+    enum BRDFType brdf,
+    struct RayIntersectionResult * hitResult
+);
+
+
+///
+int PhotonTiler_tileIndexForPixel(
+    struct PhotonTiler * photonTiler,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py
 ) {
-
-    unsigned int threadId = (unsigned int) get_global_id(0);
-    if (threadId >= photons_size) {
-        return;
-    }
-
-    size_t photonIdx = threadId;
-    struct JensenPhoton photon = JensenPhoton_fromData(photons, photonIdx);
-
-    for (size_t tileItr = 0; tileItr < tiles_size; tileItr++) {
-        struct Tile tile;
-        Tile_fromData(&tile, tiles, tileItr);
-    
-        if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
-            atomic_add(photonCount + tileItr, 1);
-        }
-    }
+    return (px/photonTiler->tileWidth) + (py/photonTiler->tileHeight)*(imageWidth/photonTiler->tileWidth);
 }
 
-/// NOTE: Instanced over every photon
 ///
-kernel void copyPhotonsIntoTile(
-    global const float * photons,
-    const int photons_size,
+const global float * PhotonTiler_getTilePhotonArrayInfoForPixel(
+    struct PhotonTiler * photonTiler,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py,
     
-    global const float * tiles,
-    const int tiles_size,
+    ///
+    int * tilePhotonCount
+) {
     
-    const float photonEffectRadius,
-    const global int * photonCount, // a "tiles_size" number of photon counts
+    int tileIndex = PhotonTiler_tileIndexForPixel(photonTiler, imageWidth, imageHeight, px, py);
     
-    volatile global int * nextPhotonIndex,
-    global float * tilePhotons, // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
-    const global int * tilePhotonStarts // points to the starts in "tilePhotons" (there are "tiles_size" of these)
+    *tilePhotonCount = photonTiler->tilePhotonCount[tileIndex];
+    return &photonTiler->tilePhotons[photonTiler->tilePhotonStarts[tileIndex] * kJensenPhoton_floatStride];
+}
+
+///
+int bernoulliStepper(
+    struct RandomGenerator * generator,
+    float x
+) {
+    float successProbability = 1.0f/x;
+    int numberOfTrials = 1;
+    
+    while (RandomGenerator_randomNormalizedFloat(generator) > successProbability) {
+        numberOfTrials++;
+    }
+    
+    return numberOfTrials;
+}
+
+///
+RGBf PhotonTiler_computeOutputEnergyForHit(
+    struct PhotonTiler * tiler,
+    struct RandomGenerator * generator,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py,
+    
+    enum BRDFType brdf,
+    struct RayIntersectionResult * hitResult
 ) {
 
-    unsigned int threadId = (unsigned int) get_global_id(0);
-    if (threadId >= photons_size) {
-        return;
-    }
-
-    size_t photonIdx = threadId;
-    struct JensenPhoton photon = JensenPhoton_fromData(photons, photonIdx);
-
-    for (size_t tileItr = 0; tileItr < tiles_size; tileItr++) {
-        struct Tile tile;
-        Tile_fromData(&tile, tiles, tileItr);
+    RGBf output = (RGBf) {0,0,0};
+    struct PovrayPigment pigment;
+    struct PovrayFinish finish;
     
-        if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
-            int tilePhotonIdx = atomic_add(nextPhotonIndex + tileItr, 1);
-            JensenPhoton_setData(&photon, &tilePhotons[tilePhotonStarts[tileItr]], tilePhotonIdx);
+    switch (hitResult->type) {
+        case SphereObjectType: {
+            struct PovraySphereData data = PovraySphereData_fromData(hitResult->dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        }
+        case PlaneObjectType: {
+            struct PovrayPlaneData data = PovrayPlaneData_fromData(hitResult->dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        };
+        default: {
+            break;
         }
     }
+    
+    int photonCount;
+    const global float * photons = PhotonTiler_getTilePhotonArrayInfoForPixel(tiler, imageWidth, imageHeight, px, py, &photonCount);
+
+    float3 intersection = RayIntersectionResult_locationOfIntersection(hitResult);
+    
+    int i = bernoulliStepper(generator, tiler->photonSampleRate) - 1;
+    int numPhotonsSampled = 0;
+    float maxDistanceSqd = -1.0f;
+    
+    /// Sample the collection of photons
+    while (i < photonCount) {
+        struct JensenPhoton photon = JensenPhoton_fromData(photons, i);
+        float distanceSqrd = dot(photon.position - intersection, photon.position - intersection);
+        if (/*hitTest.element->id() == photon.flags.geometryIndex
+         &&*/ distanceSqrd <= tiler->photonEffectRadius * tiler->photonEffectRadius) {
+            ++numPhotonsSampled;
+            output += computeOutputEnergyForBRDF(brdf, pigment, finish, photon.energy, -photon.incomingDirection, -hitResult->rayDirection, hitResult->surfaceNormal);
+            maxDistanceSqd = max(maxDistanceSqd, distanceSqrd);
+        }
+        i += bernoulliStepper(generator, tiler->photonSampleRate);
+    }
+    
+    if (numPhotonsSampled > 0) {
+        output = output * (float) (1.0f/(M_PI * maxDistanceSqd));
+    }
+    
+    return output;
 }
 
 #endif /* photon_tiling_h */
