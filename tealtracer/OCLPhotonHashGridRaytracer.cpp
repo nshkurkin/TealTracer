@@ -43,7 +43,7 @@ void OCLPhotonHashGridRaytracer::start() {
         TSLoggerLog(std::cout, "Done mapping photons: ", tf - t0);
         
     }, [=]() {
-        this->enqueRayTrace();
+        this->enqueueRaytrace();
     }));
 }
 
@@ -121,8 +121,8 @@ OCLPhotonHashGridRaytracer::ocl_emitPhotons() {
         (cl_int) config.raysPerLight
     );
 
-    computeEngine.executeKernel("emit_photon", 0, config.raysPerLight);
-    computeEngine.finish(0);
+    computeEngine.executeKernel("emit_photon", activeDevice, std::vector<size_t> {(size_t) config.raysPerLight});
+    computeEngine.finish(activeDevice);
     
     double endTime = glfwGetTime();
     TSLoggerLog(std::cout, "elapsed emit time: ", endTime - startTime);
@@ -135,11 +135,11 @@ OCLPhotonHashGridRaytracer::ocl_sortPhotons() {
     double startTime = glfwGetTime();
     
     std::vector<CLPackedPhoton> photons(config.raysPerLight, CLPackedPhoton());
-    computeEngine.readBuffer("photon_data", 0, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
+    computeEngine.readBuffer("photon_data", activeDevice, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
     std::sort(photons.begin(), photons.end(), [&](const CLPackedPhoton & a, const CLPackedPhoton & b) {
         return photonHashmap->getCellIndexHash(Eigen::Vector3f(a.pos_x, a.pos_y, a.pos_z)) < photonHashmap->getCellIndexHash(Eigen::Vector3f(b.pos_x, b.pos_y, b.pos_z));
     });
-    computeEngine.writeBuffer("photon_data", 0, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
+    computeEngine.writeBuffer("photon_data", activeDevice, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
     ///
     
     double endTime = glfwGetTime();
@@ -172,8 +172,8 @@ OCLPhotonHashGridRaytracer::ocl_mapPhotonsToGrid() {
         computeEngine.getBuffer("map_gridFirstPhotonIndices")
     );
 
-    computeEngine.executeKernel("photonmap_mapPhotonToGrid", 0, config.raysPerLight);
-    computeEngine.finish(0);
+    computeEngine.executeKernel("photonmap_mapPhotonToGrid", activeDevice, std::vector<size_t> {(size_t) config.raysPerLight});
+    computeEngine.finish(activeDevice);
     
     double endTime = glfwGetTime();
     TSLoggerLog(std::cout, "elapsed toGrid time: ", endTime - startTime);
@@ -192,7 +192,7 @@ OCLPhotonHashGridRaytracer::ocl_computeGridFirstIndices() {
         computeEngine.getBuffer("map_gridFirstPhotonIndices")
     );
     
-    computeEngine.executeKernel("photonmap_initGridFirstPhoton", 0, photonHashmap->xdim * photonHashmap->ydim * photonHashmap->zdim);
+    computeEngine.executeKernel("photonmap_initGridFirstPhoton", activeDevice, std::vector<size_t> { (size_t) photonHashmap->xdim, (size_t) photonHashmap->ydim, (size_t) photonHashmap->zdim});
 
     computeEngine.setKernelArgs("photonmap_computeGridFirstPhoton",
         computeEngine.getBuffer("photon_data"),
@@ -202,8 +202,8 @@ OCLPhotonHashGridRaytracer::ocl_computeGridFirstIndices() {
         computeEngine.getBuffer("map_gridFirstPhotonIndices")
     );
 
-    computeEngine.executeKernel("photonmap_computeGridFirstPhoton", 0, config.raysPerLight);
-    computeEngine.finish(0);
+    computeEngine.executeKernel("photonmap_computeGridFirstPhoton", activeDevice, std::vector<size_t> { (size_t) config.raysPerLight});
+    computeEngine.finish(activeDevice);
     
     double endTime = glfwGetTime();
     TSLoggerLog(std::cout, "elapsed first index time: ", endTime - startTime);
@@ -266,8 +266,8 @@ OCLPhotonHashGridRaytracer::ocl_raytraceRays() {
        (cl_uint) imageHeight
     );
     
-    computeEngine.executeKernel("raytrace_one_ray_hashgrid", 0, rayCount);
-    computeEngine.finish(0);
+    computeEngine.executeKernel("raytrace_one_ray_hashgrid", activeDevice, std::vector<size_t> { (size_t) rayCount});
+    computeEngine.finish(activeDevice);
     
-    computeEngine.readImage("image_output", 0, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);
+    computeEngine.readImage("image_output", activeDevice, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);
 }

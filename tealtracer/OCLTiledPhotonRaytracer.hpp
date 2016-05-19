@@ -22,6 +22,8 @@ public:
     
     ///
     virtual void start();
+    ///
+    virtual void enqueueRaytrace();
     
     packed_struct PackedPlane {
         cl_float plane_normal_x, plane_normal_y, plane_normal_z;
@@ -49,6 +51,7 @@ public:
     
 private:
 
+    CLPovrayCameraData cachedCameraData;
     std::shared_ptr<PhotonTiler> photonTiler;
 
 };

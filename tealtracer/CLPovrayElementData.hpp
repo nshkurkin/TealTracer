@@ -57,6 +57,14 @@ struct CLPovrayCameraData {
     
     CLPovrayCameraData() : location(0,0,0), up(0,1,0), right(1,0,0), lookAt(0,0,-1) {}
     CLPovrayCameraData(const PovrayCameraData & data) : location(data.location.x(), data.location.y(), data.location.z()), up(data.up.x(), data.up.y(), data.up.z()), right(data.right.x(), data.right.y(), data.right.z()), lookAt(data.lookAt.x(), data.lookAt.y(), data.lookAt.z()) {}
+    
+    FrenetFrame basisVectors() const {
+        return FrenetFrame(Eigen::Vector3f(lookAt.x, lookAt.y, lookAt.z), Eigen::Vector3f(up.x, up.y, up.z) , Eigen::Vector3f(right.x, right.y, right.z));
+    }
+    
+    Eigen::Vector3f getLocation() const {
+        return Eigen::Vector3f(location.x, location.y, location.z);
+    }
 };
 
 ///

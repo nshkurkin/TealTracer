@@ -53,8 +53,8 @@ OCLMonteCarloRaytracer::ocl_raytraceRays() {
         (cl_uint) imageHeight
     );
     
-    computeEngine.executeKernel("raytrace_one_ray_direct", 0, rayCount);
-    computeEngine.finish(0);
+    computeEngine.executeKernel("raytrace_one_ray_direct", activeDevice, std::vector<size_t> {(size_t) rayCount});
+    computeEngine.finish(activeDevice);
     
-    computeEngine.readImage("image_output", 0, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);
+    computeEngine.readImage("image_output", activeDevice, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);
 }

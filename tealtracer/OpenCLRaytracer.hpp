@@ -19,6 +19,7 @@
 class OpenCLRaytracer : public Raytracer {
 public:
     
+    unsigned int activeDevice;
     ///
     OpenCLRaytracer();
 
@@ -31,7 +32,7 @@ public:
     virtual void ocl_pushSceneData();
     
     ///
-    void enqueRayTrace();
+    virtual void enqueueRaytrace();
     virtual void ocl_raytraceRays() = 0;
 
 protected:

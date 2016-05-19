@@ -21,6 +21,7 @@ OpenCLRaytracer::OpenCLRaytracer() : Raytracer() {
     useGPU = false;
     
     numSpheres = numPlanes = numLights = 0;
+    activeDevice = 0;
 }
 
 ///
@@ -38,13 +39,13 @@ OpenCLRaytracer::start() {
     jobPool.emplaceJob(JobPool::WorkItem("[GPU] setup ray trace", [=](){
         ocl_raytraceSetup();
     }, [=]() {
-        this->enqueRayTrace();
+        this->enqueueRaytrace();
     }));
 }
 
 ///
 void
-OpenCLRaytracer::enqueRayTrace() {
+OpenCLRaytracer::enqueueRaytrace() {
     jobPool.emplaceJob(JobPool::WorkItem("[GPU] raytrace", [=](){
         auto startTime = glfwGetTime();
         this->ocl_raytraceRays();
@@ -54,7 +55,7 @@ OpenCLRaytracer::enqueRayTrace() {
         rayTraceElapsedTime = lastRayTraceTime;
         framesRendered++;
         this->target.outputTexture->setNeedsUpdate();
-        this->enqueRayTrace();
+        this->enqueueRaytrace();
     }));
 }
 
@@ -106,21 +107,21 @@ OpenCLRaytracer::ocl_pushSceneData() {
             computeEngine.createBuffer("spheres", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * sphereData.size());
         }
     
-        computeEngine.writeBuffer("spheres", 0, 0, sizeof(cl_float) * sphereData.size(), &sphereData[0]);
+        computeEngine.writeBuffer("spheres", activeDevice, 0, sizeof(cl_float) * sphereData.size(), &sphereData[0]);
     }
     if (planes.size() > 0) {
          if (computeEngine.getBuffer("planes") == nullptr) {
             computeEngine.createBuffer("planes", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * planeData.size());
         }
     
-        computeEngine.writeBuffer("planes", 0, 0, sizeof(cl_float) * planeData.size(), &planeData[0]);
+        computeEngine.writeBuffer("planes", activeDevice, 0, sizeof(cl_float) * planeData.size(), &planeData[0]);
     }
     if (lights.size() > 0) {
         if (computeEngine.getBuffer("lights") == nullptr) {
             computeEngine.createBuffer("lights", ComputeEngine::MemFlags::MEM_READ_ONLY, sizeof(cl_float) * lightData.size());
         }
     
-        computeEngine.writeBuffer("lights", 0, 0, sizeof(cl_float) * lightData.size(), &lightData[0]);
+        computeEngine.writeBuffer("lights", activeDevice, 0, sizeof(cl_float) * lightData.size(), &lightData[0]);
     }
 }
 

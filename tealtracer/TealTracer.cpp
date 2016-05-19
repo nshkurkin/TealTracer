@@ -98,6 +98,14 @@ TealTracer::run(const std::vector<std::string> & args) {
     leftRaytracer_ = availableRaytracers[leftRaytracerName];
     rightRaytracer_ = availableRaytracers[rightRaytracerName];
     
+    /// Assuming we have two GPUs availabled, we can allow the OpenCL raytracers
+    ///     to work independently of one another.
+    if (dynamic_cast<OpenCLRaytracer *>(leftRaytracer_.get()) != nullptr
+     && dynamic_cast<OpenCLRaytracer *>(rightRaytracer_.get()) != nullptr) {
+        dynamic_cast<OpenCLRaytracer *>(leftRaytracer_.get())->activeDevice = 0;
+        dynamic_cast<OpenCLRaytracer *>(rightRaytracer_.get())->activeDevice = 1;
+    }
+    
     leftRaytracer_->config.loadFromJSON(config[leftRaytracerConfigName]);
     rightRaytracer_->config.loadFromJSON(config[rightRaytracerConfigName]);
     

@@ -20,13 +20,13 @@
     
     
     "LeftRaytracer" : {
-        "name" : "OCLTiledPhotonRaytracer",
-        "config" : "OCLTiledPhotonRaytracer_MED_01"
+        "name" : "OCLMonteCarloRaytracer",
+        "config" : "OCLMonteCarloRaytracer_MED_01"
     },
     
     "RightRaytracer" : {
-        "name" : "SCTilePhotonRaytracer",
-        "config" : "SingleCore_Tiled_MED_01"
+        "name" : "OCLTiledPhotonRaytracer",
+        "config" : "OCLTiledPhotonRaytracer_MED_01"
     },
     
     
@@ -181,8 +181,8 @@
         "photonBounceEnergyMultipler" : 1.00,
         
         "Tile_properties" : {
-            "tileWidth" : 20,
-            "tileHeight" : 20,
+            "tileWidth" : 40,
+            "tileHeight" : 40,
             "photonEffectRadius" : 1.0,
             "photonSampleRate" : 1.0
         }

@@ -28,8 +28,15 @@ OCLTiledPhotonRaytracer::start() {
         TSLoggerLog(std::cout, "Done emitting photons: ", tf - t0);
         
     }, [=]() {
-        this->enqueRayTrace();
+        this->enqueueRaytrace();
     }));
+}
+
+///
+void
+OCLTiledPhotonRaytracer::enqueueRaytrace() {
+    cachedCameraData = config.scene->camera()->data();
+    OpenCLRaytracer::enqueueRaytrace();
 }
 
 ///
@@ -70,15 +77,6 @@ OCLTiledPhotonRaytracer::ocl_raytraceSetup() {
     computeEngine.createKernel("raytrace_prog", "copyPhotonsIntoTile");
 
     computeEngine.createBuffer("photons", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(CLPackedPhoton) * config.raysPerLight);
-
-//        size_t packedPhotonSize = sizeof(CLPackedPhoton);
-//        size_t clFloatSize = sizeof(cl_float);
-//        size_t numFloatsInPhoton = packedPhotonSize / clFloatSize;
-//        size_t reportedNumberOfFloatsInPhoton = CLPackedPhoton_kNumFloats;
-//    
-//        size_t packedTileSize = sizeof(PackedTile);
-//        size_t numFloatsInTile = sizeof(PackedTile) / sizeof(cl_float);
-//        size_t expectedNumerOfFloats = 4 * 4;
     
     /// Now generate known tile buffers
     photonTiler->generateTiles(outputImage.width, outputImage.height, config.tile_width, config.tile_height, config.scene->camera()->location(), config.scene->camera()->basisVectors());
@@ -116,8 +114,8 @@ OCLTiledPhotonRaytracer::ocl_emitPhotons() {
         (cl_int) config.raysPerLight
     );
 
-    computeEngine.executeKernel("emit_photon", 0, std::vector<size_t> {(size_t) config.raysPerLight});
-    computeEngine.finish(0);
+    computeEngine.executeKernel("emit_photon", activeDevice, std::vector<size_t> {(size_t) config.raysPerLight});
+    computeEngine.finish(activeDevice);
     
     double endTime = glfwGetTime();
     TSLoggerLog(std::cout, "elapsed emit time: ", endTime - startTime);
@@ -129,7 +127,7 @@ OCLTiledPhotonRaytracer::ocl_buildAndFillTiles() {
     
     std::vector<cl_int> allZeros(photonTiler->tiles.size(), 0);
     /// Generate tiles
-    photonTiler->generateTiles(outputImage.width, outputImage.height, config.tile_width, config.tile_height, config.scene->camera()->location(), config.scene->camera()->basisVectors());
+    photonTiler->generateTiles(outputImage.width, outputImage.height, config.tile_width, config.tile_height,cachedCameraData.getLocation(), cachedCameraData.basisVectors());
     
     std::vector<cl_float> tileData(photonTiler->tiles.size() * sizeof(PackedTile)/sizeof(cl_float), 0.0f);
     struct PackedTile tile;
@@ -137,8 +135,8 @@ OCLTiledPhotonRaytracer::ocl_buildAndFillTiles() {
         tile.fromTile(photonTiler->tiles[tileItr]);
         memcpy(&tileData[tileItr * sizeof(PackedTile)/sizeof(cl_float)], &tile, sizeof(PackedTile));
     }
-    computeEngine.writeBuffer("tiles", 0, 0, sizeof(PackedTile) * photonTiler->tiles.size(), &tileData[0]);
-    computeEngine.writeBuffer("tilePhotonCount", 0, 0, sizeof(cl_int) * photonTiler->tiles.size(), &allZeros[0]);
+    computeEngine.writeBuffer("tiles", activeDevice, 0, sizeof(PackedTile) * photonTiler->tiles.size(), &tileData[0]);
+    computeEngine.writeBuffer("tilePhotonCount", activeDevice, 0, sizeof(cl_int) * photonTiler->tiles.size(), &allZeros[0]);
     
     /// Counting pass
     computeEngine.setKernelArgs("countPhotonsInTile",
@@ -153,24 +151,24 @@ OCLTiledPhotonRaytracer::ocl_buildAndFillTiles() {
         computeEngine.getBuffer("tilePhotonCount")
     );
     
-    computeEngine.executeKernel("countPhotonsInTile", 0, std::vector<size_t> {(size_t) config.raysPerLight});
+    computeEngine.executeKernel("countPhotonsInTile", activeDevice, std::vector<size_t> {(size_t) config.raysPerLight});
     
     /// Allocation pass
     /// Now count the photons and allocate enough space for the photons
     std::vector<cl_int> tilePhotonStarts(photonTiler->tiles.size(), 0);
     std::vector<cl_int> tilePhotonCount(photonTiler->tiles.size(), 0);
     
-    computeEngine.readBuffer("tilePhotonCount", 0, 0, sizeof(cl_int) * photonTiler->tiles.size(), &tilePhotonCount[0]);
+    computeEngine.readBuffer("tilePhotonCount", activeDevice, 0, sizeof(cl_int) * photonTiler->tiles.size(), &tilePhotonCount[0]);
     int accumStart = 0;
     for (size_t tileItr = 0; tileItr < photonTiler->tiles.size(); tileItr++) {
         tilePhotonStarts[tileItr] = accumStart;
         accumStart += tilePhotonCount[tileItr];
     }
-    computeEngine.writeBuffer("tilePhotonStarts", 0, 0, sizeof(cl_int) * photonTiler->tiles.size(), &tilePhotonStarts[0]);
+    computeEngine.writeBuffer("tilePhotonStarts", activeDevice, 0, sizeof(cl_int) * photonTiler->tiles.size(), &tilePhotonStarts[0]);
     computeEngine.createBuffer("tilePhotons", ComputeEngine::MemFlags::MEM_READ_ONLY, accumStart * sizeof(CLPackedPhoton));
     
     /// Copy Pass
-    computeEngine.writeBuffer("nextPhotonIndex", 0, 0, sizeof(cl_int) * allZeros.size(), &allZeros[0]);
+    computeEngine.writeBuffer("nextPhotonIndex", activeDevice, 0, sizeof(cl_int) * allZeros.size(), &allZeros[0]);
     computeEngine.setKernelArgs("copyPhotonsIntoTile",
         computeEngine.getBuffer("photons"),
         (cl_int) config.raysPerLight,
@@ -186,8 +184,8 @@ OCLTiledPhotonRaytracer::ocl_buildAndFillTiles() {
         computeEngine.getBuffer("tilePhotonStarts")
     );
     
-    computeEngine.executeKernel("copyPhotonsIntoTile", 0, std::vector<size_t> {(size_t) config.raysPerLight});
-//    computeEngine.finish(0);
+    computeEngine.executeKernel("copyPhotonsIntoTile", activeDevice, std::vector<size_t> {(size_t) config.raysPerLight});
+    computeEngine.finish(activeDevice);
 }
 
 ///
@@ -200,15 +198,12 @@ OCLTiledPhotonRaytracer::ocl_raytraceRays() {
     
     double fillTf = glfwGetTime();
     double tileT0 = glfwGetTime();
-    
-    auto camera = config.scene->camera();
-    auto cameraData = CLPovrayCameraData(camera->data());
 
     computeEngine.setKernelArgs("raytrace_one_ray_tiled",
-        cameraData.location,
-        cameraData.up,
-        cameraData.right,
-        cameraData.lookAt,
+        cachedCameraData.location,
+        cachedCameraData.up,
+        cachedCameraData.right,
+        cachedCameraData.lookAt,
        
         (cl_uint) config.brdfType,
         (cl_uint) generator.randUInt(),
@@ -237,12 +232,12 @@ OCLTiledPhotonRaytracer::ocl_raytraceRays() {
         (cl_uint) outputImage.height
     );
     
-    computeEngine.executeKernel("raytrace_one_ray_tiled", 0, {(size_t) outputImage.width, (size_t) outputImage.height});
-//    computeEngine.finish(0);
+    computeEngine.executeKernel("raytrace_one_ray_tiled", activeDevice, {(size_t) outputImage.width, (size_t) outputImage.height});
+    computeEngine.finish(activeDevice);
     
     double tileTf = glfwGetTime();
     TSLoggerLog(std::cout, "build and fill time: ", fillTf - fillT0);
     TSLoggerLog(std::cout, "render time: ", tileTf - tileT0);
     
-    computeEngine.readImage("image_output", 0, 0, 0, 0, outputImage.width, outputImage.height, 1, 0, 0, outputImage.dataPtr());
+    computeEngine.readImage("image_output", activeDevice, 0, 0, 0, outputImage.width, outputImage.height, 1, 0, 0, outputImage.dataPtr());
 }
