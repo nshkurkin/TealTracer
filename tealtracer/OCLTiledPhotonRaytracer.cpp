@@ -206,7 +206,6 @@ OCLTiledPhotonRaytracer::ocl_raytraceRays() {
         cachedCameraData.lookAt,
        
         (cl_uint) config.brdfType,
-        (cl_uint) generator.randUInt(),
         
         computeEngine.getBuffer("spheres"),
         (cl_uint) numSpheres,

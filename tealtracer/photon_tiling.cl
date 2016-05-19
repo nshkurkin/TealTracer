@@ -120,15 +120,8 @@ const global float * PhotonTiler_getTilePhotonArrayInfoForPixel(
 );
 
 ///
-int bernoulliStepper(
-    struct RandomGenerator * generator,
-    float x
-);
-
-///
 RGBf PhotonTiler_computeOutputEnergyForHit(
     struct PhotonTiler * tiler,
-    struct RandomGenerator * generator,
     const int imageWidth, const int imageHeight,
     const int px, const int py,
     
@@ -163,24 +156,8 @@ const global float * PhotonTiler_getTilePhotonArrayInfoForPixel(
 }
 
 ///
-int bernoulliStepper(
-    struct RandomGenerator * generator,
-    float x
-) {
-    float successProbability = 1.0f/x;
-    int numberOfTrials = 1;
-    
-//    while (RandomGenerator_randomNormalizedFloat(generator) > successProbability) {
-//        numberOfTrials++;
-//    }
-    
-    return numberOfTrials * x;
-}
-
-///
 RGBf PhotonTiler_computeOutputEnergyForHit(
     struct PhotonTiler * tiler,
-    struct RandomGenerator * generator,
     const int imageWidth, const int imageHeight,
     const int px, const int py,
     
@@ -216,7 +193,7 @@ RGBf PhotonTiler_computeOutputEnergyForHit(
 
     float3 intersection = RayIntersectionResult_locationOfIntersection(hitResult);
     
-    int i = bernoulliStepper(generator, tiler->photonSampleRate) - 1;
+    int i = 0;
     int numPhotonsSampled = 0;
     float maxDistanceSqd = -1.0f;
     
@@ -229,7 +206,7 @@ RGBf PhotonTiler_computeOutputEnergyForHit(
             output += computeOutputEnergyForBRDF(brdf, pigment, finish, photon.energy, -photon.incomingDirection, -hitResult->rayDirection, hitResult->surfaceNormal);
             maxDistanceSqd = max(maxDistanceSqd, distanceSqrd);
         }
-        i += bernoulliStepper(generator, tiler->photonSampleRate);
+        i += tiler->photonSampleRate;
     }
     
     if (numPhotonsSampled > 0) {
@@ -238,5 +215,90 @@ RGBf PhotonTiler_computeOutputEnergyForHit(
     
     return output;
 }
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+///
+struct PhotonTilerSingle {
+    int tileX;
+    int tileY;
+    int tileWidth;
+    int tileHeight;
+    float photonEffectRadius;
+    float photonSampleRate;
+    const global float * tilePhotons; // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
+    int tilePhotonCount; // a "tiles_size" number of photon counts
+};
+
+///
+RGBf PhotonTilerSingle_computeOutputEnergyForHit(
+    struct PhotonTilerSingle * tiler,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py,
+    
+    enum BRDFType brdf,
+    struct RayIntersectionResult * hitResult
+);
+
+///
+RGBf PhotonTilerSingle_computeOutputEnergyForHit(
+    struct PhotonTilerSingle * tiler,
+    const int imageWidth, const int imageHeight,
+    const int px, const int py,
+    
+    enum BRDFType brdf,
+    struct RayIntersectionResult * hitResult
+) {
+
+    RGBf output = (RGBf) {0,0,0};
+    struct PovrayPigment pigment;
+    struct PovrayFinish finish;
+    
+    switch (hitResult->type) {
+        case SphereObjectType: {
+            struct PovraySphereData data = PovraySphereData_fromData(hitResult->dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        }
+        case PlaneObjectType: {
+            struct PovrayPlaneData data = PovrayPlaneData_fromData(hitResult->dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        };
+        default: {
+            break;
+        }
+    }
+    
+    int photonCount = tiler->tilePhotonCount;
+    const global float * photons = tiler->tilePhotons;
+    float3 intersection = RayIntersectionResult_locationOfIntersection(hitResult);
+    
+    int i = 0;
+    int numPhotonsSampled = 0;
+    float maxDistanceSqd = -1.0f;
+    
+    /// Sample the collection of photons
+    while (i < photonCount) {
+        struct JensenPhoton photon = JensenPhoton_fromData(photons, i);
+        float distanceSqrd = dot(photon.position - intersection, photon.position - intersection);
+        if (distanceSqrd <= tiler->photonEffectRadius * tiler->photonEffectRadius) {
+            ++numPhotonsSampled;
+            output += computeOutputEnergyForBRDF(brdf, pigment, finish, photon.energy, -photon.incomingDirection, -hitResult->rayDirection, hitResult->surfaceNormal);
+            maxDistanceSqd = max(maxDistanceSqd, distanceSqrd);
+        }
+        i += tiler->photonSampleRate;
+    }
+    
+    if (numPhotonsSampled > 0) {
+        output = output * (float) (1.0f/(M_PI * maxDistanceSqd));
+    }
+    
+    return output;
+}
+
 
 #endif /* photon_tiling_h */
