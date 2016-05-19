@@ -59,6 +59,7 @@
 #include <OpenGL/OpenGL.h>
 #include <OpenCL/opencl.h>
 #include <iostream>
+#include <vector>
 
 #include "compute_types.hpp"
 
@@ -220,6 +221,25 @@ public:
         size_t localDim) {
     
         return executeKernel(kernelName, deviceID, &globalDim, &localDim, 1);
+    }
+    
+    bool executeKernel(
+        const char * kernelName,
+        uint deviceID,
+        std::vector<size_t> globalDims
+    ) {
+        return executeKernel(kernelName, deviceID, &globalDims[0], NULL, (uint) globalDims.size());
+    }
+    
+    bool executeKernel(
+        const char * kernelName,
+        uint deviceID,
+        std::vector<size_t> globalDims,
+        std::vector<size_t> localDims
+    ) {
+        
+        assert(globalDims.size() == localDims.size());
+        return executeKernel(kernelName, deviceID, &globalDims[0], &localDims[0], (uint) globalDims.size());
     }
     
     bool createBuffer(

@@ -412,14 +412,9 @@ kernel void raytrace_one_ray_tiled(
     const unsigned int imageHeight
     ) {
     
-    unsigned int threadId = (unsigned int) get_global_id(0);
-    if (threadId >= imageWidth * imageHeight) {
-        return;
-    }
-       
     /// Create the ray for this given pixel
-    int px = threadId % imageWidth;
-    int py = threadId / imageWidth;
+    int px = get_global_id(0);
+    int py = get_global_id(1);
     
     float3 rayOrigin = camera_location;
     float3 rayDirection = normalize(camera_forward - 0.5f*camera_up - 0.5f*camera_right

@@ -116,23 +116,11 @@ OCLTiledPhotonRaytracer::ocl_emitPhotons() {
         (cl_int) config.raysPerLight
     );
 
-    computeEngine.executeKernel("emit_photon", 0, config.raysPerLight);
+    computeEngine.executeKernel("emit_photon", 0, std::vector<size_t> {(size_t) config.raysPerLight});
     computeEngine.finish(0);
     
     double endTime = glfwGetTime();
     TSLoggerLog(std::cout, "elapsed emit time: ", endTime - startTime);
-    
-    /// Debug
-//        std::vector<CLPackedPhoton> photons(config.raysPerLight, CLPackedPhoton());
-//        computeEngine.readBuffer("photons", 0, 0, sizeof(CLPackedPhoton) * config.raysPerLight, &photons[0]);
-//        photonTiler->photons.clear();
-//        
-//        for (auto photonItr = photons.begin(); photonItr != photons.end(); photonItr++) {
-//            auto & packedPhoton = *photonItr;
-//            JensenPhoton photon = JensenPhoton(Eigen::Vector3f(packedPhoton.pos_x, packedPhoton.pos_y, packedPhoton.pos_z), Eigen::Vector3f(packedPhoton.dir_x, packedPhoton.dir_y, packedPhoton.dir_z), RGBf(packedPhoton.ene_x, packedPhoton.ene_y, packedPhoton.ene_z), false, false, 0);
-//            
-//            photonTiler->photons.push_back(photon);
-//        }
 }
 
 ///
@@ -165,7 +153,7 @@ OCLTiledPhotonRaytracer::ocl_buildAndFillTiles() {
         computeEngine.getBuffer("tilePhotonCount")
     );
     
-    computeEngine.executeKernel("countPhotonsInTile", 0, config.raysPerLight);
+    computeEngine.executeKernel("countPhotonsInTile", 0, std::vector<size_t> {(size_t) config.raysPerLight});
     
     /// Allocation pass
     /// Now count the photons and allocate enough space for the photons
@@ -198,29 +186,8 @@ OCLTiledPhotonRaytracer::ocl_buildAndFillTiles() {
         computeEngine.getBuffer("tilePhotonStarts")
     );
     
-    computeEngine.executeKernel("copyPhotonsIntoTile", 0, config.raysPerLight);
-    
-    
-    /// Debug
-//        photonTiler->buildMap(config.tile_photonEffectRadius);
-//        
-//        std::vector<CLPackedPhoton> copiedPhotons(accumStart, CLPackedPhoton());
-//        computeEngine.readBuffer("tilePhotons", 0, 0, accumStart * sizeof(CLPackedPhoton), &copiedPhotons[0]);
-//        
-//        for (int tileItr = 0; tileItr < photonTiler->tilePhotons.size(); tileItr++) {
-//            assert(photonTiler->tilePhotons[tileItr].size() == tilePhotonCount[tileItr]);
-//            for (int tilePhotonItr = 0; tilePhotonItr < photonTiler->tilePhotons[tileItr].size(); tilePhotonItr++) {
-//                auto & cpuPhoton = photonTiler->tilePhotons[tileItr][tilePhotonItr];
-//                
-//                bool foundMatchingPhoton = false;
-//                for (int i = 0; i < tilePhotonCount[tileItr] && !foundMatchingPhoton; i++) {
-//                    auto & oclPhoton = copiedPhotons[tilePhotonStarts[tileItr] + i];
-//                    foundMatchingPhoton = (Eigen::Vector3f(oclPhoton.pos_x, oclPhoton.pos_y, oclPhoton.pos_z) - cpuPhoton.position).norm() < 0.001;
-//                }
-//                
-//                assert(foundMatchingPhoton);
-//            }
-//        }
+    computeEngine.executeKernel("copyPhotonsIntoTile", 0, std::vector<size_t> {(size_t) config.raysPerLight});
+//    computeEngine.finish(0);
 }
 
 ///
@@ -270,8 +237,8 @@ OCLTiledPhotonRaytracer::ocl_raytraceRays() {
         (cl_uint) outputImage.height
     );
     
-    computeEngine.executeKernel("raytrace_one_ray_tiled", 0, outputImage.width * outputImage.height);
-    computeEngine.finish(0);
+    computeEngine.executeKernel("raytrace_one_ray_tiled", 0, {(size_t) outputImage.width, (size_t) outputImage.height});
+//    computeEngine.finish(0);
     
     double tileTf = glfwGetTime();
     TSLoggerLog(std::cout, "build and fill time: ", fillTf - fillT0);

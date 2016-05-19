@@ -21,7 +21,7 @@
     
     "LeftRaytracer" : {
         "name" : "OCLTiledPhotonRaytracer",
-        "config" : "OCLTiledPhotonRaytracer_LOW_01"
+        "config" : "OCLTiledPhotonRaytracer_MED_01"
     },
     
     "RightRaytracer" : {
@@ -164,7 +164,7 @@
         }
     },
     
-    "OCLTiledPhotonRaytracer_LOW_01" : {
+    "OCLTiledPhotonRaytracer_MED_01" : {
         "enabled" : true,
         "title" : "Tiled OpenCL (GPU)",
         "controlsCamera" : true,
@@ -181,8 +181,8 @@
         "photonBounceEnergyMultipler" : 1.00,
         
         "Tile_properties" : {
-            "tileHeight" : 40,
-            "tileWidth" : 40,
+            "tileWidth" : 20,
+            "tileHeight" : 20,
             "photonEffectRadius" : 1.0,
             "photonSampleRate" : 1.0
         }

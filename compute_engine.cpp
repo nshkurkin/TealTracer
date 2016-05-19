@@ -863,12 +863,12 @@ ComputeEngine::executeKernel(
                 
     cl_kernel kKernel = pkKernelIter->second;
     
-#ifdef DEBUG    
-    DEBUG_CL_printf("Compute Engine: Execute Kernel '%s': Global[%zu, %zu]  Local[%zu, %zu]\n",
-        acKernelName, 
-        auiGlobalDim[0], uiDimCount > 1 ? auiGlobalDim[1] : 0,
-        auiLocalDim[0], uiDimCount > 1 ? auiLocalDim[1] : 0);
-#endif
+//#ifdef DEBUG    
+//    DEBUG_CL_printf("Compute Engine: Execute Kernel '%s': Global[%zu, %zu]  Local[%zu, %zu]\n",
+//        acKernelName, 
+//        auiGlobalDim[0], uiDimCount > 1 ? auiGlobalDim[1] : 0,
+//        auiLocalDim[0], uiDimCount > 1 ? auiLocalDim[1] : 0);
+//#endif
 
     int iError = CL_SUCCESS;
     iError = clEnqueueNDRangeKernel(m_akCommandQueues[uiDeviceIndex], kKernel, 
