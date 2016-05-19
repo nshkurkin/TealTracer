@@ -371,9 +371,9 @@ public:
 
 protected:
 
-    typedef std::map<const char*, cl_kernel>::iterator KernelMapIter;
-    typedef std::map<const char*, cl_program>::iterator ProgramMapIter;
-    typedef std::map<const char*, cl_mem>::iterator MemObjectMapIter;
+    typedef std::map<std::string, cl_kernel>::iterator KernelMapIter;
+    typedef std::map<std::string, cl_program>::iterator ProgramMapIter;
+    typedef std::map<std::string, cl_mem>::iterator MemObjectMapIter;
     
     static unsigned int ms_uiMaxDeviceCount;
     
@@ -382,9 +382,9 @@ protected:
     cl_device_id*     m_akDeviceIds;
     cl_command_queue* m_akCommandQueues;
 
-	std::map<const char*, cl_program, ltstr> m_akPrograms;
-	std::map<const char*, cl_kernel, ltstr> m_akKernels;
-	std::map<const char*, cl_mem, ltstr> m_akMemObjects;
+	std::map<std::string, cl_program, ltstr> m_akPrograms;
+	std::map<std::string, cl_kernel, ltstr> m_akKernels;
+	std::map<std::string, cl_mem, ltstr> m_akMemObjects;
 
 private:
     ComputeEngine(const ComputeEngine &rkCopy);

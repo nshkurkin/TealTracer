@@ -463,6 +463,40 @@ kernel void raytrace_one_ray_tiled(
     });
 }
 
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+/// NOTE: Instanced over every photon
+///
+kernel void copyPhotonsIntoOneTile(
+    global const float * photons,
+    const int photons_size,
+    
+    const float photonEffectRadius,
+    
+    const int whichTile,
+    const global float * tiles, // "tile_size" number of photons
+    global float * tilePhotons,
+    volatile global int * nextPhotonIndex // a "tile_size" number of indices
+) {
+
+    int threadId = (int) get_global_id(0);
+    if (threadId >= photons_size) {
+        return;
+    }
+
+    size_t photonIdx = threadId;
+    struct JensenPhoton photon = JensenPhoton_fromData(photons, photonIdx);
+
+    struct Tile tile;
+    Tile_fromData(&tile, tiles, whichTile);
+
+    if (Frustum_intersectsOrContainsSphere(&tile.frustum, photon.position, photonEffectRadius)) {
+        int tilePhotonIdx = atomic_add(&nextPhotonIndex[whichTile], 1);
+        JensenPhoton_setData(&photon, tilePhotons, tilePhotonIdx);
+    }
+}
+
 /// NOTE: called over tileWidth * tileHeight pixels
 ///
 kernel void raytrace_one_ray_one_tile(
@@ -473,7 +507,6 @@ kernel void raytrace_one_ray_one_tile(
     const float3 camera_forward,
     
     const unsigned int brdf, // one of (enum BRDFType)
-    const unsigned int generatorSeed,
     
     __global float * sphereData,
     const unsigned int numSpheres,

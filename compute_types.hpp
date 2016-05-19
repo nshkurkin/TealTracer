@@ -53,6 +53,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <limits.h>
+#include <string>
 
 #define CL_SDK_USE_SSE
 #ifdef CL_SDK_USE_SSE
@@ -3832,9 +3833,9 @@ struct char4
 
 struct ltstr
 {
-    bool operator()(const char* s1, const char* s2) const
+    bool operator()(const std::string & s1, const std::string & s2) const
     {
-        return strcmp(s1, s2) < 0;
+        return strcmp(s1.c_str(), s2.c_str()) < 0;
     }
 };
 

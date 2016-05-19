@@ -15,7 +15,8 @@
 
         "OCLMonteCarloRaytracer",
         "OCLPhotonHashGridRaytracer",
-        "OCLTiledPhotonRaytracer"
+        "OCLTiledPhotonRaytracer",
+        "OCLOptimizedTiledPhotonRaytracer"
     ],
     
     
@@ -25,7 +26,7 @@
     },
     
     "RightRaytracer" : {
-        "name" : "OCLTiledPhotonRaytracer",
+        "name" : "OCLOptimizedTiledPhotonRaytracer",
         "config" : "OCLTiledPhotonRaytracer_MED_01"
     },
     
@@ -181,8 +182,8 @@
         "photonBounceEnergyMultipler" : 1.00,
         
         "Tile_properties" : {
-            "tileWidth" : 40,
-            "tileHeight" : 40,
+            "tileWidth" : 80,
+            "tileHeight" : 80,
             "photonEffectRadius" : 1.0,
             "photonSampleRate" : 1.0
         }
