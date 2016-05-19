@@ -150,7 +150,7 @@ int RandomGenerator_randomInt(struct RandomGenerator * generator);
 
 ///
 void RandomGenerator_seed(struct RandomGenerator * generator, unsigned int generatorSeed) {
-    MWC64X_SeedStreams(&(generator->state), (ulong) get_global_id(0) + generatorSeed, (ulong) get_global_size(0) + generatorSeed);
+    MWC64X_SeedStreams(&(generator->state), (ulong) get_global_id(0) + ((ulong) get_global_id(1) + 1) * generatorSeed, (ulong) get_global_size(0) + generatorSeed);
 }
 
 ///
