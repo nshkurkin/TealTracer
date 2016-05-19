@@ -170,11 +170,11 @@ int bernoulliStepper(
     float successProbability = 1.0f/x;
     int numberOfTrials = 1;
     
-    while (RandomGenerator_randomNormalizedFloat(generator) > successProbability) {
-        numberOfTrials++;
-    }
+//    while (RandomGenerator_randomNormalizedFloat(generator) > successProbability) {
+//        numberOfTrials++;
+//    }
     
-    return numberOfTrials;
+    return numberOfTrials * x;
 }
 
 ///

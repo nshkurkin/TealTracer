@@ -104,11 +104,12 @@ kernel void raytrace_one_ray_direct(
     const unsigned int imageHeight
     ) {
     
-    unsigned int threadId = (unsigned int) get_global_id(0);
+    int threadId = get_global_id(0);
+    
     if (threadId >= imageWidth * imageHeight) {
         return;
     }
-       
+    
     /// Create the ray for this given pixel
     int px = threadId % imageWidth;
     int py = threadId / imageWidth;
@@ -405,6 +406,7 @@ kernel void raytrace_one_ray_tiled(
     const global float * tilePhotons, // contains a sum("photonCount")*sizeof(Photon)/sizeof(float) photons slots
     const global int * tilePhotonCount, // a "tiles_size" number of photon counts
     const global int * tilePhotonStarts, // points to the starts in "tilePhotons" (there are "tiles_size" of these)
+    ///
     
     /// output
     __write_only image2d_t image_output,
@@ -412,9 +414,14 @@ kernel void raytrace_one_ray_tiled(
     const unsigned int imageHeight
     ) {
     
+    int threadId = get_global_id(0);
+    if (threadId >= imageWidth * imageHeight) {
+        return;
+    }
+    
     /// Create the ray for this given pixel
-    int px = get_global_id(0);
-    int py = get_global_id(1);
+    int px = threadId % imageWidth;
+    int py = threadId / imageWidth;
     
     float3 rayOrigin = camera_location;
     float3 rayDirection = normalize(camera_forward - 0.5f*camera_up - 0.5f*camera_right
@@ -430,7 +437,7 @@ kernel void raytrace_one_ray_tiled(
     scene.lightData = lightData;
     scene.numLights = numLights;
     
-    RandomGenerator_seed(&scene.generator, generatorSeed);
+//    RandomGenerator_seed(&scene.generator, generatorSeed);
     
     struct RayIntersectionResult bestIntersection = SceneConfig_findClosestIntersection(&scene, rayOrigin, rayDirection);
     

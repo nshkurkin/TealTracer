@@ -25,9 +25,7 @@ OCLMonteCarloRaytracer::ocl_raytraceRays() {
     unsigned int imageWidth = outputImage.width;
     unsigned int imageHeight = outputImage.height;
     void * imageData = outputImage.dataPtr();
-    
-    unsigned int rayCount = imageWidth * imageHeight;
-    
+        
     auto camera = config.scene->camera();
     auto cameraData = CLPovrayCameraData(camera->data());
 
@@ -53,7 +51,7 @@ OCLMonteCarloRaytracer::ocl_raytraceRays() {
         (cl_uint) imageHeight
     );
     
-    computeEngine.executeKernel("raytrace_one_ray_direct", activeDevice, std::vector<size_t> {(size_t) rayCount});
+    computeEngine.executeKernel("raytrace_one_ray_direct", activeDevice, std::vector<size_t> {(size_t) imageWidth * imageHeight});
     computeEngine.finish(activeDevice);
     
     computeEngine.readImage("image_output", activeDevice, 0, 0, 0, imageWidth, imageHeight, 1, 0, 0, imageData);

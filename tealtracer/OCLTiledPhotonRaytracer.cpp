@@ -232,7 +232,7 @@ OCLTiledPhotonRaytracer::ocl_raytraceRays() {
         (cl_uint) outputImage.height
     );
     
-    computeEngine.executeKernel("raytrace_one_ray_tiled", activeDevice, {(size_t) outputImage.width, (size_t) outputImage.height});
+    computeEngine.executeKernel("raytrace_one_ray_tiled", activeDevice, std::vector<size_t> {(size_t) outputImage.width * outputImage.height});
     computeEngine.finish(activeDevice);
     
     double tileTf = glfwGetTime();
