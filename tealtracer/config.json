@@ -176,7 +176,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 12000,
+        "raysPerLight" : 300000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,

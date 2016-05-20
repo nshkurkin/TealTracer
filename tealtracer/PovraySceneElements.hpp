@@ -224,6 +224,8 @@ struct PovraySphereData {
     
     PovrayPigment pigment;
     PovrayFinish finish;
+    
+    float id;
 };
 
 ///
@@ -253,6 +255,7 @@ public:
         dat.radius = radius_;
         dat.pigment = pigment_;
         dat.finish = finish_;
+        dat.id = this->id();
         
         return dat;
     }
@@ -275,6 +278,8 @@ struct PovrayPlaneData {
     
     PovrayPigment pigment;
     PovrayFinish finish;
+    
+    float id;
 };
 
 ///
@@ -304,6 +309,7 @@ public:
         dat.distance = distance_;
         dat.pigment = pigment_;
         dat.finish = finish_;
+        dat.id = this->id();
         
         return dat;
     }

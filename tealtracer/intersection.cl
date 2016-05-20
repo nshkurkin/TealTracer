@@ -24,6 +24,7 @@ struct RayIntersectionResult {
     
     enum ObjectType type;
     __global float * dataPtr;
+    float geomId;
 };
 
 ///
@@ -156,6 +157,7 @@ void sphere_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDire
             result->rayOrigin = rayOrigin;
             result->rayDirection = rayDirection;
             result->surfaceNormal = normalize(RayIntersectionResult_locationOfIntersection(result) - data.position);
+            result->geomId = data.id;
         }
     }
 }
@@ -175,6 +177,7 @@ void plane_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDirec
     result->surfaceNormal = data.normal;
     
     result->intersected = result->timeOfIntersection > 0.0f;
+    result->geomId = data.id;
 }
 
 #endif /* intersection_h */

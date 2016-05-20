@@ -69,9 +69,8 @@ OCLPhotonHashGridRaytracer::ocl_raytraceSetup() {
     //////
     
     if (config.raysPerLight > 0) {
-        const int kNumFloatsInOCLPhoton = CLPackedPhoton_kNumFloats;
         //! TODO: We might need to multiply the number of lights
-        computeEngine.createBuffer("photon_data", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_float) * kNumFloatsInOCLPhoton * config.raysPerLight);
+        computeEngine.createBuffer("photon_data", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(CLPackedPhoton) * config.raysPerLight);
         computeEngine.createBuffer("map_gridIndices", ComputeEngine::MemFlags::MEM_READ_WRITE, sizeof(cl_int) * config.raysPerLight);
     }
     

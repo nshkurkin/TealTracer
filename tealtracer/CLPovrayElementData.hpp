@@ -94,8 +94,10 @@ struct CLPovraySphereData {
     CLPovrayPigment pigment;
     CLPovrayFinish finish;
     
-    CLPovraySphereData() : position(0,0,0), radius(1.0), pigment(), finish() {}
-    CLPovraySphereData(const PovraySphereData & data) : position(data.position.x(), data.position.y(), data.position.z()), radius(data.radius), pigment(data.pigment), finish(data.finish) {}
+    cl_float id;
+    
+    CLPovraySphereData() : position(0,0,0), radius(0.0), pigment(), finish(), id(0) {}
+    CLPovraySphereData(const PovraySphereData & data) : position(data.position.x(), data.position.y(), data.position.z()), radius(data.radius), pigment(data.pigment), finish(data.finish), id(data.id) {}
     
     void writeOutData(std::vector<cl_float> & data) {
         data.push_back(position.x);
@@ -104,6 +106,7 @@ struct CLPovraySphereData {
         data.push_back(radius);
         pigment.writeOutData(data);
         finish.writeOutData(data);
+        data.push_back(id);
     }
 };
 
@@ -116,8 +119,10 @@ struct CLPovrayPlaneData {
     CLPovrayPigment pigment;
     CLPovrayFinish finish;
     
-    CLPovrayPlaneData() : normal(0,1,0), distance(0), pigment(), finish() {}
-    CLPovrayPlaneData(const PovrayPlaneData & data) : normal(data.normal.x(), data.normal.y(), data.normal.z()), distance(data.distance), pigment(data.pigment), finish(data.finish) {}
+    cl_float id;
+    
+    CLPovrayPlaneData() : normal(0,0,0), distance(0), pigment(), finish(), id(0) {}
+    CLPovrayPlaneData(const PovrayPlaneData & data) : normal(data.normal.x(), data.normal.y(), data.normal.z()), distance(data.distance), pigment(data.pigment), finish(data.finish), id(data.id) {}
     
     void writeOutData(std::vector<cl_float> & data) {
         data.push_back(normal.x);
@@ -126,6 +131,7 @@ struct CLPovrayPlaneData {
         data.push_back(distance);
         pigment.writeOutData(data);
         finish.writeOutData(data);
+        data.push_back(id);
     }
 };
 
@@ -134,6 +140,8 @@ packed_struct CLPackedPhoton {
     cl_float pos_x, pos_y, pos_z;
     cl_float dir_x, dir_y, dir_z;
     cl_float ene_x, ene_y, ene_z;
+    
+    cl_float geomId;
 };
 
 const size_t CLPackedPhoton_kNumFloats = sizeof(CLPackedPhoton{}) / sizeof(cl_float);

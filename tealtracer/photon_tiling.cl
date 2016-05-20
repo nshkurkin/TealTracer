@@ -285,7 +285,8 @@ RGBf PhotonTilerSingle_computeOutputEnergyForHit(
     while (i < photonCount) {
         struct JensenPhoton photon = JensenPhoton_fromData(photons, i);
         float distanceSqrd = dot(photon.position - intersection, photon.position - intersection);
-        if (distanceSqrd <= tiler->photonEffectRadius * tiler->photonEffectRadius) {
+        if (hitResult->geomId < photon.geomId + 0.01 && hitResult->geomId > photon.geomId - 0.01
+         && distanceSqrd <= tiler->photonEffectRadius * tiler->photonEffectRadius) {
             ++numPhotonsSampled;
             output += computeOutputEnergyForBRDF(brdf, pigment, finish, photon.energy, -photon.incomingDirection, -hitResult->rayDirection, hitResult->surfaceNormal);
             maxDistanceSqd = max(maxDistanceSqd, distanceSqrd);

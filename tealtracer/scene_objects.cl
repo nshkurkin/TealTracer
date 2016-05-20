@@ -59,9 +59,11 @@ struct PovraySphereData {
     
     struct PovrayPigment pigment;
     struct PovrayFinish finish;
+    
+    float id;
 };
 
-__constant unsigned int kPovraySphereStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride;
+__constant unsigned int kPovraySphereStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride + 1;
 
 ///
 struct PovraySphereData PovraySphereData_fromData(__global float * data);
@@ -73,9 +75,11 @@ struct PovrayPlaneData {
     
     struct PovrayPigment pigment;
     struct PovrayFinish finish;
+    
+    float id;
 };
 
-__constant unsigned int kPovrayPlaneStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride;
+__constant unsigned int kPovrayPlaneStride = 3 + 1 + kPovrayPigmentStride + kPovrayFinishStride + 1;
 
 ///
 struct PovrayPlaneData PovrayPlaneData_fromData(__global float * data);
@@ -103,6 +107,7 @@ struct PovraySphereData PovraySphereData_fromData(__global float * data) {
     result.finish.diffuse = data[9];
     result.finish.specular = data[10];
     result.finish.roughness= data[11];
+    result.id = data[12];
     
     return result;
 }
@@ -118,6 +123,7 @@ struct PovrayPlaneData PovrayPlaneData_fromData(__global float * data) {
     result.finish.diffuse = data[9];
     result.finish.specular = data[10];
     result.finish.roughness= data[11];
+    result.id = data[12];
     
     return result;
 }

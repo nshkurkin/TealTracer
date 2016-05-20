@@ -21,9 +21,11 @@ struct JensenPhoton {
     
     ///
     RGBf energy;
+    
+    float geomId;
 };
 
-__constant const unsigned int kJensenPhoton_floatStride = 9;
+__constant const unsigned int kJensenPhoton_floatStride = 10;
 
 struct JensenPhoton JensenPhoton_fromData(
     global const float * photon_data,
@@ -62,6 +64,8 @@ struct JensenPhoton JensenPhoton_fromData(
         photon_floats_start[8]
     };
     
+    photon.geomId = photon_floats_start[9];
+    
     return photon;
 }
 
@@ -72,7 +76,7 @@ void JensenPhoton_setData(
     global float * photon_data,
     int whichPhoton) {
 
-    global float * photon_floats_start = &(photon_data[whichPhoton * 9]);
+    global float * photon_floats_start = &(photon_data[whichPhoton * kJensenPhoton_floatStride]);
     
     photon_floats_start[0] = photon->position.x;
     photon_floats_start[1] = photon->position.y;
@@ -85,6 +89,8 @@ void JensenPhoton_setData(
     photon_floats_start[6 + 0] = photon->energy.x;
     photon_floats_start[6 + 1] = photon->energy.y;
     photon_floats_start[6 + 2] = photon->energy.z;
+    
+    photon_floats_start[9] = photon->geomId;
 }
 
 ///
@@ -152,6 +158,7 @@ void processEmittedPhoton(
         photon.position = RayIntersectionResult_locationOfIntersection(&hit);
         photon.incomingDirection = rayDirection;
         photon.energy = energy;
+        photon.geomId = hit.geomId;
         
         float value = RandomGenerator_randomNormalizedFloat(&config->generator);
 

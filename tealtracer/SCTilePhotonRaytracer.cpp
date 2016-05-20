@@ -85,8 +85,8 @@ SCTilePhotonRaytracer::raytraceScene() {
                 while (i < photons.size()) {
                     const JensenPhoton & photon = photons[i];
                     float distanceSqrd = (photon.position - intersection).dot(photon.position - intersection);
-                    if (/*hitTest.element->id() == photon.flags.geometryIndex
-                     &&*/ distanceSqrd <= photonEffectRadius * photonEffectRadius) {
+                    if (hitTest.element->id() == photon.flags.geometryIndex
+                     && distanceSqrd <= photonEffectRadius * photonEffectRadius) {
                         ++numPhotonsSampled;
                         totalEnergy += brdf->computeColor(rgbe2rgb(photon.energy), -photon.incomingDirection.vector(), -ray.direction, hitTest.hit.surfaceNormal);
                         maxDistanceSqd = std::max<float>(maxDistanceSqd, distanceSqrd);
