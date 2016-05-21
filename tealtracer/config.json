@@ -21,8 +21,8 @@
     
     
     "LeftRaytracer" : {
-        "name" : "OCLMonteCarloRaytracer",
-        "config" : "OCLMonteCarloRaytracer_MED_01"
+        "name" : "OCLPhotonHashGridRaytracer",
+        "config" : "OCLPhotonHashGridRaytracer_MED_01"
     },
     
     "RightRaytracer" : {
@@ -176,7 +176,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 300000,
+        "raysPerLight" : 12000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,

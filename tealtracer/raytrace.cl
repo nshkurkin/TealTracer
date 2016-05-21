@@ -104,7 +104,7 @@ kernel void raytrace_one_ray_direct(
     const unsigned int imageHeight
     ) {
     
-    int threadId = get_global_id(0);
+    unsigned int threadId = (unsigned int) get_global_id(0);
     
     if (threadId >= imageWidth * imageHeight) {
         return;
@@ -413,7 +413,7 @@ kernel void raytrace_one_ray_tiled(
     const unsigned int imageHeight
     ) {
     
-    int threadId = get_global_id(0);
+    unsigned int threadId = (unsigned int) get_global_id(0);
     if (threadId >= imageWidth * imageHeight) {
         return;
     }
