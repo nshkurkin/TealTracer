@@ -21,7 +21,7 @@
     
     
     "LeftRaytracer" : {
-        "name" : "OCLOptimizedTiledPhotonRaytracer",
+        "name" : "SCHashGridRaytracer",
         "config" : "12kPhoton_QuarterSD_BestFit"
     },
     

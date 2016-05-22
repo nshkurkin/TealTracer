@@ -104,6 +104,7 @@ private:
         /// which cell
         int i, int j, int k);
     
+public:
     std::vector<int> gridFirstPhotonIndices;
     std::vector<int> gridIndices;
     

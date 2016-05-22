@@ -18,6 +18,9 @@ public:
     
     ///
     virtual void configure();
+    
+    ///
+    virtual RGBf computeOutputEnergyForHitUsingPhotonMap(const PovrayScene::InstersectionResult & hitResult, const Eigen::Vector3f & toViewer, const RGBf & sourceEnergy);
 };
 
 #endif /* SCHashGridRaytracer_hpp */
