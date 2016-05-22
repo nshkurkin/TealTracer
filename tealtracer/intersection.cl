@@ -153,12 +153,10 @@ void sphere_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDire
             result->timeOfIntersection = t1;
         }
         
-        if (result->timeOfIntersection > 0) {
-            result->rayOrigin = rayOrigin;
-            result->rayDirection = rayDirection;
-            result->surfaceNormal = normalize(RayIntersectionResult_locationOfIntersection(result) - data.position);
-            result->geomId = data.id;
-        }
+        result->rayOrigin = rayOrigin;
+        result->rayDirection = rayDirection;
+        result->surfaceNormal = normalize(RayIntersectionResult_locationOfIntersection(result) - data.position);
+        result->geomId = data.id;
     }
 }
 

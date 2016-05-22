@@ -55,6 +55,8 @@ private:
     std::string tilePhotonBufferName(int whichTile) const {
         return std::string("tilePhotons_") + std::to_string(whichTile);
     }
+    
+    unsigned int photonEmissionSeed;
 
     std::vector<cl_int> tilePhotonCount;
     CLPovrayCameraData cachedCameraData;

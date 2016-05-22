@@ -26,8 +26,8 @@
     },
     
     "RightRaytracer" : {
-        "name" : "SCMonteCarloRaytracer",
-        "config" : "NullRaytracer"
+        "name" : "SCTilePhotonRaytracer",
+        "config" : "SCTilePhotonRaytracer_MED_01"
     },
     
     

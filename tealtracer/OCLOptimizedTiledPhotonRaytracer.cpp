@@ -11,6 +11,7 @@
 ///
 OCLOptimizedTiledPhotonRaytracer::OCLOptimizedTiledPhotonRaytracer() : OpenCLRaytracer() {
     photonTiler = std::shared_ptr<PhotonTiler>(new PhotonTiler());
+    photonEmissionSeed = generator.randUInt();
 }
 
 ///
@@ -94,7 +95,7 @@ OCLOptimizedTiledPhotonRaytracer::ocl_emitPhotons() {
     float luminosityPerPhoton = (((float) config.lumensPerLight) / (float) config.raysPerLight);
 
     computeEngine.setKernelArgs("emit_photon",
-        (cl_uint) generator.randUInt(),
+        (cl_uint) photonEmissionSeed,
         (cl_uint) config.brdfType,
         (cl_int) true, // dummy argument
         
@@ -187,10 +188,10 @@ OCLOptimizedTiledPhotonRaytracer::ocl_buildAndFillTiles() {
 void
 OCLOptimizedTiledPhotonRaytracer::ocl_raytraceRays() {
     
+//    ocl_emitPhotons();//
+    
     double fillT0 = glfwGetTime();
-    
     ocl_buildAndFillTiles();
-    
     double fillTf = glfwGetTime();
     double tileT0 = glfwGetTime();
 

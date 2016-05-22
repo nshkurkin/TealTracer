@@ -292,7 +292,7 @@ RGBf PhotonTilerSingle_computeOutputEnergyForHit(
             output += computeOutputEnergyForBRDF(brdf, pigment, finish, photon.energy, -photon.incomingDirection, -hitResult->rayDirection, hitResult->surfaceNormal);
             maxDistanceSqd = max(maxDistanceSqd, distanceSqrd);
         }
-        i++;
+        i += tiler->photonSampleRate;
     }
     
     if (numPhotonsSampled > 0) {
