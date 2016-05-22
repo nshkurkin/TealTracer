@@ -309,6 +309,86 @@ kernel void raytrace_one_ray_hashgrid(
     });
 }
 
+/// NOTE: called over imageWidth * imageHeight pixels
+///
+kernel void raytrace_one_ray_hashgrid_modified(
+    /// input
+    const float3 camera_location,
+    const float3 camera_up,
+    const float3 camera_right,
+    const float3 camera_forward,
+    
+    const unsigned int brdf, // one of (enum BRDFType)
+    
+    __global float * sphereData,
+    const unsigned int numSpheres,
+
+    __global float * planeData,
+    const unsigned int numPlanes,
+    
+    __global float * lightData,
+    const unsigned int numLights,
+    
+    ///
+    const float maxPhotonGatherDistance,
+
+    /// photon map
+    PHOTON_HASHMAP_BASIC_PARAMS,
+    PHOTON_HASHMAP_PHOTON_PARAMS,
+    PHOTON_HASHMAP_META_PARAMS,
+    
+    /// output
+    __write_only image2d_t image_output,
+    const unsigned int imageWidth,
+    const unsigned int imageHeight
+    ) {
+    
+    unsigned int threadId = (unsigned int) get_global_id(0);
+    if (threadId >= imageWidth * imageHeight) {
+        return;
+    }
+    
+    ///
+    struct PhotonHashmap map;
+    
+    PHOTON_HASHMAP_SET_BASIC_PARAMS((&map));
+    PHOTON_HASHMAP_SET_PHOTON_PARAMS((&map));
+    PHOTON_HASHMAP_SET_META_PARAMS((&map));
+    
+    /// Create the ray for this given pixel
+    int px = threadId % imageWidth;
+    int py = threadId / imageWidth;
+    
+    float3 rayOrigin = camera_location;
+    float3 rayDirection = normalize(camera_forward - 0.5f*camera_up - 0.5f*camera_right
+        + camera_right * ((0.5f+(float)px)/(float)imageWidth)
+        + camera_up * ((0.5f+(float)py)/(float)imageHeight));
+    
+    struct SceneConfig scene;
+    scene.brdf = brdf;
+    scene.sphereData = sphereData;
+    scene.numSpheres = numSpheres;
+    scene.planeData = planeData;
+    scene.numPlanes = numPlanes;
+    scene.lightData = lightData;
+    scene.numLights = numLights;
+    
+    struct RayIntersectionResult bestIntersection = SceneConfig_findClosestIntersection(&scene, rayOrigin, rayDirection);
+    
+    RGBf energy = (RGBf) {0, 0, 0};
+    /// Calculate color
+    if (bestIntersection.intersected) {
+        energy = computeOutputEnergyForHitWithPhotonMap_modified(brdf, bestIntersection, &map, maxPhotonGatherDistance);
+    }
+    
+    write_imagef(image_output, (int2) {px, py}, (float4) {
+        min(energy.x, 1.0f),
+        min(energy.y, 1.0f),
+        min(energy.z, 1.0f),
+        1.0f
+    });
+}
+
 /// NOTE: Instanced over every photon
 ///
 kernel void countPhotonsInTile(

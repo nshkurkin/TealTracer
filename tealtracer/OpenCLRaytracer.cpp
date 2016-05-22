@@ -21,13 +21,16 @@ OpenCLRaytracer::OpenCLRaytracer() : Raytracer() {
     useGPU = false;
     
     numSpheres = numPlanes = numLights = 0;
-    activeDevice = 1;
+    activeDevice = 0;
 }
 
 ///
 void
 OpenCLRaytracer::configure() {
     useGPU = config.computationDevice == RaytracingConfig::ComputationDevice::GPU;
+    if (useGPU) {
+        activeDevice = 1;
+    }
 }
 
 ///

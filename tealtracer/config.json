@@ -15,14 +15,15 @@
 
         "OCLMonteCarloRaytracer",
         "OCLPhotonHashGridRaytracer",
+        "OCLOptimizedHashGridRaytracer",
         "OCLTiledPhotonRaytracer",
         "OCLOptimizedTiledPhotonRaytracer"
     ],
     
     
     "LeftRaytracer" : {
-        "name" : "OCLOptimizedTiledPhotonRaytracer",
-        "config" : "OCLTiledPhotonRaytracer_LOW_SD_GPU"
+        "name" : "OCLOptimizedHashGridRaytracer",
+        "config" : "200kPhoton_SD_BestFit_GPU"
     },
     
     "RightRaytracer" : {
@@ -169,6 +170,37 @@
         }
     },
     
+    "200kPhoton_SD_BestFit_GPU" : {
+        "enabled" : true,
+        "title" : "(200k,SD,BestFit) OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 640,
+        "outputHeight" : 480,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 200000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "photonEffectRadius" : 1.0,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "cellsize" : 0.5
+        },
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
     "OCLTiledPhotonRaytracer_LOW_EighthSD_GPU" : {
         "enabled" : true,
         "title" : "Tiled OpenCL (GPU)",
@@ -204,7 +236,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 300000,
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -252,7 +284,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 300000,
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -300,7 +332,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 300000,
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -348,7 +380,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 300000,
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -372,7 +404,7 @@
         "computationDevice" : 1,
         "brdfType" : 0,
         
-        "raysPerLight" : 300000,
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,

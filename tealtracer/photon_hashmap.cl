@@ -510,4 +510,94 @@ RGBf computeOutputEnergyForHitWithPhotonMap(
     return output;
 }
 
+///
+RGBf computeOutputEnergyForHitWithPhotonMap_modified(
+    enum BRDFType brdf,
+    struct RayIntersectionResult hitResult,
+    struct PhotonHashmap * map,
+    float maxGatherDistance
+);
+
+///
+RGBf computeOutputEnergyForHitWithPhotonMap_modified(
+    enum BRDFType brdf,
+    struct RayIntersectionResult hitResult,
+    struct PhotonHashmap * map,
+    float maxGatherDistance
+) {
+    
+    struct PovrayPigment pigment;
+    struct PovrayFinish finish;
+    
+    switch (hitResult.type) {
+        case SphereObjectType: {
+            struct PovraySphereData data = PovraySphereData_fromData(hitResult.dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        }
+        case PlaneObjectType: {
+            struct PovrayPlaneData data = PovrayPlaneData_fromData(hitResult.dataPtr);
+            pigment = data.pigment;
+            finish = data.finish;
+            break;
+        };
+        default: {
+            break;
+        }
+    }
+    
+    float3 intersection = RayIntersectionResult_locationOfIntersection(&hitResult);
+    
+    int3 gridIndex = PhotonHashmap_cellIndex(map, intersection);
+    int px = gridIndex.x, py = gridIndex.y, pz = gridIndex.z;
+    RGBf photonEnergy = (RGBf) {0,0,0};
+    
+    /// Only consider intersections within the grid
+    if (px >= 0 && px < map->xdim
+     && py >= 0 && py < map->ydim
+     && pz >= 0 && pz < map->zdim) {
+        
+        int photonsSampled = 0;
+        float maxRadiusSqd = 0.0f;
+        int halfSideLength = ceil(maxGatherDistance / map->cellsize);
+        
+        for (int i = max(0, px - halfSideLength); i < min(map->xdim, px+halfSideLength+1); ++i) {
+            for (int j = max(0, py - halfSideLength); j < min(map->ydim, py+halfSideLength+1); ++j) {
+                for (int k = max(0, pz - halfSideLength); k < min(map->zdim, pz+halfSideLength+1); ++k) {
+                    
+                    
+                    int gridHash = PhotonHashmap_photonHashIJK(map, i, j, k);
+                    // find the index of the first photon in the cell
+                    if (map->gridFirstPhotonIndices[gridHash] > 0) {
+                        int pi = map->gridFirstPhotonIndices[gridHash];
+                        while (pi < map->numPhotons && map->gridIndices[pi] == gridHash) {
+                            struct JensenPhoton p = JensenPhoton_fromData(map->photon_data, pi);
+                            // Check if the photon is on the same geometry as the intersection and within the effect sphere
+                            float distSqd = dot(p.position - intersection, p.position - intersection);
+                            if (hitResult.geomId <= p.geomId + 0.01f && hitResult.geomId >= p.geomId - 0.01f
+                             && distSqd < maxGatherDistance * maxGatherDistance) {
+                                
+                                photonEnergy += computeOutputEnergyForBRDF(brdf, pigment, finish, p.energy, -p.incomingDirection, -hitResult.rayDirection, hitResult.surfaceNormal);
+                                
+                                photonsSampled++;
+                                maxRadiusSqd = max(distSqd, maxRadiusSqd);
+                            }
+                            
+                            pi++;
+                        }
+                    }
+                    ///
+                }
+            }
+        }
+        
+        if (photonsSampled > 0) {
+            photonEnergy = photonEnergy * (float) (1.0f/(M_PI * maxRadiusSqd));
+        }
+    }
+        
+    return photonEnergy;
+}
+
 #endif /* photon_hashmap_h */

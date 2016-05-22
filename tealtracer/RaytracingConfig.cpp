@@ -74,6 +74,7 @@ void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
     else {
         this->maxPhotonGatherDistance = std::numeric_limits<float>::infinity();
     }
+    
     lumensPerLight = config.get<int>("lumensPerLight");
     
     photonBounceProbability = config.get<double>("photonBounceProbability");
@@ -98,5 +99,10 @@ void RaytracingConfig::loadFromJSON(const nlohmann::json & config) {
         
         tile_photonEffectRadius = config["Tile_properties"].get<double>("photonEffectRadius");
         tile_photonSampleRate = config["Tile_properties"].get<double>("photonSampleRate");
+    }
+    
+    if (config.has("photonEffectRadius")) {
+        this->maxPhotonGatherDistance = config.get<double>("photonEffectRadius", 1.0);
+        tile_photonEffectRadius = this->maxPhotonGatherDistance;
     }
 }

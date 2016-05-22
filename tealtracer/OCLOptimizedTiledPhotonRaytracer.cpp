@@ -23,10 +23,6 @@ OCLOptimizedTiledPhotonRaytracer::start() {
     jobPool.emplaceJob(JobPool::WorkItem("[GPU] setup ray trace", [=](){
         this->ocl_raytraceSetup();
         
-//        for (int tileX = 0; tileX < config.renderOutputWidth / config.tile_width; tileX++) {
-//            computeEngine.createCommandQueue(activeDevice, tileX, false);
-//        }
-        
         double t0 = glfwGetTime();
         this->ocl_emitPhotons();
         double tf = glfwGetTime();
@@ -237,13 +233,7 @@ OCLOptimizedTiledPhotonRaytracer::ocl_raytraceRays() {
         );
     
         computeEngine.executeKernel("raytrace_one_ray_one_tile", activeDevice, std::vector<size_t> {(size_t) config.tile_width * config.tile_height});
-        
-//        computeEngine.executeKernelWithQueueId("raytrace_one_ray_one_tile", activeDevice, tileX, std::vector<size_t> {(size_t) config.tile_width * config.tile_height});
     }
-    
-//    for (int tileX = 0; tileX < config.renderOutputWidth / config.tile_width; tileX++) {
-//        computeEngine.finishOnDeviceWithQueue(activeDevice, tileX);
-//    }
     
     computeEngine.finish(activeDevice);
     
