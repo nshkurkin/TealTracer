@@ -77,7 +77,7 @@ SCTilePhotonRaytracer::raytraceScene() {
                 
                 auto & photons = photonTiler->tilePhotons[tileIndex];
                 
-                int i = step(photonSampleRate) - 1;
+                int i = 0;
                 int numPhotonsSampled = 0;
                 float maxDistanceSqd = -std::numeric_limits<float>::infinity();
                 
@@ -91,7 +91,7 @@ SCTilePhotonRaytracer::raytraceScene() {
                         totalEnergy += brdf->computeColor(rgbe2rgb(photon.energy), -photon.incomingDirection.vector(), -ray.direction, hitTest.hit.surfaceNormal);
                         maxDistanceSqd = std::max<float>(maxDistanceSqd, distanceSqrd);
                     }
-                    i += step(photonSampleRate);
+                    i += photonSampleRate;
                 }
                 
                 if (numPhotonsSampled > 0) {

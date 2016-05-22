@@ -21,12 +21,12 @@
     
     
     "LeftRaytracer" : {
-        "name" : "OCLPhotonHashGridRaytracer",
-        "config" : "OCLPhotonHashGridRaytracer_MED_01"
+        "name" : "OCLOptimizedTiledPhotonRaytracer",
+        "config" : "OCLTiledPhotonRaytracer_MED_01"
     },
     
     "RightRaytracer" : {
-        "name" : "OCLOptimizedTiledPhotonRaytracer",
+        "name" : "OCLTiledPhotonRaytracer",
         "config" : "OCLTiledPhotonRaytracer_MED_01"
     },
     
@@ -47,7 +47,7 @@
     },
     
     
-    "SingleCore_Direct_MED_01" : {
+    "SCMonteCarloRaytracer_MED_01" : {
     
         "enabled" : true,
         "title" : "SingleCore Direct",
@@ -59,7 +59,7 @@
         "shadowsEnabled" : true
     },
     
-    "SingleCore_KDTree_MED_01" : {
+    "SCPhotonMapper_KDTree_MED_01" : {
         
         "enabled" : true,
         "title" : "SingleCore KDTree",
@@ -77,7 +77,7 @@
         "photonBounceEnergyMultipler" : 1.00
     },
     
-    "SingleCore_HashGrid_MED_01" : {
+    "SCPhotonMapper_HashGrid_MED_01" : {
         
         "enabled" : true,
         "title" : "SingleCore HashGrid",
@@ -103,7 +103,7 @@
         }
     },
     
-    "SingleCore_Tiled_MED_01" : {
+    "SCTilePhotonRaytracer_MED_01" : {
         "enabled" : true,
         "title" : "SingleCore Tiled",
         
