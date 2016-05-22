@@ -22,12 +22,12 @@
     
     "LeftRaytracer" : {
         "name" : "OCLOptimizedTiledPhotonRaytracer",
-        "config" : "OCLTiledPhotonRaytracer_MED_01"
+        "config" : "OCLTiledPhotonRaytracer_LOW_SD_GPU"
     },
     
     "RightRaytracer" : {
         "name" : "SCTilePhotonRaytracer",
-        "config" : "SCTilePhotonRaytracer_MED_01"
+        "config" : "NullRaytracer"
     },
     
     
@@ -155,8 +155,8 @@
         "brdfType" : 0,
         
         "numberOfPhotonsToGather" : 100,
-        "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 24000,
+        "maxPhotonGatherDistance" : 1.0,
+        "raysPerLight" : 12000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -169,7 +169,151 @@
         }
     },
     
-    "OCLTiledPhotonRaytracer_MED_01" : {
+    "OCLTiledPhotonRaytracer_LOW_EighthSD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 80,
+        "outputHeight" : 80,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_HIGH_EighthSD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 80,
+        "outputHeight" : 80,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 300000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_LOW_QuarterSD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 160,
+        "outputHeight" : 160,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_HIGH_QuarterSD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 160,
+        "outputHeight" : 160,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 300000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_LOW_HalfSD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 320,
+        "outputHeight" : 240,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_HIGH_HalfSD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 320,
+        "outputHeight" : 240,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 300000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_LOW_SD_GPU" : {
         "enabled" : true,
         "title" : "Tiled OpenCL (GPU)",
         "controlsCamera" : true,
@@ -187,6 +331,54 @@
         
         "Tile_properties" : {
             "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_HIGH_SD_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 640,
+        "outputHeight" : 480,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 300000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonEffectRadius" : 1.0,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "OCLTiledPhotonRaytracer_HIGH_720P_GPU" : {
+        "enabled" : true,
+        "title" : "Tiled OpenCL (GPU)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 1080,
+        "outputHeight" : 720,
+        
+        "computationDevice" : 1,
+        "brdfType" : 0,
+        
+        "raysPerLight" : 300000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "Tile_properties" : {
+            "tileWidth" : 120,
             "tileHeight" : 80,
             "photonEffectRadius" : 1.0,
             "photonSampleRate" : 1.0

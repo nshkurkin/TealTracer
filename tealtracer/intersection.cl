@@ -139,7 +139,7 @@ void sphere_intersect(__global float * dataPtr, float3 rayOrigin, float3 rayDire
     
     float radical = B*B - 4.0f*A*C;
     if (radical >= 0) {
-        float sqrRadical = sqrt(radical);
+        float sqrRadical = half_sqrt(radical);
         float t0 = (-B + sqrRadical)/(2.0f * A);
         float t1 = (-B - sqrRadical)/(2.0f * A);
         result->intersected = t0 >= 0 || t1 >= 0;

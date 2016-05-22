@@ -64,10 +64,10 @@ void
 OpenCLRaytracer::ocl_raytraceSetup() {
     
     if (useGPU) {
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 2, false);
+        computeEngine.connect(ComputeEngine::DEVICE_TYPE_GPU, 2, false, false);
     }
     else {
-        computeEngine.connect(ComputeEngine::DEVICE_TYPE_CPU, 1, false);
+        computeEngine.connect(ComputeEngine::DEVICE_TYPE_CPU, 1, false, false);
     }
     
     ocl_pushSceneData();

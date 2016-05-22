@@ -120,7 +120,14 @@ public:
     bool connect(
         DeviceType eDeviceType = DEVICE_TYPE_ALL, 
         uint uiCount = 1,
-        bool bUseOpenGLContext = false);
+        bool bUseOpenGLContext = false,
+        bool allowOutOfOrderCommands = false);
+    
+    bool createCommandQueue(
+        uint deviceId,
+        uint queueId,
+        bool allowOutOfOrderCommands
+    );
     
     bool disconnect();
 
@@ -242,6 +249,12 @@ public:
         return executeKernel(kernelName, deviceID, &globalDims[0], &localDims[0], (uint) globalDims.size());
     }
     
+    bool executeKernelWithQueueId(
+        std::string kernelName,
+        uint deviceId,
+        uint queueId,
+        std::vector<size_t> globalDims);
+    
     bool createBuffer(
         const char* acMemObjName, 
         MemFlags eMemFlags, 
@@ -354,6 +367,10 @@ public:
 
     bool finish(
         uint uiDeviceIndex = 0);
+    
+    bool finishOnDeviceWithQueue(
+        uint deviceId,
+        uint queueId);
 
     uint getChannelCount(
         ChannelOrder eOrder);
@@ -381,6 +398,8 @@ protected:
     cl_context        m_kContext;
     cl_device_id*     m_akDeviceIds;
     cl_command_queue* m_akCommandQueues;
+    
+    std::map<uint, std::map<uint, cl_command_queue>> commandQueues;
 
 	std::map<std::string, cl_program, ltstr> m_akPrograms;
 	std::map<std::string, cl_kernel, ltstr> m_akKernels;

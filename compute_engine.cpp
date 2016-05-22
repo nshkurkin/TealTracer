@@ -439,7 +439,8 @@ bool
 ComputeEngine::connect(
     DeviceType eDeviceType, 
     uint uiCount,
-    bool bUseOpenGLContext)
+    bool bUseOpenGLContext,
+    bool allowOutOfOrderCommands)
 {   
     assert(uiCount < ms_uiMaxDeviceCount);
 
@@ -557,10 +558,11 @@ ComputeEngine::connect(
         DEBUG_CL_printf(SEPARATOR);
         printf("Creating command queue for %s %s...\n", acVendorName, acDeviceName);
         
-        m_akCommandQueues[i] = clCreateCommandQueue(m_kContext, m_akDeviceIds[i], 0, &iError);
+        m_akCommandQueues[i] = clCreateCommandQueue(m_kContext, m_akDeviceIds[i], allowOutOfOrderCommands? CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE : 0, &iError);
         if (!m_akCommandQueues[i] || iError)
         {
             DEBUG_CL_printf("Error: Failed to create a command queue!\n");
+            assert(false);
             return false;
         }
     }
@@ -572,6 +574,40 @@ ComputeEngine::connect(
     m_akMemObjects.clear();
     return true;
 }
+
+bool ComputeEngine::createCommandQueue(
+    uint deviceId,
+    uint queueId,
+    bool allowOutOfOrderCommands
+) {
+    
+    int iError = 0;
+    cl_command_queue_properties properties = 0;
+        
+    if (allowOutOfOrderCommands) {
+        properties = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+    }
+    
+    if (commandQueues.count(deviceId) == 0) {
+        commandQueues[deviceId] = std::map<uint, cl_command_queue>();
+    }
+    
+    if (commandQueues[deviceId].count(queueId) != 0) {
+        clReleaseCommandQueue(commandQueues[deviceId][queueId]);
+    }
+    
+    commandQueues[deviceId][queueId] = clCreateCommandQueue(m_kContext, m_akDeviceIds[deviceId], properties, &iError);
+    if (commandQueues[deviceId][queueId] == NULL || iError)
+    {
+        DEBUG_CL_printf("Error: Failed to create a command queue!\n");
+        ReportError(iError);
+        return false;
+    }
+    
+    return true;
+}
+    
+    
 
 bool
 ComputeEngine::disconnect()
@@ -616,6 +652,14 @@ ComputeEngine::disconnect()
         delete [] m_akCommandQueues;
         m_akCommandQueues = 0;
     }
+    
+    for (auto deviceItr = commandQueues.begin(); deviceItr != commandQueues.end(); deviceItr++) {
+        auto & queues = deviceItr->second;
+        for (auto idItr = queues.begin(); idItr != queues.end(); idItr++) {
+            clReleaseCommandQueue(idItr->second);
+        }
+    }
+    commandQueues.clear();
 
     if(m_akDeviceIds)
     {
@@ -883,6 +927,35 @@ ComputeEngine::executeKernel(
 	}  
     
 	return true;
+}
+
+bool
+ComputeEngine::executeKernelWithQueueId(
+    std::string kernelName,
+    uint deviceId,
+    uint queueId,
+    std::vector<size_t> globalDims)
+{
+    KernelMapIter pkKernelIter = m_akKernels.find(kernelName.c_str());
+    if(pkKernelIter == m_akKernels.end()) {
+        assert(false);
+    }
+                
+    cl_kernel kKernel = pkKernelIter->second;
+
+    int iError = CL_SUCCESS;
+    iError = clEnqueueNDRangeKernel(commandQueues[deviceId][queueId], kKernel,
+                                    (int) globalDims.size(), NULL, &globalDims[0], NULL,
+                                    0, NULL, NULL);
+
+    if(iError != CL_SUCCESS)
+    {
+        DEBUG_CL_printf("Compute Engine: Error aexecuting kernel '%s'\n", acKernelName);
+        ReportError(iError);
+        assert(false);
+    }  
+    
+    return true;
 }
 
 
@@ -1506,6 +1579,22 @@ ComputeEngine::finish(
     if(iError != CL_SUCCESS)
     {
         DEBUG_CL_printf("Failed to finish commands for device: %d\n", uiDeviceIndex);
+        ReportError(iError);
+        return false;
+    }   
+
+    return true;
+}
+
+bool
+ComputeEngine::finishOnDeviceWithQueue(
+    uint deviceId,
+    uint queueId
+) {
+    int iError = clFinish(commandQueues[deviceId][queueId]);
+    if(iError != CL_SUCCESS)
+    {
+        DEBUG_CL_printf("Failed to finish commands for device: %d\n", deviceId);
         ReportError(iError);
         return false;
     }   
