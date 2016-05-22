@@ -21,7 +21,7 @@ OpenCLRaytracer::OpenCLRaytracer() : Raytracer() {
     useGPU = false;
     
     numSpheres = numPlanes = numLights = 0;
-    activeDevice = 0;
+    activeDevice = 1;
 }
 
 ///

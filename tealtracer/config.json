@@ -26,8 +26,8 @@
     },
     
     "RightRaytracer" : {
-        "name" : "OCLTiledPhotonRaytracer",
-        "config" : "OCLTiledPhotonRaytracer_MED_01"
+        "name" : "SCMonteCarloRaytracer",
+        "config" : "NullRaytracer"
     },
     
     
@@ -46,6 +46,10 @@
         "GPU" : 1
     },
     
+    "NullRaytracer" : {
+        "enabled" : false,
+        "title" : "No Raytracer"
+    },
     
     "SCMonteCarloRaytracer_MED_01" : {
     
