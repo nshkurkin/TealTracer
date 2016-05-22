@@ -18,7 +18,8 @@ using json = nlohmann::json;
 #include "RaytracingConfig.hpp"
 
 #include "SCMonteCarloRaytracer.hpp" // Single Core: Direct
-#include "SCPhotonMapper.hpp" // Single Core: KDTree and HashGrid
+#include "SCKDTreeRaytracer.hpp" // Single Core: KDTree
+#include "SCHashGridRaytracer.hpp" // Single Core: HashGrid
 #include "SCTilePhotonRaytracer.hpp" // Single Core: Tiled
 
 
@@ -85,7 +86,8 @@ TealTracer::run(const std::vector<std::string> & args) {
     std::map<std::string, std::shared_ptr<Raytracer>> availableRaytracers;
     
     availableRaytracers["SCMonteCarloRaytracer"] = std::shared_ptr<SCMonteCarloRaytracer>(new SCMonteCarloRaytracer());
-    availableRaytracers["SCPhotonMapper"] = std::shared_ptr<SCPhotonMapper>(new SCPhotonMapper());
+    availableRaytracers["SCKDTreeRaytracer"] = std::shared_ptr<SCKDTreeRaytracer>(new SCKDTreeRaytracer());
+    availableRaytracers["SCHashGridRaytracer"] = std::shared_ptr<SCHashGridRaytracer>(new SCHashGridRaytracer());
     availableRaytracers["SCTilePhotonRaytracer"] = std::shared_ptr<SCTilePhotonRaytracer>(new SCTilePhotonRaytracer());
     
     availableRaytracers["OCLMonteCarloRaytracer"] = std::shared_ptr<OCLMonteCarloRaytracer>(new OCLMonteCarloRaytracer());
@@ -103,7 +105,8 @@ TealTracer::run(const std::vector<std::string> & args) {
     rightRaytracer_ = availableRaytracers[rightRaytracerName];
     
     /// Assuming we have two GPUs availabled, we can allow the OpenCL raytracers
-    ///     to work independently of one another.
+    ///     to work independently of one another. This works on my machine because
+    ///     I have 2 GPUs :)
     if (dynamic_cast<OpenCLRaytracer *>(leftRaytracer_.get()) != nullptr
      && dynamic_cast<OpenCLRaytracer *>(rightRaytracer_.get()) != nullptr) {
         dynamic_cast<OpenCLRaytracer *>(leftRaytracer_.get())->activeDevice = 0;
@@ -112,6 +115,9 @@ TealTracer::run(const std::vector<std::string> & args) {
     
     leftRaytracer_->config.loadFromJSON(config[leftRaytracerConfigName]);
     rightRaytracer_->config.loadFromJSON(config[rightRaytracerConfigName]);
+    
+    leftRaytracer_->config.title = config[leftRaytracerName]["screenName"].get<std::string>() + " " +  leftRaytracer_->config.title;
+    rightRaytracer_->config.title = config[rightRaytracerName]["screenName"].get<std::string>() + " " +  rightRaytracer_->config.title;
     
     scene_ = PovrayScene::loadScene(config["povrayScene"].get<std::string>());
     leftRaytracer_->config.Up = Up;

@@ -10,20 +10,19 @@
     
     "available raytracers" : [
         "SCMonteCarloRaytracer",
-        "SCPhotonMapper",
+        "SCKDTreeRaytracer",
+        "SCHashGridRaytracer",
         "SCTilePhotonRaytracer",
 
         "OCLMonteCarloRaytracer",
-        "OCLPhotonHashGridRaytracer",
         "OCLOptimizedHashGridRaytracer",
-        "OCLTiledPhotonRaytracer",
         "OCLOptimizedTiledPhotonRaytracer"
     ],
     
     
     "LeftRaytracer" : {
-        "name" : "OCLOptimizedHashGridRaytracer",
-        "config" : "200kPhoton_SD_BestFit_GPU"
+        "name" : "OCLOptimizedTiledPhotonRaytracer",
+        "config" : "12kPhoton_QuarterSD_BestFit"
     },
     
     "RightRaytracer" : {
@@ -31,16 +30,34 @@
         "config" : "NullRaytracer"
     },
     
+    "SCMonteCarloRaytracer" : {
+        "screenName" : "CPUDirect"
+    },
+    "SCKDTreeRaytracer" : {
+        "screenName" : "CPUKDTree"
+    },
+    "SCHashGridRaytracer" : {
+        "screenName" : "CPUHashGrid"
+    },
+    "SCTilePhotonRaytracer" : {
+        "screenName" : "CPUTiled"
+    },
+    
+    
+    "OCLMonteCarloRaytracer" : {
+        "screenName" : "OCLDirect"
+    },
+    "OCLOptimizedHashGridRaytracer" : {
+        "screenName" : "OCLHashGrid"
+    },
+    "OCLOptimizedTiledPhotonRaytracer" : {
+        "screenName" : "OCLTiled"
+    },
     
     
     "__enum_SupportedBRDF_brdfType" : {
         "BlinnPhong" : 0,
         "OrenNayar" : 1
-    },
-    "__enum_SupportedPhotonMap_supportedPhotonMap" : {
-        "KDTree" : 0,
-        "HashGrid" : 1,
-        "TileFrustum" : 2
     },
     "__enum_ComputationDevice_computationDevice" : {
         "CPU" : 0,
@@ -49,139 +66,20 @@
     
     "NullRaytracer" : {
         "enabled" : false,
-        "title" : "No Raytracer"
+        "title" : ""
     },
     
-    "SCMonteCarloRaytracer_MED_01" : {
-    
+    "12kPhoton_QuarterSD_BestFit" : {
         "enabled" : true,
-        "title" : "SingleCore Direct",
-        
-        "outputWidth" : 320,
-        "outputHeight" : 240,
-        
-        "brdfType" : 0,
-        "shadowsEnabled" : true
-    },
-    
-    "SCPhotonMapper_KDTree_MED_01" : {
-        
-        "enabled" : true,
-        "title" : "SingleCore KDTree",
-        
-        "outputWidth" : 80,
-        "outputHeight" : 60,
-        
-        "brdfType" : 0,
-        "supportedPhotonMap" : 0,
-        
-        "numberOfPhotonsToGather" : 100,
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00
-    },
-    
-    "SCPhotonMapper_HashGrid_MED_01" : {
-        
-        "enabled" : true,
-        "title" : "SingleCore HashGrid",
-        
-        "outputWidth" : 80,
-        "outputHeight" : 60,
-        
-        "brdfType" : 0,
-        "supportedPhotonMap" : 1,
-        
-        "numberOfPhotonsToGather" : 100,
-        "maxPhotonGatherDistance" : -1.0,
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Hashmap_properties" : {
-            "gridStart" : [-10.0, -10.0, -20.0],
-            "gridEnd" : [10.0, 10.0, 10.0],
-            "spacing" : 5,
-            "cellsize" : 0.25
-        }
-    },
-    
-    "SCTilePhotonRaytracer_MED_01" : {
-        "enabled" : true,
-        "title" : "SingleCore Tiled",
+        "title" : "(12k,1/4SD,BestFit)",
+        "controlsCamera" : true,
         
         "outputWidth" : 160,
-        "outputHeight" : 120,
+        "outputHeight" : 160,
         
-        "brdfType" : 0,
+        "computationDevice" : 1,
         
         "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileHeight" : 10,
-            "tileWidth" : 10,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLMonteCarloRaytracer_MED_01" : {
-        
-        "enabled" : true,
-        "title" : "Direct OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 640,
-        "outputHeight" : 480,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0
-    },
-    
-    "OCLPhotonHashGridRaytracer_MED_01" : {
-        
-        "enabled" : true,
-        "title" : "HashGrid OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 80,
-        "outputHeight" : 60,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "numberOfPhotonsToGather" : 100,
-        "maxPhotonGatherDistance" : 1.0,
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Hashmap_properties" : {
-            "gridStart" : [-10.0, -10.0, -20.0],
-            "gridEnd" : [10.0, 10.0, 10.0],
-            "spacing" : 5,
-            "cellsize" : 0.25
-        }
-    },
-    
-    "200kPhoton_SD_BestFit_GPU" : {
-        "enabled" : true,
-        "title" : "(200k,SD,BestFit) OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 640,
-        "outputHeight" : 480,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -201,218 +99,32 @@
         }
     },
     
-    "OCLTiledPhotonRaytracer_LOW_EighthSD_GPU" : {
+    "200kPhoton_SD_BestFit" : {
         "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 80,
-        "outputHeight" : 80,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_HIGH_EighthSD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 80,
-        "outputHeight" : 80,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 200000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_LOW_QuarterSD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 160,
-        "outputHeight" : 160,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_HIGH_QuarterSD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 160,
-        "outputHeight" : 160,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 200000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_LOW_HalfSD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 320,
-        "outputHeight" : 240,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_HIGH_HalfSD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 320,
-        "outputHeight" : 240,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 200000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_LOW_SD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
+        "title" : "(200k,SD,BestFit)",
         "controlsCamera" : true,
         
         "outputWidth" : 640,
         "outputHeight" : 480,
         
         "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 12000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 80,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_HIGH_SD_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 640,
-        "outputHeight" : 480,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
         
         "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
         
+        "photonEffectRadius" : 1.0,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "cellsize" : 0.5
+        },
+        
         "Tile_properties" : {
             "tileWidth" : 80,
             "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
-            "photonSampleRate" : 1.0
-        }
-    },
-    
-    "OCLTiledPhotonRaytracer_HIGH_720P_GPU" : {
-        "enabled" : true,
-        "title" : "Tiled OpenCL (GPU)",
-        "controlsCamera" : true,
-        
-        "outputWidth" : 1080,
-        "outputHeight" : 720,
-        
-        "computationDevice" : 1,
-        "brdfType" : 0,
-        
-        "raysPerLight" : 200000,
-        "lumensPerLight" : 600,
-        "photonBounceProbability" : 0.50,
-        "photonBounceEnergyMultipler" : 1.00,
-        
-        "Tile_properties" : {
-            "tileWidth" : 120,
-            "tileHeight" : 80,
-            "photonEffectRadius" : 1.0,
             "photonSampleRate" : 1.0
         }
     }
