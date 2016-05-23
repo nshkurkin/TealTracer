@@ -323,4 +323,54 @@ private:
     PovrayFinish finish_;
 };
 
+struct PovrayTriangleData {
+    Eigen::Vector3f a, b, c;
+    
+    PovrayPigment pigment;
+    PovrayFinish finish;
+    
+    float id;
+};
+
+///
+class PovrayTriangle : public PovraySceneElement {
+public:
+
+    /// Sets this element's content to "body"
+    virtual void parse(const std::string & body);
+    ///
+    virtual std::shared_ptr<PovraySceneElement> copy() const;
+    ///
+    virtual void write(std::ostream & out) const;
+
+    ///
+    virtual RayIntersectionResult intersect(const Ray & ray);
+    
+    ///
+    virtual PovrayPigment const * pigment() const;
+    ///
+    virtual PovrayFinish const * finish() const;
+
+    ///
+    PovrayTriangleData data() const {
+        PovrayTriangleData dat;
+        
+        dat.a = a_;
+        dat.b = b_;
+        dat.c = c_;
+        dat.pigment = pigment_;
+        dat.finish = finish_;
+        dat.id = this->id();
+        
+        return dat;
+    }
+
+private:
+
+    Eigen::Vector3f a_, b_, c_;
+    
+    PovrayPigment pigment_;
+    PovrayFinish finish_;
+};
+
 #endif /* PovraySceneElements_hpp */

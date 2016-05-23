@@ -50,6 +50,7 @@
 		C069B3931CF20A720000BCA7 /* OCLOptimizedHashGridRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C069B3911CF20A720000BCA7 /* OCLOptimizedHashGridRaytracer.cpp */; };
 		C069B3961CF21B700000BCA7 /* SCKDTreeRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C069B3941CF21B700000BCA7 /* SCKDTreeRaytracer.cpp */; };
 		C069B3991CF21C060000BCA7 /* SCHashGridRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C069B3971CF21C060000BCA7 /* SCHashGridRaytracer.cpp */; };
+		C069B39B1CF2A75F0000BCA7 /* simple_tri.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C069B39A1CF2A7360000BCA7 /* simple_tri.pov */; };
 		C0B1BAF91CE8D4E8005C8C51 /* SCTilePhotonRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0B1BAF71CE8D4E8005C8C51 /* SCTilePhotonRaytracer.cpp */; };
 		C0B1BAFC1CE8D511005C8C51 /* SCMonteCarloRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0B1BAFA1CE8D511005C8C51 /* SCMonteCarloRaytracer.cpp */; };
 		C0B1BAFF1CE8D523005C8C51 /* SCPhotonMapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0B1BAFD1CE8D523005C8C51 /* SCPhotonMapper.cpp */; };
@@ -82,6 +83,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C069B39B1CF2A75F0000BCA7 /* simple_tri.pov in CopyFiles */,
 				C02E2B441CEC168600B5BFDC /* scene_config.cl in CopyFiles */,
 				C02E2B411CEC0C4B00B5BFDC /* photons.cl in CopyFiles */,
 				C02E2B421CEC0C4B00B5BFDC /* photon_tiling.cl in CopyFiles */,
@@ -175,6 +177,7 @@
 		C069B3951CF21B700000BCA7 /* SCKDTreeRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SCKDTreeRaytracer.hpp; sourceTree = "<group>"; };
 		C069B3971CF21C060000BCA7 /* SCHashGridRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SCHashGridRaytracer.cpp; sourceTree = "<group>"; };
 		C069B3981CF21C060000BCA7 /* SCHashGridRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SCHashGridRaytracer.hpp; sourceTree = "<group>"; };
+		C069B39A1CF2A7360000BCA7 /* simple_tri.pov */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = simple_tri.pov; sourceTree = "<group>"; };
 		C0B1BAF71CE8D4E8005C8C51 /* SCTilePhotonRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SCTilePhotonRaytracer.cpp; sourceTree = "<group>"; };
 		C0B1BAF81CE8D4E8005C8C51 /* SCTilePhotonRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SCTilePhotonRaytracer.hpp; sourceTree = "<group>"; };
 		C0B1BAFA1CE8D511005C8C51 /* SCMonteCarloRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SCMonteCarloRaytracer.cpp; sourceTree = "<group>"; };
@@ -1423,6 +1426,7 @@
 				C01416F71CBEE5F40040D4C6 /* planes.pov */,
 				C01416F91CBEE81F0040D4C6 /* simple_cam.pov */,
 				C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */,
+				C069B39A1CF2A7360000BCA7 /* simple_tri.pov */,
 			);
 			name = scenes;
 			sourceTree = "<group>";

@@ -289,3 +289,71 @@ PovrayFinish const * PovrayPlane::finish() const {
     return &finish_;
 }
 
+//////////////////////////////////////////////////////////////////
+
+/// Sets this element's content to "body"
+void PovrayTriangle::parse(const std::string & body) {
+    std::map<std::string, std::pair<ValueType, void *>> content;
+//        TSLoggerLog(std::cout, "parsing triangle");
+    
+    content["pigment"] = std::make_pair(PovraySceneElement::ValueType::Pigment, &pigment_);
+    content["finish"] = std::make_pair(PovraySceneElement::ValueType::Finish, &finish_);
+    
+    std::string localBody = body;
+    
+    parseVector3(localBody, a_);
+    parseVector3(localBody, b_);
+    parseVector3(localBody, c_);
+    parseBody(localBody, content);
+}
+
+///
+std::shared_ptr<PovraySceneElement> PovrayTriangle::copy() const {
+    auto triangle = std::shared_ptr<PovrayTriangle>(new PovrayTriangle());
+    triangle->a_ = a_;
+    triangle->b_ = b_;
+    triangle->c_ = c_;
+
+    triangle->pigment_ = pigment_;
+    triangle->finish_ = finish_;
+    
+    return triangle;
+}
+
+///
+void PovrayTriangle::write(std::ostream & out) const {
+    out << "triangle {" << std::endl;
+    out << "\t" <<  writeOut(out, a_) << std::endl;
+    out << "\t" <<  writeOut(out, b_) << std::endl;
+    out << "\t" <<  writeOut(out, c_) << std::endl;
+    out << "\tpigment\t" << writeOut(out, pigment_) << std::endl;
+    out << "\tfinish\t" << writeOut(out, finish_) << std::endl;
+    out << "}" << std::endl;
+}
+
+///
+RayIntersectionResult PovrayTriangle::intersect(const Ray & ray) {
+    RayIntersectionResult result;
+    
+    Eigen::Matrix3f A;
+    A.block<3,1>(0,0) = a_ - b_;
+    A.block<3,1>(0,1) = a_ - c_;
+    A.block<3,1>(0,2) = ray.direction;
+    Eigen::Vector3f b = a_ - ray.origin;
+    Eigen::Vector3f x = A.inverse() * b;
+    
+    // now "x" has Beta, Gamma, and t
+
+    return result;
+}
+
+///
+PovrayPigment const * PovrayTriangle::pigment() const {
+    return &pigment_;
+}
+
+///
+PovrayFinish const * PovrayTriangle::finish() const {
+    return &finish_;
+}
+
