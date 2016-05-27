@@ -38,7 +38,7 @@
 		C064A94D1CB05E2D003A3D8B /* data_loader.c in Sources */ = {isa = PBXBuildFile; fileRef = C064A94C1CB05E2D003A3D8B /* data_loader.c */; };
 		C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9531CB07BF0003A3D8B /* SampleFragmentShader.glsl */; };
 		C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9541CB07BF0003A3D8B /* SampleVertexShader.glsl */; };
-		C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C125371CAB7D940024DA91 /* lab1_simple.pov */; };
+		C064A95A1CB42E99003A3D8B /* sphere_and_plane.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0C125371CAB7D940024DA91 /* sphere_and_plane.pov */; };
 		C064A95F1CB43ABE003A3D8B /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C064A95D1CB43ABE003A3D8B /* Image.cpp */; };
 		C064A9631CB489AE003A3D8B /* texture.frag.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9611CB443D8003A3D8B /* texture.frag.glsl */; };
 		C064A9641CB489AE003A3D8B /* texture.vert.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C064A9621CB443E4003A3D8B /* texture.vert.glsl */; };
@@ -102,7 +102,7 @@
 				C064A9641CB489AE003A3D8B /* texture.vert.glsl in CopyFiles */,
 				C064A9581CB42E99003A3D8B /* SampleFragmentShader.glsl in CopyFiles */,
 				C064A9591CB42E99003A3D8B /* SampleVertexShader.glsl in CopyFiles */,
-				C064A95A1CB42E99003A3D8B /* lab1_simple.pov in CopyFiles */,
+				C064A95A1CB42E99003A3D8B /* sphere_and_plane.pov in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -540,7 +540,7 @@
 		C0C1252E1CAB5B930024DA91 /* Raytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Raytracer.hpp; sourceTree = "<group>"; };
 		C0C125301CAB5C3F0024DA91 /* SingleCoreRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SingleCoreRaytracer.cpp; sourceTree = "<group>"; };
 		C0C125311CAB5C3F0024DA91 /* SingleCoreRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SingleCoreRaytracer.hpp; sourceTree = "<group>"; };
-		C0C125371CAB7D940024DA91 /* lab1_simple.pov */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lab1_simple.pov; sourceTree = "<group>"; };
+		C0C125371CAB7D940024DA91 /* sphere_and_plane.pov */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = sphere_and_plane.pov; sourceTree = "<group>"; };
 		C0C125381CAC405B0024DA91 /* PovrayScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovrayScene.cpp; sourceTree = "<group>"; };
 		C0C125391CAC405B0024DA91 /* PovrayScene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PovrayScene.hpp; sourceTree = "<group>"; };
 		C0C1253B1CAC40AB0024DA91 /* PovraySceneElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PovraySceneElements.cpp; sourceTree = "<group>"; };
@@ -1422,7 +1422,7 @@
 		C0C125361CAB7D710024DA91 /* scenes */ = {
 			isa = PBXGroup;
 			children = (
-				C0C125371CAB7D940024DA91 /* lab1_simple.pov */,
+				C0C125371CAB7D940024DA91 /* sphere_and_plane.pov */,
 				C01416F71CBEE5F40040D4C6 /* planes.pov */,
 				C01416F91CBEE81F0040D4C6 /* simple_cam.pov */,
 				C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */,

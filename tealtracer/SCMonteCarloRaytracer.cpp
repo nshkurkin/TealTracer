@@ -49,7 +49,7 @@ void SCMonteCarloRaytracer::raytraceScene() {
                     shadowRay.direction = toLightDir;
                     auto shadowHitTest = config.scene->closestIntersection(shadowRay);
                     
-                    bool isShadowed = config.shadowsEnabled && !(!shadowHitTest.hit.intersected
+                    bool isShadowed = !(!shadowHitTest.hit.intersected
                      || (shadowHitTest.hit.intersected && shadowHitTest.hit.timeOfIntersection > toLight.norm()));
                     
                     if (!isShadowed) {

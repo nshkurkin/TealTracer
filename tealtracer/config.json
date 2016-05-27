@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "GIRefScene1.pov",
+    "povrayScene" : "sphere_and_plane.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -21,12 +21,12 @@
     
     
     "LeftRaytracer" : {
-        "name" : "SCHashGridRaytracer",
-        "config" : "12kPhoton_QuarterSD_BestFit"
+        "name" : "OCLOptimizedTiledPhotonRaytracer",
+        "config" : "12kPhoton_SD_BestFit"
     },
     
     "RightRaytracer" : {
-        "name" : "SCTilePhotonRaytracer",
+        "name" : "SCMonteCarloRaytracer",
         "config" : "NullRaytracer"
     },
     
@@ -80,6 +80,126 @@
         "computationDevice" : 1,
         
         "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "photonEffectRadius" : 1.0,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "cellsize" : 0.5
+        },
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "12kPhoton_HalfSD_BestFit" : {
+        "enabled" : true,
+        "title" : "(12k,1/2SD,BestFit)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 320,
+        "outputHeight" : 240,
+        
+        "computationDevice" : 1,
+        
+        "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "photonEffectRadius" : 1.0,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "cellsize" : 0.5
+        },
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "12kPhoton_SD_BestFit" : {
+        "enabled" : true,
+        "title" : "(12k,SD,BestFit)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 640,
+        "outputHeight" : 480,
+        
+        "computationDevice" : 1,
+        
+        "raysPerLight" : 12000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "photonEffectRadius" : 1.0,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "cellsize" : 0.5
+        },
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "200kPhoton_QuarterSD_BestFit" : {
+        "enabled" : true,
+        "title" : "(200k,1/4SD,BestFit)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 160,
+        "outputHeight" : 160,
+        
+        "computationDevice" : 1,
+        
+        "raysPerLight" : 200000,
+        "lumensPerLight" : 600,
+        "photonBounceProbability" : 0.50,
+        "photonBounceEnergyMultipler" : 1.00,
+        
+        "photonEffectRadius" : 1.0,
+        
+        "Hashmap_properties" : {
+            "gridStart" : [-10.0, -10.0, -20.0],
+            "gridEnd" : [10.0, 10.0, 10.0],
+            "cellsize" : 0.5
+        },
+        
+        "Tile_properties" : {
+            "tileWidth" : 80,
+            "tileHeight" : 80,
+            "photonSampleRate" : 1.0
+        }
+    },
+    
+    "200kPhoton_HalfSD_BestFit" : {
+        "enabled" : true,
+        "title" : "(200k,1/2SD,BestFit)",
+        "controlsCamera" : true,
+        
+        "outputWidth" : 320,
+        "outputHeight" : 240,
+        
+        "computationDevice" : 1,
+        
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
