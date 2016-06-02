@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "sphere_and_plane.pov",
+    "povrayScene" : "GIRefScene2.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -22,11 +22,11 @@
     
     "LeftRaytracer" : {
         "name" : "OCLOptimizedTiledPhotonRaytracer",
-        "config" : "12kPhoton_SD_BestFit"
+        "config" : "200kPhoton_SD_BestFit"
     },
     
     "RightRaytracer" : {
-        "name" : "SCMonteCarloRaytracer",
+        "name" : "SCKDTreeRaytracer",
         "config" : "NullRaytracer"
     },
     
