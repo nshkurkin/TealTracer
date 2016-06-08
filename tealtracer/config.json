@@ -1,5 +1,5 @@
 {
-    "povrayScene" : "GIRefScene2.pov",
+    "povrayScene" : "GIRefScene1.pov",
     
     "windowWidth" : 640,
     "windowHeight" : 480,
@@ -22,7 +22,7 @@
     
     "LeftRaytracer" : {
         "name" : "OCLOptimizedTiledPhotonRaytracer",
-        "config" : "200kPhoton_SD_BestFit"
+        "config" : "12kPhoton_SD_BestFit"
     },
     
     "RightRaytracer" : {
@@ -139,7 +139,7 @@
         
         "computationDevice" : 1,
         
-        "raysPerLight" : 12000,
+        "raysPerLight" : 200000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,
@@ -191,7 +191,7 @@
     
     "200kPhoton_HalfSD_BestFit" : {
         "enabled" : true,
-        "title" : "(200k,1/2SD,BestFit)",
+        "title" : "(100k,1/2SD,BestFit)",
         "controlsCamera" : true,
         
         "outputWidth" : 320,
@@ -199,7 +199,7 @@
         
         "computationDevice" : 1,
         
-        "raysPerLight" : 200000,
+        "raysPerLight" : 100000,
         "lumensPerLight" : 600,
         "photonBounceProbability" : 0.50,
         "photonBounceEnergyMultipler" : 1.00,

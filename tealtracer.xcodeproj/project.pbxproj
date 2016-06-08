@@ -20,6 +20,7 @@
 		C01EB03F1CC185AE0080FC65 /* intersection.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB03E1CC185410080FC65 /* intersection.cl */; };
 		C01EB0411CC186660080FC65 /* photon_hashmap.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */; };
 		C01EB0441CC195770080FC65 /* coloring.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = C01EB0431CC188690080FC65 /* coloring.cl */; };
+		C02C17A81D00D83100120010 /* GIRefScene2.pov in CopyFiles */ = {isa = PBXBuildFile; fileRef = C02C17A71D00D81000120010 /* GIRefScene2.pov */; };
 		C02E2B361CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B341CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp */; };
 		C02E2B391CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B371CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp */; };
 		C02E2B3F1CEBF67800B5BFDC /* photon_tiling.cl in Sources */ = {isa = PBXBuildFile; fileRef = C02E2B3E1CEBF67800B5BFDC /* photon_tiling.cl */; };
@@ -83,6 +84,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				C02C17A81D00D83100120010 /* GIRefScene2.pov in CopyFiles */,
 				C069B39B1CF2A75F0000BCA7 /* simple_tri.pov in CopyFiles */,
 				C02E2B441CEC168600B5BFDC /* scene_config.cl in CopyFiles */,
 				C02E2B411CEC0C4B00B5BFDC /* photons.cl in CopyFiles */,
@@ -128,6 +130,7 @@
 		C01EB0401CC185FB0080FC65 /* photon_hashmap.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = photon_hashmap.cl; sourceTree = "<group>"; };
 		C01EB0431CC188690080FC65 /* coloring.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = coloring.cl; sourceTree = "<group>"; };
 		C01EB0461CC19F770080FC65 /* random.cl */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.opencl; path = random.cl; sourceTree = "<group>"; };
+		C02C17A71D00D81000120010 /* GIRefScene2.pov */ = {isa = PBXFileReference; lastKnownFileType = text; path = GIRefScene2.pov; sourceTree = "<group>"; };
 		C02E2B341CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OCLMonteCarloRaytracer.cpp; sourceTree = "<group>"; };
 		C02E2B351CEBE5B800B5BFDC /* OCLMonteCarloRaytracer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OCLMonteCarloRaytracer.hpp; sourceTree = "<group>"; };
 		C02E2B371CEBEEE600B5BFDC /* OCLTiledPhotonRaytracer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OCLTiledPhotonRaytracer.cpp; sourceTree = "<group>"; };
@@ -1426,6 +1429,7 @@
 				C01416F71CBEE5F40040D4C6 /* planes.pov */,
 				C01416F91CBEE81F0040D4C6 /* simple_cam.pov */,
 				C066EE8D1CDC03E7002030DD /* GIRefScene1.pov */,
+				C02C17A71D00D81000120010 /* GIRefScene2.pov */,
 				C069B39A1CF2A7360000BCA7 /* simple_tri.pov */,
 			);
 			name = scenes;
